@@ -431,3 +431,23 @@ Then `milp_act_rank`: the same trailing gate scored by Spearman rank correlation
 Brier: no negative month, +3.2 % a year uncapped (+1.21 M +- 0.78 M, 135 / 291 days, significant), +0.3 % at 25 MW
 (+98k +- 116k, noise); Q3 +10.2 % / +1.2 %. It admits the aFRR shares on nearly every day from May and the mFRR model
 almost only in October. Deck v13 (artifact version 14) quotes it; the Brier gate stays in the table for comparison.
+
+
+## 4i. The uncertainty line pays: faithful two-stage scenario plans (10 Nov 2026)
+
+Autonomous day (user away). Research pass on 2026 entries (research/README.md "Added 10 Nov"): QEst 2025 winner Enefit
+(EV charging, savings statement, pilot prize), Qtyche (QAOA + Benders, exact optimum at 14 buses), IonQ shadow-trained NQS
+(2611.08129), Marshall-Egger QeMCMC + tempering (2602.06171), PCE at scale (2607.24722), the Heron benchmark where deep
+QAOA is random-baseline-limited (2607.11637). Repo pushed to github.com/MuhammadHakami/QEst_2026 (two commits).
+Built and measured (research/quantum_gain_2026.md): `qest.stoch` recourse 'faithful' (delivered = activated, shortfall at
+the activation price) and 'guard' (settlement's SoC guard by fixed point; too pessimistic, dropped), pinned first stage for
+in-model valuation, exact 25 MW cap (activated MW before the probability, one binary per MTU / direction / scenario);
+`qest.qscen` mean-consistent scenarios at the plan's margin, chain fallback for Jan-Feb (fit to 1 Mar, printed), fill of
+missing actfc features; `qest.qscen_q` per-chain targets, parallel tempering, day sampler, day benchmark; `qdecide`
+forecaster 'actrank'; `QEST_DAYS` subsets. Results, walk-forward: deciders on the rank-gated marginals stay within
++-0.7 % of the MILP (QAOA hits the QUBO optimum 94-98 %: the surrogate is the ceiling). Scenario plans `milp_scenf*`
+(rank-gated marginals, 4-16 exact chain scenarios or MCMC day samplers) beat `milp_act_rank` over the year by +4.0 to
++6.7 % (+1.5 to +2.6 M, all significant; +7 to +10 % over Chronos-2 + MILP) and under the 25 MW cap by +8.3 / +8.6 % on Q3
+and +8.1 / +8.5 % on Q4 (significant). Sampler fidelity is not what pays: 4 exact scenarios beat 16, the single-flip
+MCMC beats the quantum one; day-level sampler benchmark: quantum proposal equal to local on marginals, worse on
+persistence, 80x the time; tempering helps both. Whole-year capped run and the deck update follow.

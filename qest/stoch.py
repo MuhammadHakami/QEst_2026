@@ -25,7 +25,7 @@ from qest.market import DT, PRODUCTS
 from qest.optimize import Z
 
 FIRST = ['c', 'd', 'pv', 'ru_a', 'ru_m', 'rd_a', 'rd_m', 'y', 'z_ua', 'z_um', 'z_da', 'z_dm']
-SECOND = ['nc', 'nd', 's', 'y2', 'imp', 'au', 'am', 'bda', 'bdm', 'sh', 'lg', 'pu', 'pd']  # au.. = activation MW delivered; sh / lg = short / long deviation (MW); pu / pd = priced out (guard)
+SECOND = ['nc', 'nd', 's', 'y2', 'imp', 'au', 'am', 'bda', 'bdm', 'sh', 'lg', 'pu', 'pd', 'bu', 'bd', 'gua', 'gum', 'gda', 'gdm']  # au.. = activation MW delivered; sh / lg = short / long deviation (MW); pu / pd = priced out (guard)
 
 
 def plan_storage_stoch(u, scen, w, pv=None, products=PRODUCTS, depth=None, lam=0.0, alpha=0.9, mip_gap=4e-3, time_limit=90, recourse='free', tol=.05, po=None, fixed=None):
@@ -60,6 +60,9 @@ def plan_storage_stoch(u, scen, w, pv=None, products=PRODUCTS, depth=None, lam=0
                 ub[ix(v, t, s_)] = P
             ub[ix('sh', t, s_)] = ub[ix('lg', t, s_)] = 2 * P if faithful else 0
             ub[ix('pu', t, s_)] = ub[ix('pd', t, s_)] = 1 if (guard and t) else 0; integ[ix('pu', t, s_)] = integ[ix('pd', t, s_)] = 1
+            capped = faithful and ('vol_up' in scen[0]) and t; ub[ix('bu', t, s_)] = ub[ix('bd', t, s_)] = 1 if capped else 0; integ[ix('bu', t, s_)] = integ[ix('bd', t, s_)] = 1
+            for gv in ('gua', 'gum', 'gda', 'gdm'):
+                ub[ix(gv, t, s_)] = P if capped else 0
             if po is not None and guard and t:
                 lb[ix('pu', t, s_)] = ub[ix('pu', t, s_)] = float(po[0][t, s_]); lb[ix('pd', t, s_)] = ub[ix('pd', t, s_)] = float(po[1][t, s_])
     for v, val in (fixed or {}).items():  # first-stage variables pinned (the in-model value of a given plan)
@@ -87,7 +90,7 @@ def plan_storage_stoch(u, scen, w, pv=None, products=PRODUCTS, depth=None, lam=0
                     pc = px[f'cap_{k}'][t] * DT; prof[s_, ix(v, t)] -= .25 * pc; prof[s_, ix(z, t)] -= .5 * pc
         prof[s_, ix('s', n - 1, s_)] += mda
     cobj = (1 - lam) * (w @ prof); cobj[i_eta] += lam; cobj[i_zeta:i_zeta + S] -= lam * w / (1 - alpha)  # maximise
-    rows = 13 * n + 2 * n * S + 7 * n * S + 2 * n * S + 4 * n * S + 2 * n * S + S + 4 * n + 2 * n + (14 * n * S if guard else 0)
+    rows = 13 * n + 2 * n * S + 7 * n * S + 2 * n * S + 4 * n * S + 14 * n * S + S + 4 * n + 2 * n + (14 * n * S if guard else 0)
     A = lil_matrix((rows, N)); lo, hi = np.full(rows, -np.inf), np.full(rows, np.inf); r = 0; s0 = u.soc0 * E
     for t in range(n):  # first-stage rows
         A[r, ix('d', t)] = 1; A[r, ix('c', t)] = -1; A[r, ix('ru_a', t)] = 1; A[r, ix('ru_m', t)] = 1; hi[r] = P; r += 1
@@ -114,10 +117,22 @@ def plan_storage_stoch(u, scen, w, pv=None, products=PRODUCTS, depth=None, lam=0
             A[r, ix('nd', t, s_)] = 1; A[r, ix('nc', t, s_)] = -1; A[r, ix('d', t)] = -1; A[r, ix('c', t)] = 1
             A[r, ix('au', t, s_)] = -1; A[r, ix('am', t, s_)] = -1; A[r, ix('bda', t, s_)] = 1; A[r, ix('bdm', t, s_)] = 1
             A[r, ix('sh', t, s_)] = 1; A[r, ix('lg', t, s_)] = -1; lo[r] = hi[r] = 0; r += 1  # battery flow = target - short + long
-            if faithful and 'vol_up' in px:  # volume-capped settlement (qest.market.activated_volumes): offers beyond what the TSO activates deliver nothing,
-                # so the activated offer is held within the TSO's volume per direction (conservative: forgoes capacity pay on MW above the cap)
-                A[r, ix('ru_a', t)] = E_['ua'][t] / DT; A[r, ix('ru_m', t)] = E_['um'][t] / DT; hi[r] = float(px['vol_up'][t]); r += 1
-                A[r, ix('rd_a', t)] = E_['da'][t] / DT; A[r, ix('rd_m', t)] = E_['dm'][t] / DT; hi[r] = float(px['vol_dn'][t]); r += 1
+            if faithful and 'vol_up' in px and t:  # volume-capped settlement (qest.market.activated_volumes): the TSO activates at most vol MW per
+                # direction, before the probability: g_k = activated MW of offer k, sum g <= vol, g_k <= offer_k, g forced to min(sum offer, vol) by a
+                # binary ('bu' / 'bd'); delivered_k = share_k g_k
+                for ks, b, vol in ((('au', 'ru_a', 'ua', 'gua'), ('am', 'ru_m', 'um', 'gum')), 'bu', float(px['vol_up'][t])), ((('bda', 'rd_a', 'da', 'gda'), ('bdm', 'rd_m', 'dm', 'gdm')), 'bd', float(px['vol_dn'][t])):
+                    for v, cv, k, gv in ks:
+                        A[r, ix(gv, t, s_)] = 1; A[r, ix(cv, t)] = -1; hi[r] = 0; r += 1  # g_k <= offer_k
+                        A[r, ix(v, t, s_)] = 1; A[r, ix(gv, t, s_)] = -E_[k][t] / DT; lo[r] = hi[r] = 0; r += 1  # delivered_k = share_k g_k
+                    for v, cv, k, gv in ks:
+                        A[r, ix(gv, t, s_)] = 1
+                    hi[r] = vol; r += 1  # sum g <= vol
+                    for v, cv, k, gv in ks:
+                        A[r, ix(gv, t, s_)] = 1; A[r, ix(cv, t)] = -1
+                    A[r, ix(b, t, s_)] = 2 * P; lo[r] = 0; r += 1  # sum g >= sum offer - M b
+                    for v, cv, k, gv in ks:
+                        A[r, ix(gv, t, s_)] = 1
+                    A[r, ix(b, t, s_)] = -2 * P; lo[r] = vol - 2 * P; r += 1  # sum g >= vol - M (1 - b)
             if faithful:  # a deviation only arises from what the battery cannot back: short on UP / sales, long on DOWN / purchases
                 A[r, ix('sh', t, s_)] = 1; A[r, ix('au', t, s_)] = -1; A[r, ix('am', t, s_)] = -1; A[r, ix('d', t)] = -1; hi[r] = 0; r += 1
                 A[r, ix('lg', t, s_)] = 1; A[r, ix('bda', t, s_)] = -1; A[r, ix('bdm', t, s_)] = -1; A[r, ix('c', t)] = -1; hi[r] = 0; r += 1
@@ -128,7 +143,7 @@ def plan_storage_stoch(u, scen, w, pv=None, products=PRODUCTS, depth=None, lam=0
                     A[r, ix(v, t, s_)] = 1; A[r, ix(cv, t)] = -E_[k][t] / DT; hi[r] = 0; r += 1
                     A[r, ix(v, t, s_)] = 1; A[r, ix(po, t, s_)] = P; hi[r] = P; r += 1
                     A[r, ix(v, t, s_)] = 1; A[r, ix(cv, t)] = -E_[k][t] / DT; A[r, ix(po, t, s_)] = P; lo[r] = 0; r += 1
-                else:
+                elif not (faithful and 'vol_up' in px and t):  # (capped: the min-rows above carry delivery)
                     A[r, ix(v, t, s_)] = 1; A[r, ix(cv, t)] = -E_[k][t] / DT; hi[r] = 0; lo[r] = 0 if faithful else -np.inf; r += 1
             if guard and t and po is None:  # the guard: pu = 1 <=> drift <= -tol E, pd = 1 <=> drift >= tol E, drift = s_{t-1, s} - sum_s' w s_{t-1, s'}
                 TE, M = tol * E, 2 * E

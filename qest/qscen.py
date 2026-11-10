@@ -85,7 +85,7 @@ def fit(before=None, splits=('train', 'val', 'test')):
     age = (days.max() - days) / np.timedelta64(1, 'D'); w = 0.5 ** (age / HALF_LIFE)
     m = LogisticRegression(max_iter=2000, C=1.0).fit(_design(X, np.r_[0, z[:-1]])[~first & ok], z[~first & ok], sample_weight=w[~first & ok])
     pi0 = np.bincount(z[first & ok], weights=w[first & ok], minlength=4); pi0 = pi0 / pi0.sum()
-    return dict(model=m, pi0=pi0, n_days=int(first.sum()), aus_ratio=float(j.afrr4s_up_share[z % 2 == 1].mean() / max(j.afrr4s_up_share[z % 2 == 0].mean(), 1e-3)),
+    return dict(model=m, pi0=pi0, n_days=int(first.sum()), fill=X[FEATS][ok].mean().to_dict(), aus_ratio=float(j.afrr4s_up_share[z % 2 == 1].mean() / max(j.afrr4s_up_share[z % 2 == 0].mean(), 1e-3)),
                 ads_ratio=float(j.afrr4s_down_share[z >= 2].mean() / max(j.afrr4s_down_share[z < 2].mean(), 1e-3)))
 
 
@@ -97,13 +97,26 @@ def params(day=None):
         if p.exists():
             _P[key] = pickle.loads(p.read_bytes())
         else:
-            _P[key] = fit(None if day is None else pd.Timestamp(day).replace(day=1)); p.write_bytes(pickle.dumps(_P[key]))
+            if day is None:
+                _P[key] = fit(None)
+            else:  # walk-forward: days before the month; the first months have no (actfc-covered) history and fall back to the
+                m0 = pd.Timestamp(day).replace(day=1)  # nearest later cut that has data (in-sample for those months, printed, as the calibration table does)
+                for k in range(0, 12):
+                    try:
+                        _P[key] = fit(m0 + pd.DateOffset(months=k)); break
+                    except (ValueError, IndexError):
+                        continue
+                else:
+                    _P[key] = fit(None)
+                if k:
+                    print(f'qscen: {key} chain fitted on data to {(m0 + pd.DateOffset(months=k)).date()} (no earlier history)', flush=True)
+            p.write_bytes(pickle.dumps(_P[key]))
     return _P[key]
 
 
 def transitions(P, X):
     """(T, 4, 4) matrices: row = previous state, column = next, for each MTU of the day (MTU 0's row is unused)."""
-    T = len(X); M = np.zeros((T, 4, 4))
+    T = len(X); M = np.zeros((T, 4, 4)); X = X.fillna(P.get('fill', 0.0))  # days without an actfc forecast (the first weeks): the fit's mean
     for zp in range(4):
         pr = P['model'].predict_proba(_design(X, np.full(T, zp))); M[:, zp, P['model'].classes_] = pr
     return M

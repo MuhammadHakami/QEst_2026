@@ -31,7 +31,8 @@ input, its information timing, where the pipeline enforces it, and what was corr
 | Chronos-2 context | the last CONTEXT_DAYS before D, D-2 for the balancing group | unchanged, legal |
 | Hour-of-day calibration table (activation rates, premiums, aFRR shares at the margin) | **walk-forward**: all days before M's first day - 2 days; January on itself (printed) | train split on itself for Q1-Q2 (in-sample), train for Q3, train + val for Q4 |
 | qest.actfc activation forecaster | all days with outcomes before M's first day - 2 days; the first month has none (falls back to the calibration table) | month start without the 2-day lag |
-| qest.qscen chain | days before M's first day - 2 days | unchanged |
+| qest.qscen chain | days before M's first day - 2 days; January and February have no actfc-covered history and use the fit to 1 March (in-sample for those two months, printed), as the calibration table does for January | fallback added 10 Nov |
+| qest.stoch scenario plans (`milp_scenf*`, 10 Nov) | scenarios from the chain above; rank-gated actfc marginals; the forecast imbalance price `imb_q50` (gate-A forecast) for the deviation cost; no new fitted object | new |
 | Optuna knobs (aFRR / mFRR margins, kappa_up / kappa_dn, tol) | **tuned on Q3 (val) only**, applied everywhere | unchanged: the organisers' protocol (tune on Q3, score Q4 once). For Q1-Q2 this is information from the future, for Q3 it is in-sample. Both compared plans share the same knobs, so the *difference* is fair; the *level* of Q1-Q3 revenue is optimistic by whatever the knobs are worth. A walk-forward re-tune (tune on months < M, apply to M) is the remaining step; it costs about 1.5 h of CPU per tune point |
 
 ## 3. Settlement-side realism (not leakage, but it moves the level)

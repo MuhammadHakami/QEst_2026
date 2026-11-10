@@ -70,6 +70,57 @@ scenario sources are inside each other's intervals (+-0.4-0.5 M), so the honest 
 scenarios, not for their accuracy; between 4 and 16 scenarios and between samplers it cannot tell. Whole year and the
 25 MW cap: section 1d.
 
+### 1d. The whole year, walk-forward (291 days, 8 Jan - 25 Oct), organisers' settlement
+
+Chain for January and February fitted to 1 March (no actfc-covered history before; in-sample for those two months,
+printed; research/leakage_audit.md s2), everything else from earlier months only. Paired 95 % against `milp_act_rank`
+(38,688,597); the Chronos-2 baseline is 37,480,487.
+
+| Plan | Year EUR | vs `milp_act_rank` | vs Chronos-2 + MILP | Days won |
+|---|---:|---:|---:|---:|
+| `milp_scenf4` (4 exact chain scenarios) | **41,280,072** | **+6.7 % (+2.59 M +- 0.90 M)** | +10.1 % | 193 / 291 |
+| `milp_scenf16` (16 exact) | 40,740,475 | +5.3 % (+2.05 M +- 0.81 M) | +8.7 % | 192 / 291 |
+| `milp_scenf_ls` (8, single-flip MCMC) | 40,538,346 | +4.8 % (+1.85 M +- 0.85 M) | +8.2 % | 167 / 291 |
+| `milp_scenf` (8 exact) | 40,273,730 | +4.1 % (+1.59 M +- 0.88 M) | +7.4 % | 174 / 291 |
+| `milp_scenf_qs` (8, quantum-enhanced MCMC) | 40,236,167 | +4.0 % (+1.55 M +- 0.82 M) | +7.3 % | 194 / 291 |
+
+Every variant is significant over the year and positive in 8-10 of 10 months (the exceptions: -2.4 % and -1.3 % in April
+for the 8 / 16 exact sets, -0.7 % in August for 8 exact, -1.5 % in January for the local sampler). Two-stage planning on
+joint activation scenarios with a settlement-faithful recourse is now the plan of record under the organisers' rules:
++7 to +10 % over the Chronos-2 + MILP baseline, of which about a third is the activation model (+3.2 %) and two thirds the
+scenarios. The sampler ranking is again not by fidelity: 4 exact scenarios beat 16, the single-flip MCMC beats the quantum
+one, and all five sit within each other's intervals.
+
+Mar-Oct only (239 days, clean of the two in-sample chain months; `milp_act_rank` 27,971,742): `milp_scenf4` +6.1 %
+(+1.71 M +- 0.77 M, 153 / 239), `milp_scenf16` +4.7 % (+1.31 M +- 0.68 M), `milp_scenf_ls` +6.4 % (+1.79 M +- 0.79 M),
+`milp_scenf` +2.8 % (+0.77 M +- 0.68 M), `milp_scenf_qs` +4.1 % (+1.15 M +- 0.76 M). The in-sample months do not carry
+the result.
+
+Where the money comes from (year, `milp_scenf4` against `milp_act_rank`): day-ahead purchases -50.5 M against -44.7 M,
+aFRR energy 29.8 M against 21.0 M (+42 %), mFRR 36.8 M against 36.5 M, capacity 18.2 M against 18.9 M, imbalance 8.3 M
+against 8.5 M, UP activation 418 GWh against 361 GWh. The scenario plan buys more energy and sells it into aFRR
+activations; the deviation volume is unchanged (232 against 227 GWh) and the guard fires as often (52.8k against 50.8k
+priced-out direction-MTUs). It is the same one-sided position with the aFRR leg sized by scenarios instead of a mean.
+
+### 1e. The realistic settlement: 25 MW activation cap (`QEST_ACT_CAP=25`), cap-aware scenario plan
+
+The TSO activates at most the volume it needs; until the Baltic dashboard volumes are in, the 25 MW cap is the realistic
+bracket (research/environment_audit.md). The stochastic MILP now carries the cap exactly: per scenario, MTU and
+direction the activated MW g_k <= offer_k, sum g <= vol, forced to min(sum offer, vol) by one binary, delivered = share x g
+(qest.stoch; with one scenario it reproduces the volume-aware deterministic planner within 0.7 %). The first version that
+put the cap on the expected energy instead of the MW lost 6-9 %; corrected:
+
+| Plan, 25 MW cap | Q3, 92 days | vs `milp_act_rank` (6,036,478) | Q4, 25 days | vs `milp_act_rank` (1,327,164) |
+|---|---:|---:|---:|---:|
+| `milp_scenf` (8 exact scenarios) | 6,537,381 | **+8.3 % (+501k +- 183k, 65 / 92)** | 1,435,138 | **+8.1 % (+108k +- 72k, 17 / 25)** |
+| `milp_scenf16` (16 exact) | 6,554,144 | **+8.6 % (+518k +- 174k, 69 / 92)** | 1,440,006 | **+8.5 % (+113k +- 90k, 18 / 25)** |
+
+Under the cap the deterministic plan hardly trades energy (DA -10k on Q3) because the capped activation energy cannot pay
+for it; the scenario plan buys 1.36 M of day-ahead energy and more than doubles the aFRR energy income (3.1 M against
+1.4 M) at unchanged mFRR, capacity and imbalance. This is the largest gain under the realistic settlement found in the
+project, significant in both quarters, and it comes from the uncertainty object, not from a forecaster or a solver.
+Whole year under the cap and the MCMC samplers under the cap: section 1f (running).
+
 Settlement itself shows what the deterministic plan does: priced out on 45 % of direction-MTUs (87 of 192 per unit-day),
 626 MWh of UP activation a day, a positive imbalance component (+208k on the 7 days): a one-sided position (buy DA, hold a
 high SoC, offer UP) whose downside the gate-C guard removes and whose deviations the official rules settle at the
