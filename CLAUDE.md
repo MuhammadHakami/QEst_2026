@@ -62,7 +62,7 @@ the results, and the open items. Runs and results are in [README.md](README.md) 
 - **Nord Pool bid curves** return 401 without a login. Elering's API is open.
 - **The organisers' deck** is in the folder as `Joint optimisation of a hybrid portfolio slides.pdf` (v3, all 13 slides):
   read it with `pdftotext -layout`. Its rules are `settlement='official'`.
-- **Our deck** (16 slides, v13, 9 Nov: walk-forward season numbers, gap, Estonian market, activation model with ranking gate, distilled QPU, expected revenue) is claude.ai/artifact/EJRo1JSfz4RVBn8Hx3EMJD (source: scratchpad deck2/make.py); charts from `qest.deckfigs`. 3D sites: claude.ai/artifact/9hWyuvPBKpLbhn9oXEr7NX (`qest.scene`).
+- **Our deck** (17 slides, v14, 10 Nov: walk-forward season numbers, gap, Estonian market, activation model with ranking gate, scenario plan, distilled QPU, expected revenue) is claude.ai/artifact/EJRo1JSfz4RVBn8Hx3EMJD (source: scripts/deck/make.py, copied from the session scratchpad; run it from a folder with a project/ subfolder); charts from `qest.deckfigs`. 3D sites: claude.ai/artifact/9hWyuvPBKpLbhn9oXEr7NX (`qest.scene`).
 - **CUDA-Q + torch optimizers**: import `torch._dynamo` before CUDA-Q in one process (both bundle LLVM; the other order aborts).
 - **CUDA-Q** qubit order: `get_state` qubit 0 = least significant bit, `get_unitary` = most significant (tested).
 - **Land Board tiles** (tiles.maaamet.ee): more than ~2 parallel connections gets the whole maaamet.ee domain blocked for a while; `qest.assets` caches tiles in data/raw/tiles and runs 2 threads.
