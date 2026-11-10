@@ -1,0 +1,238 @@
+                                            Comparing Qubit and Qudit Encodings for EV Charging and Trip
+                                                               Assignment Problems
+                                                           Linus Ekstrøm                                      Hao Wang                                    Sebastian Schmitt
+                                                 Honda Research Institute Europe                  LIACS, Universiteit Leiden, Niels               Honda Research Institute Europe
+                                                GmbH, Carl-Legien Straße 30, 63073                  Bohrweg 1, 2333 CA Leiden,                   GmbH, Carl-Legien Straße 30, 63073
+                                                      Offenbach, Germany                        ⟨𝑎𝑄𝑎𝐿 ⟩ Applied Quantum Algorithms                     Offenbach, Germany
+                                                                                                            Netherlands
+                                            Abstract                                                                      it combines assignment decisions, time coupling, and operational
+arXiv:2605.10255v1 [quant-ph] 11 May 2026
+
+
+
+
+                                            Variational quantum algorithms have attracted attention for their             constraints such as battery state-of-charge (SOC) limits, trip over-
+                                            potential to solve combinatorial optimization problems. We study              laps, and grid power bounds [15, 16, 21, 23]. This structure makes
+                                            how the choice of encoding affects the resource requirements and              the problem a useful testbed for comparing quantum encodings
+                                            optimization behavior of a variational quantum optimization al-               under realistic constraint patterns.
+                                            gorithm. In order to quantify these effects, realistically inspired               We compare two representations of the trip-assignment vari-
+                                            constrained electric vehicle (EV) fleet management problems were              ables. The binary encoding uses one qubit variable per EV–trip pair.
+                                            considered. These problems couple determining the optimal EV                  The integer encoding uses one qudit variable per trip whose value
+                                            battery charging schedule with assigning EVs to trips requested by            directly specifies the assigned EV, or an unserved option. In both
+                                            customers. We compare a conventional binary (qubit) trip encod-               cases, charging decisions are represented by qudit variables. This
+                                            ing with an integer (qudit) encoding that represents assignments              isolates the effect of the trip encoding on Hilbert-space dimension
+                                            more directly. Both encodings guarantee the same feasible solu-               and optimization behavior.
+                                            tion set, while the qudit encoding exponentially reduces the re-                  Using exact state-vector simulations with shot-based cost esti-
+                                            quired Hilbert-space dimension. We solve many random instances                mation, we benchmark both encodings on small instances of the
+                                            of highly constrained uni- and bi-directional charging problems               full problem. We compare Hilbert-space dimension, feasibility, and
+                                            using qudit-based quantum approximate optimization algorithm                  success statistics, and runtime. We find that the qudit trip encoding
+                                            (QAOA) and thoroughly evaluate the performance results. We find               yields a substantially smaller search space and lower runtime, while
+                                            that the qudit encoding of customer trips achieves similar or better          achieving slightly better optimization performance in the tested
+                                            optimization performance at much reduced resource requirements                regime. This supports qudit-native encodings as a practical choice
+                                            and shorter simulation runtime. These results highlight qudit-native          for constrained scheduling problems with discrete multi-valued
+                                            encodings as a practical route for integer and multi-valued sched-            variables.
+                                            uling problems in variational quantum optimization.                               The paper is organized as follows. Section 2 introduces the EV
+                                                                                                                          charging and trip assignment problem. Section 3 presents the quan-
+                                                                                                                          tum formulation and QAOA setup. Section 4 explains the bench-
+                                            1   Introduction                                                              mark problems used in our comparison. Section 5 reports bench-
+                                            Variational quantum algorithms (VQAs) [1, 4, 22] are a leading                mark results and compares and discusses the results of the encod-
+                                            approach for near-term quantum optimization, with the quantum                 ings. Finally, in Section 6 we discuss the implications of this study
+                                            approximate optimization algorithm (QAOA) as a central exam-                  and lay down some thoughts about future directions of inquiry.
+                                            ple [1, 2, 10]. In practical applications, the encoding of decision
+                                            variables into quantum degrees of freedom can strongly affect
+                                            both resource requirements and the resulting variational land-
+                                            scape [5, 7, 12, 18, 19].
+                                                                                                                          2   Bi-directional EV Charging and Trip
+                                               Recently, high-dimensional qudits [25] have emerged as a promis-               Assignment
+                                            ing technological paradigm for quantum computation. Qudit tech-               Efficiently operating a fleet of electric vehicles (EVs) is increasingly
+                                            nologies have shown benefits in a range of topics from algorithmic            important as electro-mobility services become more and more pop-
+                                            improvements to lattice gauge field theory simulation and quantum             ular. In that context, bi-directional charging is very promising as ve-
+                                            error correction [11, 14, 17, 20]. The benefits are especially relevant       hicles are not used continuously but are parked for substantial time
+                                            for optimization problems with integer variables, where qudit-based           periods during the day. Therefore, the batteries of the EVs represent
+                                            formulations can represent decisions directly rather than via binary          a resource that could be utilized while EVs are not driving [16].
+                                            expansions. Recent work has developed qudit QAOA for integer                  Technologies such as vehicle-to-grid (V2G) and vehicle-to-home
+                                            optimization problems [6, 9], alongside approaches for efficient              (V2H) enable fleet operators to use idle vehicles as active energy
+                                            handling of constraints in mixed-dimensional circuits [3].                    assets rather than passive loads. EV fleet operators offer transporta-
+                                               We study a realistic problem of operating a fleet of electric vehi-        tion services to their customers, where the challenge is to allocate
+                                            cles (EVs), which amounts to scheduling the bi-directional charging           EVs to customer requests (trips) while charging the EVs during
+                                            of each EV, and at the same time, serving trips requested by cus-             time periods where they do not serve trip requests. This leads to
+                                            tomers. Joint trip and charging scheduling has been widely studied            a constrained optimization problem that couples trip assignment
+                                            in the operations research and energy systems literature because              and charging decisions.
+                                                                                                                      1
+                                                                                                                                          Linus Ekstrøm, Hao Wang, and Sebastian Schmitt
+
+
+    We consider a fleet of 𝑁𝐸𝑉 EVs, over a horizon of 𝑇 discrete                                        In the integer encoding, we introduce one integer variable 𝑞𝑖 ∈
+time steps. Each EV 𝑛 has initial battery SOC 𝐸𝑛0 at 𝑡 = 0 and must                                  {0, . . . , 𝑁𝐸𝑉 } per trip. If 𝑞𝑖 = 𝑛, trip 𝑖 is served by EV 𝑛, while 𝑞𝑖 = 0
+satisfy a minimum final SOC 𝐸𝑛min at 𝑡 = 𝑇 − 1. At each time step 𝑡,                                 denotes an unserved trip. The objective is
+EV 𝑛 chooses a discrete charging power level 𝑙𝑛,𝑡 , where positive                                                                              𝑇 𝑁
+                                                                                                                                               ∑︁ ∑︁𝐸𝑉                         𝑅
+                                                                                                                                                                              ∑︁
+values denote charging, negative values denote discharging, and                                                 𝐶 int ({𝑙𝑛,𝑡 , 𝑞𝑖 }) = Δ𝑡                       𝑐𝑡 𝑙𝑛,𝑡 + 𝜆         𝛿𝑞𝑖 ,0 .    (9)
+zero denotes idling. The electricity price at time step 𝑡 is 𝑐𝑡 , and grid                                                                      𝑡 =1 𝑛=1                      𝑖=1
+                                                  Í
+(fuse) bounds constrain the total power 𝑛 𝑙𝑛,𝑡 . The system receives                                 The objective in Equation (9) has the same structure as in the binary
+𝑅 trip requests. Each trip 𝑖 has a time window 𝑇𝑖 = [𝑡𝑖start, 𝑡𝑖end ]                                case. Charging cost is linear in 𝑙𝑛,𝑡 , and unserved trips are penalized
+                                  trip
+and energy demand 𝐸𝑖 . Trips are assigned to at most one EV;                                         by 𝛿𝑞𝑖 ,0 .
+overlapping trips cannot share an EV, and EVs cannot charge or                                          The integer constraints are
+discharge while serving a trip. We seek a charging schedule giving
+                                                                                                               𝑞𝑖 ≠ 𝑞 𝑗                ∀𝑖 ≠ 𝑗            if 𝑇𝑖 ∩ 𝑇 𝑗 ≠ ∅                       (10)
+minimum cost while fulfilling all the technical constraints described
+in Section 2.1.                                                                                                𝛿𝑞𝑖 ,𝑛 𝑙𝑛,𝑡 = 0       ∀𝑛, 𝑖, 𝑡 ∈ 𝑇𝑖                                             (11)
+    The charging variables are 𝑑-ary integers with 𝑑 = 2𝑙 max + 1, i.e.
+                                                                                                                           ∑︁          ∑︁ trip
+                                                                                                               𝐸𝑛 + Δ𝑡
+                                                                                                                0
+                                                                                                                               𝑙𝑛,𝑘 −         𝐸𝑖 𝛿𝑞𝑖 ,𝑛 ≥ 0                           ∀𝑛, 𝑡    (12)
+𝑙𝑛,𝑡 ∈ {− 𝑑 −1                     𝑑 −1
+            2 , . . . , 0, . . . , 2 } (𝑑 odd) for bi-directional charging and                                            𝑘 <𝑡            𝑡𝑖start ≤𝑡
+𝑑 = 𝑙 max + 1, i.e. 𝑙𝑛,𝑡 ∈ {0, . . . , 𝑑 − 1}, for uni-directional charging.                                              ∑︁                ∑︁           trip            cap
+For the trip-assignment variables, we compare binary and integer                                               𝐸𝑛0 + Δ𝑡          𝑙𝑛,𝑘 −                𝐸𝑖 𝛿𝑞𝑖 ,𝑛 ≤ 𝐸𝑛                 ∀𝑛, 𝑡    (13)
+encodings.                                                                                                                𝑘 <𝑡            𝑡𝑖start ≤𝑡
+                                                                                                                          ∑︁              ∑︁      trip
+                                                                                                               𝐸𝑛0 + Δ𝑡          𝑙𝑛,𝑡 −         𝐸𝑖 𝛿𝑞𝑖 ,𝑛 ≥ 𝐸𝑛min                     ∀𝑛       (14)
+2.1     Trip-assignment encodings                                                                                          𝑡               𝑖
+                                                                                                                          ∑︁
+In the binary encoding, we introduce one binary variable 𝑟𝑛,𝑖 ∈                                                𝑃 min ≤         𝑙𝑛,𝑡 ≤ 𝑃 max              ∀𝑡                                    (15)
+{0, 1} for each EV–trip pair, where 𝑟𝑛,𝑖 = 1 means that EV 𝑛 serves                                                       𝑛
+trip 𝑖. The objective is                                                                             where 𝑞𝑖 ∈ {0, . . . , 𝑁𝐸𝑉 } and 𝑙𝑛,𝑡 the same as for the qubit encoding.
+                                      𝑇 𝑁
+                                     ∑︁ ∑︁𝐸𝑉                       𝑅
+                                                                  ∑︁                                 The constraint set mirrors the binary formulation. Equation (10)
+       𝐶 bin ({𝑙𝑛,𝑡 , 𝑟𝑛,𝑖 }) = Δ𝑡                  𝑐𝑡 𝑙𝑛,𝑡 + 𝜆         𝛿 Í𝑁𝐸𝑉         ,   (1)       prevents assigning overlapping trips to the same EV, because equal
+                                                                         0, 𝑛=1 𝑟𝑛,𝑖
+                                     𝑡 =1 𝑛=1                     𝑖=1                                values of 𝑞𝑖 and 𝑞 𝑗 would indicate the same vehicle. Equation (11)
+                                                                                                     forbids charging or discharging during the trip window of an as-
+where 𝛿𝑖 𝑗 is the Kronecker delta function. The first term of Equa-                                  signed EV. Equations (12) and (13) enforce SOC bounds at all times,
+tion (1) is the charging cost. The second term increases the cost                                    and Equation (14) enforces the minimum final SOC. Equation (15)
+                                                       Í
+associated with unserved trips by adding 𝜆 whenever 𝑛 𝑟𝑛,𝑖 = 0. 𝜆                                    enforces the grid bounds.
+also sets the trade-off between charging cost and trip fulfillment.                                       In both encodings, trip energy is subtracted at the trip start time
+   The binary constraints are                                                                        𝑡𝑖start . The integer encoding removes the explicit one-EV-per-trip
+           ∑︁                                                                                        constraint, since that condition is automatically guaranteed by the
+               𝑟𝑛,𝑖 𝑟𝑚,𝑖 = 0 ∀𝑖                                  (2)
+           𝑛≠𝑚
+                                                                                                     encoding.
+                                                                                                          The total number of configurations is
+           𝑟𝑛,𝑖 𝑟𝑛,𝑗 = 0               ∀𝑛, 𝑖 ≠ 𝑗          if 𝑇𝑖 ∩ 𝑇 𝑗 ≠ ∅                  (3)
+           𝑟𝑛,𝑖 𝑙𝑛,𝑡 = 0        ∀𝑛, 𝑖, 𝑡 ∈ 𝑇𝑖                                              (4)                                   𝑁 bin = 𝑑 𝑁𝐸𝑉 𝑇 2𝑁𝐸𝑉 𝑅 ,                                      (16)
+                                                                                                                                 𝑁 int = 𝑑 𝑁𝐸𝑉 𝑇 (𝑁𝐸𝑉 + 1) 𝑅 ,                                 (17)
+                      ∑︁        ∑︁ trip
+           𝐸𝑛 + Δ𝑡
+             0
+                         𝑙𝑛,𝑘 −       𝐸𝑖 𝑟𝑛,𝑖 ≥ 0                          ∀𝑛, 𝑡           (5)
+                      𝑘<𝑡            𝑡𝑖start ≤𝑡                                                      which gives
+                      ∑︁               ∑︁          trip      cap
+           𝐸𝑛0 + Δ𝑡         𝑙𝑛,𝑘 −                𝐸𝑖 𝑟𝑛,𝑖 ≤ 𝐸𝑛              ∀𝑛, 𝑡          (6)                           𝑁 int
+                                                                                                                               = 2−𝑅𝑁𝐸𝑉 +𝑅 log2 (𝑁𝐸𝑉 +1)            (18)
+                      𝑘<𝑡            𝑡𝑖start ≤𝑡                                                                          𝑁 bin
+                      ∑︁             ∑︁      trip                                                    as the ratio of the two encodings. The number of configurations
+           𝐸𝑛0 + Δ𝑡         𝑙𝑛,𝑡 −         𝐸𝑖 𝑟𝑛,𝑖 ≥ 𝐸𝑛min                  ∀𝑛             (7)
+                       𝑡              𝑖
+                                                                                                     is exponentially reduced by the integer encoding compared to the
+                     ∑︁                                                                              binary encoding as a function of the number of trips 𝑅, and the
+           𝑃 min ≤         𝑙𝑛,𝑡 ≤ 𝑃 max             ∀𝑡                                     (8)       number of EVs 𝑁𝐸𝑉 (with logarithmic corrections in the latter case).
+                      𝑛
+
+with 𝑟𝑛,𝑖 ∈ {0, 1}, 𝑙𝑛,𝑡 ∈ − 𝑑 −1
+                                                      𝑑 −1                                          3    Quantum Formulation
+                                 2 , . . . , 0, . . . , 2   for bi-directional
+charging, and 𝑙𝑛,𝑡 ∈ {0, . . . , 𝑑 − 1} for uni-directional charging.                                We compare the two trip-encoding variants of Section 2 in a QAOA-
+Equations (2) and (3) enforce valid assignments, i.e. that each trip                                 based quantum optimization framework, with the goal of isolating
+is served by at most one EV, and each EV cannot serve two trips                                      how the trip encoding affects optimization performance and re-
+whose time windows overlap. Equation (4) prevents charging or dis-                                   source requirements.
+charging while an EV is assigned to a trip. Equations (5) and (6) keep                                  To obtain the quantum formulation, we choose a computational
+                      cap
+the SOC within [0, 𝐸𝑛 ] at all intermediate times, and Equation (7)                                  basis and replace the classical decision variables with the cor-
+enforces the required final SOC. Finally, Equation (8) enforces grid                                 responding quantum operators. All constraints are incorporated
+power bounds, set by 𝑃 min and 𝑃 max , at each time step.                                            through non-linear penalty terms in the cost Hamiltonian. In the
+                                                                                                 2
+Comparing Qubit and Qudit Encodings for EV Charging and Trip Assignment Problems
+
+
+exact state-vector simulations used here, these non-linear terms                             only when constraints are violated. For example, the no-charging-
+can be implemented directly in the computational basis.                                      during-trip constraint Equation (4) can be enforced by
+                                                                                                              ∑︁ ∑︁
+                                                                                                                       𝑧 𝑧
+                                                                                                         𝐸1 =         𝑅𝑛,𝑖 𝐿𝑛,𝑡                           (27)
+3.1      Quantum Representation of the Trip                                                                        𝑛,𝑖 𝑡 ∈𝑇𝑖
+         Encodings                                                                                                ∑︁              ∑︁                     ∑︁      
+                                                                                                           𝐹1 =         𝑃 min −             𝑧
+                                                                                                                                           𝐿𝑛,𝑡 Θ 𝑃 min −     𝑧
+                                                                                                                                                             𝐿𝑛,𝑡                   (28)
+We use the same qudit charging variables 𝑙𝑛,𝑡 in both formulations.                                                𝑡               𝑛                            𝑛
+The difference is how the trip assignment is represented in the
+                                                                                             with Θ(𝑥) the Heaviside step function and |𝑥 | the absolute value
+computational basis. For the binary encoding, the basis states are
+                                                                                             (not to be confused with an operator norm). These non-linear func-
+|𝑙𝑛,𝑡 , 𝑟𝑛,𝑖 ⟩, where 𝑟𝑛,𝑖 ∈ {0, 1} indicates whether EV 𝑛 serves trip 𝑖.
+                                                                                             tions of operators are shorthand notations and can be viewed as
+The diagonal operators act in the computational basis as
+                                                                                             being defined by the series expansions. Practically, these functions
+                          𝑧
+                         𝐿𝑛,𝑡 |𝑙𝑛,𝑡 , 𝑟𝑛,𝑖 ⟩ = 𝑙𝑛,𝑡 |𝑙𝑛,𝑡 , 𝑟𝑛,𝑖 ⟩ ,             (19)        transform to functions of the eigenvalues when applied to compu-
+                          𝑧                                                                  tational basis states, e.g., 𝑓 (𝐿𝑛,𝑡
+                                                                                                                              𝑧 ) |𝑙 ⟩ = 𝑓 (𝑙 ) |𝑙 ⟩. In hardware-
+                                                                                                                                    𝑛,𝑡      𝑛,𝑡  𝑛,𝑡
+                         𝑅𝑛,𝑖 |𝑙𝑛,𝑡 , 𝑟𝑛,𝑖 ⟩ = 𝑟𝑛,𝑖 |𝑙𝑛,𝑡 , 𝑟𝑛,𝑖 ⟩ .             (20)
+                                                                                             oriented implementations, such nonlinear penalties require addi-
+Meanwhile, for the integer encoding, the basis states are |𝑙𝑛,𝑡 , 𝑞𝑖 ⟩,                      tional techniques [3, 8, 13, 26]. These techniques incur additional
+where 𝑞𝑖 ∈ {0, . . . , 𝑁𝐸𝑉 } specifies the assigned EV and 𝑞𝑖 = 0                            overheads in terms of qubits and qudits, as well as additional multi-
+denotes a trip not served by any EV. The diagonal operators act in                           qubit/qudit interactions, i.e., two-body gates. However, here we use
+this computational basis as                                                                  exact state-vector simulations and implement the penalty terms di-
+                                                                                             rectly. We focus on encoding-induced structural differences rather
+                            𝑧
+                           𝐿𝑛,𝑡 |𝑙𝑛,𝑡 , 𝑞𝑖 ⟩ = 𝑙𝑛,𝑡 |𝑙𝑛,𝑡 , 𝑞𝑖 ⟩ ,               (21)        than on overheads related to hardware implementations.
+                            𝑄𝑖𝑧 |𝑙𝑛,𝑡 , 𝑞𝑖 ⟩ = 𝑞𝑖 |𝑙𝑛,𝑡 , 𝑞𝑖 ⟩ .                 (22)           We employ an 𝐿-layer QAOA circuit of the form
+                                                                                                                                  𝐿
+                                                                                                                                  Ö
+In both cases, we use the standard angular-momentum operators,                                                    𝑈 (𝜸, 𝜷) =               𝑒 −𝑖𝐻𝑋 (𝛽𝑙 ) 𝑒 −𝑖𝛾𝑙 𝐻𝐶 ,                 (29)
+       𝑥,𝑦   𝑥,𝑦        𝑥,𝑦
+with 𝐿𝑛,𝑡 , 𝑅𝑛,𝑖 , and 𝑄𝑖 defined in the usual way from ladder                                                                    𝑙=1
+operators [6]. More details can be found in Section A.                                       where 𝜸 = (𝛾 1, . . . , 𝛾𝐿 ) and 𝜷 = (𝛽 1, . . . , 𝛽𝐿 ) are the variational
+   The resources required by each encoding directly follow the                               parameters for the cost and mixing unitaries, respectively. We use
+number of configurations given in Section 2.1. The binary encoding                           the qudit mixer of [3, 6, 9],
+uses 𝑁𝐸𝑉 𝑅 qubits and 𝑁𝐸𝑉 𝑇 qudits of dimension 𝑑, which gives the                                                            ∑︁              ∑︁
+Hilbert space dimension                                                                                     𝐻𝑋 (𝛽𝑙 ) = 𝛽 1;𝑙     𝐿𝑖𝑥 + 𝛽 2;𝑙       (𝐿𝑖𝑧 ) 2,         (30)
+                                                                                                                                       𝑖                  𝑖
+                       dim(Hbin ) = 𝑑 𝑁𝐸𝑉 𝑇 2𝑁𝐸𝑉 𝑅 = 𝑁 bin .                     (23)        which introduces two mixing parameters per layer.
+                                                                                                Given an easy to prepare initial state |𝜓 0 ⟩, the circuit prepares the
+The integer encoding uses 𝑅 qudits of dimension 𝑁𝐸𝑉 + 1 and 𝑁𝐸𝑉 𝑇                            final state |𝜓 (𝜸, 𝜷)⟩ = 𝑈 (𝜸, 𝜷) |𝜓 0 ⟩. The classical objective function
+qudits of dimension 𝑑, which yields                                                          to be minimized is given by
+                  dim(Hint ) = 𝑑 𝑁𝐸𝑉 𝑇 (𝑁𝐸𝑉 + 1) 𝑅 = 𝑁 int .                     (24)                             𝐶 (𝜸, 𝜷) = ⟨𝜓 (𝜸, 𝜷)|𝐻𝐶 |𝜓 (𝜸, 𝜷)⟩ .                              (31)
+
+The Hilbert space dimension of the qudit encoding is again expo-                             Despite performing essentially exact state-vector simulations in this
+nentially reduced in 𝑅 and 𝑁𝐸𝑉 compared to the qubit encoding,                               study, we already anticipate realistic implementation on hardware
+                                                                                             where expectation values like Equation (31) cannot be calculated
+              dim(Hint ) = dim(Hbin ) 2−𝑅𝑁𝐸𝑉 +𝑅 log2 (𝑁𝐸𝑉 +1) .                  (25)        exactly. Instead, one needs to revert to approximate estimations
+                                                                                             using a finite number of measurement shots
+This shows that the qudit encoding is much more efficient in the                                                   𝑀                                          𝑀
+required quantum resources than the traditional qubit encoding.                                            1       ∑︁                                 1       ∑︁
+                                                                                              𝐶 (𝜸, 𝜷) ≈                       ⟨𝑧𝑚 |𝐻𝐶 |𝑧𝑚 ⟩ =                            𝐸𝐶 (𝑧𝑚 ) , (32)
+                                                                                                           𝑀       𝑚=1
+                                                                                                                                                      𝑀       𝑚=1
+                                                                                                               𝑧𝑚 ∼𝑝𝜸,𝜷 (𝑧 )                              𝑧𝑚 ∼𝑝𝜸,𝜷 (𝑧 )
+3.2      Quantum Optimization Algorithm
+We construct the cost Hamiltonian by promoting the classical vari-                           where 𝑧𝑚 indicates configurations defined by computational basis
+ables 𝑙𝑛,𝑡 , 𝑟𝑛,𝑖 , and 𝑞𝑖 , in Equations (1) and (9), to the corresponding                  states, |𝑧⟩ = |{𝑙𝑛,𝑡 , 𝑟𝑛,𝑖 }⟩ for the qubit encoding, and |𝑧⟩ = |{𝑙𝑛,𝑡 , 𝑞𝑖 }⟩
+diagonal operators 𝐿𝑛,𝑡      𝑧 , 𝑅𝑧 , and 𝑄 𝑧 . All constraints are enforced                 for the qudit encoding. The configurations are sampled following
+                                  𝑛,𝑖      𝑖
+via penalty terms added to the cost Hamiltonian,                                             the Born-rule from the probability distribution defined by the quan-
+                                                                                             tum state, 𝑝𝜸,𝜷 (𝑧) = | ⟨𝑧|𝜓 (𝜸, 𝜷)⟩ | 2 . 𝐸𝐶 (𝑧) denotes the classical
+                                                                                             cost function including penalty terms as indicated by Equation (26).
+                         𝑧                 𝑧
+      𝐻𝐶 = 𝐶 ({𝑙𝑛,𝑡 → 𝐿𝑛,𝑡  , 𝑟𝑛,𝑖 → 𝑅𝑛,𝑖     , 𝑞𝑖 → 𝑄𝑖𝑧 })                       (26)          Our implementation of QAOA uses          √︁ the equalÍsuperposition of all
+                                                                                             basis states as initial state, |𝜓 0 ⟩ = 1/ dim(H ) 𝑧 |𝑧⟩, and employs
+                ∑︁                                  ∑︁
+                           𝑧      𝑧
+           +𝛼       𝐸𝑒 ({𝐿𝑛,𝑡  , 𝑅𝑛,𝑖 , 𝑄𝑖𝑧 }) + 𝛼            𝑧
+                                                       𝐹 𝑓 ({𝐿𝑛,𝑡    𝑧
+                                                                  , 𝑅𝑛,𝑖 , 𝑄𝑖𝑧 })
+                   𝑒                                       𝑓
+                                                                                             a classical optimization loop which minimizes the cost function
+                                                                                             of Equation (32) by optimizing the variational parameters 𝜸 and
+where 𝛼 > 0 is a penalty factor. The functions 𝐸𝑒 and 𝐹 𝑓 encode                             𝜷. The dimensionality of the search space for this optimization is
+equality and inequality constraints, respectively, and contribute                            determined by the number of QAOA layers as 3𝐿. For systems with
+                                                                                         3
+

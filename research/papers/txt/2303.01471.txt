@@ -1,0 +1,175 @@
+                                                                          Quantum Hamiltonian Descent∗
+                                                           Jiaqi Leng1,3       Ethan Hickman2,3           Joseph Li2,3        Xiaodi Wu2,3,†
+                                                             1
+                                                              Department of Mathematics, University of Maryland, College Park, USA
+                                                                    2
+                                                                      Department of Computer Science, University of Maryland
+                                                     3
+                                                       Joint Center for Quantum Information and Computer Science, University of Maryland
+arXiv:2303.01471v1 [quant-ph] 2 Mar 2023
+
+
+
+
+                                                                            †
+                                                                              Corresponding author. xiaodiwu@umd.edu
+
+
+
+
+                                                                                                Abstract
+                                                     Gradient descent is a fundamental algorithm in both theory and practice for continuous
+                                                 optimization. Identifying its quantum counterpart would be appealing to both theoretical and
+                                                 practical quantum applications. A conventional approach to quantum speedups in optimization
+                                                 relies on the quantum acceleration of intermediate steps of classical algorithms, while keep-
+                                                 ing the overall algorithmic trajectory and solution quality unchanged. We propose Quantum
+                                                 Hamiltonian Descent (QHD), which is derived from the path integral of dynamical systems re-
+                                                 ferring to the continuous-time limit of classical gradient descent algorithms, as a truly quantum
+                                                 counterpart of classical gradient methods where the contribution from classically-prohibited
+                                                 trajectories can significantly boost QHD’s performance for non-convex optimization. More-
+                                                 over, QHD is described as a Hamiltonian evolution efficiently simulatable on both digital and
+                                                 analog quantum computers. By embedding the dynamics of QHD into the evolution of the so-
+                                                 called Quantum Ising Machine (including D-Wave and others), we empirically observe that the
+                                                 D-Wave-implemented QHD outperforms a selection of state-of-the-art gradient-based classical
+                                                 solvers and the standard quantum adiabatic algorithm, based on the time-to-solution metric,
+                                                 on non-convex constrained quadratic programming instances up to 75 dimensions. Finally, we
+                                                 propose a “three-phase picture” to explain the behavior of QHD, especially its difference from
+                                                 the quantum adiabatic algorithm.
+
+
+                                               Continuous optimization, stemming from the mathematical modeling of real-world systems, is
+                                           ubiquitous in applied mathematics, operations research, and computer science [5, 19, 23, 27, 36].
+                                           These problems often come with high dimensionality and non-convexity, posing great challenges for
+                                           the design and implementation of optimization algorithms [7, 14]. It is a natural question to inves-
+                                           tigate potential quantum speedups for continuous optimization, which has been actively studied in
+                                           past decades. A conventional approach toward this end is to quantize existing classical algorithms
+                                           by replacing their components with quantum subroutines, while carefully balancing the potential
+                                           speedup and possible overheads. However, proposals (e.g. [3, 6, 20, 24, 34, 35, 39]) following this
+                                           approach usually achieve only moderate quantum speedups, and more importantly, they rarely
+                                           improve the quality of solutions because they essentially follow the same solution trajectories in
+                                           the original classical algorithms.
+                                              ∗
+                                                This work was partially funded by the U.S. Department of Energy, Office of Science, Office of Advanced Scientific
+                                           Computing Research, Quantum Testbed Pathfinder Program under Award Number DE-SC0019040, Accelerated
+                                           Research in Quantum Computing under Award Number DE-SC0020273, and the U.S. National Science Foundation
+                                           grant CCF-1816695 and CCF-1942837 (CAREER). We also acknowledge the research credits from Amazon Web
+                                           Services. An accompanying website is at https://jiaqileng.github.io/quantum-hamiltonian-descent/.
+    Gradient descent (and its variant) is arguably the most fundamental optimization algorithm
+in continuous optimization, both in theory and in practice, due to its simplicity and efficiency in
+converging to critical points. However, many real-world problems have spurious local optima [33],
+for which gradient descent is subject to slow convergence since it only leverages first-order informa-
+tion [32]. On the other hand, quantum algorithms have the potential to escape from local minima
+and find near-optimal solutions by leveraging the quantum tunneling effect [2, 11]. Therefore, it
+is desirable to identify a quantum counterpart of gradient descent that is simple and efficient on
+quantum computers while leveraging the quantum tunneling effect to escape from spurious local
+optima. With such features, the quality of the solutions is improved. Prior attempts (e.g., [30]) to
+quantize gradient descent, which followed the conventional approach, unfortunately fail to achieve
+the aforementioned goal, which seems to require a completely new approach to quantization.
+
+ A             Algorithms                         Dynamical Systems               B          Bregman Lagrangian                               Quantum propagator
+                             continuous-time limit
+
+
+
+           Quantum                                Quantum Mechanics
+                                                                                       Schrodinger equation (QHD)                            Infinitesimal expansion
+          Hamiltonian
+           Descent
+
+                         Quantize                                                 C
+                         classical                                         Classical Gradient Methods                        Quantum Hamiltonian Descent
+                         components
+
+
+         Classical Algorithms                      Classical Mechanics                            II
+          Accelerated Gradient                                                                                             I
+                Descent
+                                                                                                                 Path I: Classical Path
+
+                                 Time discretization                                                                                             Quantum Optimization Path =
+                                                                                      Path II: Prohibited Path                                         all possible paths
+
+
+
+
+Figure 1: Schematic of Quantum Hamiltonian Descent (QHD). A. Road map showing the conven-
+tional and our approach of quantizing classical gradient descent (GD). Specifically, QHD is derived through
+the path-integral quantization of the dynamical system corresponding to the continuous-time limit of clas-
+sical GD, and hence can be deemed as the path integral of the algorithmic trajectories of classical GD. B.
+Four major technical steps in the derivation of QHD. C. An illustrative example where classical GD with
+bad initialization will be trapped in a local minimum, while QHD can easily escape and find near-optimal
+solutions by taking the path integral of trajectories prohibited by classical mechanics.
+
+
+
+A genuine quantum gradient descent
+Our main observation is a perhaps unintuitive connection between gradient descent and dynamical
+systems satisfying classical physical laws. Precisely, it is known that the continuous-time limit of
+many gradient-based algorithms can be understood as classical physical dynamical systems, e.g., the
+Bregman-Lagrangian framework derived in [37] to model accelerated gradient descent algorithms.
+Conversely, variants of gradient-based algorithms could be emerged through the time discretization
+of these continuous-time dynamical systems [1]. This two-way correspondence inspired us a second
+approach to quantization: instead of quantizing a subroutine in gradient descent, we can quantize
+the continuous-time limit of gradient descent as a whole, and the resulting quantum dynamical
+systems lead to quantum algorithms as seen in Figure 1A. Using the path integral formulation
+of quantum mechanics (Figure 1B), we quantize the Bregman-Lagrangian framework to obtain a
+                                                                      d
+quantum-mechanical system governed by the Schrödinger equation i dt    Ψ(t) = Ĥ(t)Ψ(t), where Ψ(t)
+
+
+                                                                              2
+is the quantum wave function, and the quantum Hamiltonian reads:
+                                                
+                                          ϕt   1
+                                Ĥ(t) = e     − ∆ + eχt f (x),                                                 (1)
+                                               2
+where eϕt , eχt are damping parameters that control the energy flow in the system. We require
+eϕt /χt → 0 for large t so the kinetic energy is gradually drained out from the system, which is crucial
+for the long-term convergence of the evolution. Just like the Bregman-Lagrangian framework,
+different damping parameters in Ĥ(t) correspond to different prototype gradient-based algorithms.
+∆ is the Laplacian operator over Euclidean space. f (x), the objective function to minimize, is
+assumed to be unconstrained and continuously differentiable. More details of the derivation of
+QHD are available in Section A. The Schrödinger dynamics in (1) hence generates a family of
+quantum gradient descent algorithms that we will refer to as Quantum Hamiltonian Descent,
+or simply QHD.
+     As desired, QHD inherits simplicity and efficiency from classical gradient descent. QHD takes in
+an easily prepared initial wave function Ψ(0) and evolves the quantum system described by (1). The
+solution to the optimization problem is obtained by measuring the position observable x̂ at the end
+of the algorithm (i.e., at time t = T ). In other words, QHD is no different from a basic Hamiltonian
+simulation task, which can be done on digital quantum computers using standard techniques as
+shown in Algorithm 1 with provable efficiency (Theorem 3). The simplicity and efficiency of QHD
+on quantum machines potentially make it as widely applicable as classical gradient descent.
+     For convex problems, we prove in Theorem 1 that QHD is guaranteed to find the global solution.
+In this case, the solution trajectory of QHD is analogous to that of a classical algorithm. Non-convex
+problems, known to be NP-hard in general, are much harder to solve. Under mild assumptions on
+a non-convex f , we show the global convergence of QHD given appropriate damping parameters
+and sufficiently long evolution time (Theorem 2). Figure 1C shows a conceptual picture of QHD’s
+quantum speedup: intuitively, QHD can be regarded as a path integral of solution trajectories, some
+of which are prohibited in classical gradient descent. Interference among all solution trajectories
+gives rise to a unique quantum phenomenon called quantum tunneling, which helps QHD overcome
+high-energy barriers and locate the global minimum.
+
+
+Performance of QHD on hard optimization problems
+To visualize the difference between QHD and other classical and quantum algorithms, we test
+four algorithms (QHD, Quantum Adiabatic Algorithm (QAA), Nesterov’s accelerated gradient de-
+scent (NAGD), and stochastic gradient descent (SGD)) via classical simulation on 22 optimization
+instances with diversified landscape features selected from benchmark functions for global opti-
+mization problems.1 QAA solves an optimization problem by simulating a quantum adiabatic
+evolution [11], and it has mostly been applied to discrete optimization in the literature. To solve
+continuous optimization with QAA, a common approach is to represent each continuous variable
+with a finite-length bitstring so the original problem is converted to combinatorial optimization
+defined on the hypercube {0, 1}N , where N is the total number of bits (e.g., [8, 29]). In our ex-
+periment, we adopt the radix-2 representation (i.e., binary expansion) and assign 7 bits for each
+continuous variable. This allows QAA to handle the optimization instances as discrete problems
+over {0, 1}14 .2 See Section C.2.2 for the detailed setup.
+   1
+     More details of the 22 optimization instances can be found in Section C.1. In our experiment, we implement SGD
+by adding a small Gaussian perturbation to the analytical gradient. Unlike deterministic algorithms like NAGD, this
+stochastic perturbation seems to help with non-convex optimization.
+   2
+     Effectively, this means we discretize the continuous domain [0, 1]2 into a 128 × 128 mesh grid.
+
+
+                                                        3
+

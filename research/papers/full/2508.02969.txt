@@ -1,0 +1,929 @@
+Quantum Hamiltonian Descent based Augmented
+Lagrangian Method for Constrained Nonconvex
+Nonlinear Optimization
+Mingze Li1,2 , Student Member, IEEE, Lei Fan1,2 , Senior Member, IEEE, and Zhu Han1 Fellow, IEEE
+
+arXiv:2508.02969v1 [math.OC] 5 Aug 2025
+
+Dept. of Electrical and Computer Engineering1 and Dept. of Engineering Technology2
+University of Houston, TX, USA
+Emails:mli44@cougarnet.uh.edu; lfan8@central.uh.edu; zhan2@central.uh.edu
+Abstract—Nonlinear programming (NLP) plays a critical role
+in domains such as power energy systems, chemical engineering,
+communication networks, and financial engineering. However,
+solving large-scale, nonconvex NLP problems remains a significant challenge due to the complexity of the solution landscape and
+the presence of nonlinear nonconvex constraints. In this paper,
+we develop a Quantum Hamiltonian Descent based Augmented
+Lagrange Method (QHD-ALM) framework to address largescale, constrained nonconvex NLP problems. The augmented
+Lagrange method (ALM) can convert a constrained NLP to
+an unconstrained NLP, which can be solved by using Quantum
+Hamiltonian Descent (QHD). To run the QHD on a classical
+machine, we propose to use the Simulated Bifurcation algorithm
+as the engine to simulate the dynamic process. We apply our
+algorithm to a Power-to-Hydrogen System, and the simulation
+results verify the effectiveness of our algorithm.
+Index Terms—Nonlinear programming, Quantum Hamiltonian
+Descent, Augmented Lagrangian Method, Simulated Bifurcation,
+Power-to-Hydrogen System.
+
+I. I NTRODUCTION
+Given its generality and modeling flexibility, nonlinear programming (NLP) has become a core tool across a wide spectrum of application domains. In power and energy systems, it
+plays a central role in optimal power flow, unit commitment,
+and the integration of renewable resources [1]. A variety of
+solvers like IPOPT, Gurobi, and CPLEX have been developed
+to tackle specific instances of NLP problems. However, these
+classical algorithms can only ensure local convergence for
+nonconvex problems. Many challenges remain in ensuring
+scalability, robustness, and the ability to escape local minima
+in large-scale, nonconvex settings.
+To address the limitations of classical solvers in navigating nonconvex and high-dimensional optimization landscapes, recent research has turned to quantum computing
+approaches. One promising direction is quantum annealing,
+which leverages quantum tunneling to escape local minima and
+more effectively explore the global structure of the objective
+landscape [2], [3]. Quantum annealers have been explored
+for solving various optimization problems, including discrete and combinatorial optimization problems. Extending this
+concept into continuous domains, the Quantum Hamiltonian
+Descent (QHD) algorithm has been proposed to solve boxconstrained continuous nonlinear optimization problems [4],
+[5]. By exploiting quantum mechanisms such as wavefunction
+
+evolution and tunneling-like dynamics, QHD can, in some
+cases, outperform classical solvers, especially for nonconvex
+problems where traditional gradient-based methods tend to get
+stuck in poor local minima. In addition, recent advancements
+in Hamiltonian embedding techniques have significantly enhanced the feasibility of implementing quantum simulations on
+near-term quantum devices [6]. QHD has been implemented in
+a software package called the Quantum Hamiltonian Descent
+Optimizer (QHDOPT) [7]. This package can interface with
+various quantum hardware backends to solve box-constrained
+nonlinear nonconvex optimization problems. QHDOPT can
+encode the original problem into an Ising model, which can
+then be solved by quantum annealing machines.
+Despite the theoretical advantages of the quantum adiabatic
+process, current quantum hardware suffers from significant
+practical limitations. The number of available qubits remains
+limited, and noise, decoherence, and the lack of full programmability constrain the size and complexity of problems
+that can be realistically solved. To overcome these hardware
+barriers while retaining the benefits of quantum dynamics, researchers have proposed classical algorithms that mimic quantum behaviors. One approach is the simulated bifurcation (SB)
+algorithm, which emulates the adiabatic evolution of a Hamiltonian system using a network of classical nonlinear oscillators
+[8]. SB can be interpreted as a form of Hamiltonian descent,
+capturing essential features of quantum annealing—such as
+bifurcation-driven transitions to low-energy states—without
+requiring quantum hardware. Compared with classical simulated annealing, SB exhibits improved performance on largescale combinatorial problems by efficiently exploring complex
+energy landscapes through collective dynamics. Its inherently
+parallel structure and ability to exploit physical analogies
+make SB particularly well-suited for integration into quantum
+optimization solvers like QHDOPT.
+While QHDOPT is well-suited for solving unconstrained
+or box-constrained nonlinear problems, many real-world applications involve more general equality or inequality constraints that fall outside this scope. In this paper, we integrate
+QHDOPT into the Augmented Lagrangian Method (ALM)
+framework. In the ALM framework, a constrained optimization problem is reformulated as a box-constrained problem by
+introducing Lagrange multipliers and penalty terms into the
+
+objective function. This allows the original constraints to be
+enforced indirectly, as violations are penalized during optimization. By progressively updating the Lagrange multipliers
+and increasing the penalty parameters, the algorithm converges
+toward a solution that satisfies both optimality and feasibility.
+The newly proposed QHD based ALM framework can tackle a
+broader class of constrained nonlinear programming problems
+while maintaining its ability to leverage quantum-inspired
+dynamics for global optimization.
+In Section II, we present the general formulation of NLP
+problems and discuss the challenges associated with solving
+nonconvex, large-scale instances. Section III introduces the
+quantum optimization framework QHDOPT, which models
+continuous box-constrained NLP problems as quantum dynamical systems. Section IV incorporates the SB algorithm,
+a classical heuristic that enables QHDOPT to run on classical
+machines. In Section V, we introduce the QHD-ALM framework. In Section VI, we apply the proposed QHD-ALM to
+solve a hydrogen energy production management problem.
+
+III. I NTRODUCTION TO QHDOPT
+QHDOPT is an open-source optimization solver that implements QHD to solve continuous NLP problems with box
+constraints. The key idea behind QHD is to model the optimization process as the evolution of a quantum wavefunction
+governed by a time-dependent Hamiltonian. Unlike traditional
+optimization methods that rely on gradient-based search, QHD
+introduces a dynamical system where both kinetic and potential energy components play a role in guiding the optimization
+trajectory. This quantum formulation enables QHD to leverage
+quantum tunneling, providing an efficient means of escaping
+local minima in highly nonconvex problems [4], [5], [7].
+QHDOPT is designed to handle optimization problems of
+the form in [7]:
+minn f (x) =
+
+x∈R
+
+min f (x)
+
+(1)
+
+x
+
+s.t. gi (x) = 0,
+
+i ∈ I,
+
+(2)
+
+hj (x) ≤ 0,
+
+j ∈ J,
+
+(3)
+
+where x is a vector of continuous decision variables, f (x) is a
+nonlinear objective function, and gi (x) and hj (x) represent
+nonlinear equality and inequality constraints, respectively.
+The nonlinearity in these functions may arise from physical
+relationships, efficiency curves, or interactions between different components in the system. If the objective function or
+constraints are nonconvex, the problem becomes significantly
+harder to solve since classical optimization techniques are
+no longer guaranteed to find the global optimum. To overcome these challenges, advanced computational methods are
+needed. Quantum algorithms, such as QHD, exploit quantum
+mechanical properties like tunneling to escape local minima
+and explore a broader solution space.
+Given the limitations of traditional solvers in handling
+large-scale non-convex NLP problems, this paper introduces
+an advanced algorithmic framework designed to enhance the
+solution process. By integrating QHD and ALM, we aim to
+improve the efficiency and reliability in solving NLP problems
+with nonlinear and non-convex constraints.
+
+gi (xi ) +
+
+i=1
+
+m
+X
+
+pj (xkj )qj (xℓj ),
+
+(4)
+
+j=1
+
+subject to box constraints:
+Li ≤ xi ≤ Ui ,
+
+II. I NTRODUCTION TO N ONLINEAR P ROGRAMMING (NLP)
+Nonlinear programming is a mathematical optimization
+framework used to solve problems where the objective function and constraints involve nonlinear relationships. Unlike
+linear programming, which assumes a linear structure, NLP
+allows for a more flexible representation of practical industrial
+systems. However, the inherent complexity of nonlinear models often leads to computational challenges, especially when
+dealing with nonconvexity, where multiple local optima exist,
+making it difficult to find the global solution.
+A general NLP problem is formulated as follows:
+
+n
+X
+
+∀i = 1, . . . , n.
+
+(5)
+
+Here, the objective function consists of both univariate terms
+gi (xi ) and bivariate interaction terms pj (xkj )qj (xℓj ). To
+encode the objective function into the Hamiltonian, QHD
+constructs the Hamiltonian as follows:
+
+
+1
+(6)
+H(t) = eφt − ∆ + eχt f (x),
+2
+where x represents the optimization variables, ∆ denotes the
+Laplacian operator. The time-dependent scaling factors eφt
+and eλt govern the total energy distribution of the quantum system. This mechanism allows QHD to function as a
+quantum-enhanced optimization process, dynamically adjusting its exploration-exploitation balance while avoiding the
+pitfalls of local minima.
+To implement QHD in the discrete time domain, QHDOPT applies spatial discretization to represent the continuous
+wavefunction over a finite grid in Rn . Each variable domain
+is discretized into N grid points, and differential operators
+such as the Laplacian are approximated using finite-difference
+schemes. The objective function is encoded as a potential
+energy operator acting on the discretized space. The resulting
+QHD Hamiltonian is a large Hermitian matrix that governs
+quantum evolution over a finite-dimensional state space.
+
+
+1
+φt
+Ĥ(t) = e
+− Ld + eχt Fd ,
+(7)
+2
+where
+Ld =
+
+n
+X
+
+I ⊗ · · · ⊗ L ⊗ D (gi ) ⊗ . . . I,
+
+i=1
+
+Fd =
+
+n
+X
+i=1
+
+I ⊗ · · · ⊗ D (pj ) ⊗
+
+m
+X
+
+I ⊗ · · · ⊗ D (qj ) ⊗ . . . I.
+
+j=1
+
+(8)
+Here, I is the N -dimensional identity operator, L and D(∗)
+denote N -dimensional matrices.
+
+To further accelerate the simulation of this Hamiltonian on
+quantum hardware or classical emulators, QHDOPT adopts
+a Hamiltonian embedding strategy that converts the highdimensional QHD Hamiltonian into an Ising-type representation suitable for quantum machines [6].
+The discretized QHD Hamiltonian is a Hermitian matrix
+with an explicit tensor product decomposition structure. This
+structure enables the application of Hamiltonian embedding
+techniques to construct a surrogate Hamiltonian. By mapping
+each discretized variable to a binary encoding and converting
+binary variables to spin variables si ∈ {−1, 1}, the surrogate
+Hamiltonian can be embedded into an Ising model which can
+be solved by quantum solvers.
+IV. S IMULATED B IFURCATION A LGORITHM FOR
+H AMILTONIAN S IMULATION IN QHDOPT
+In earlier implementations of QHDOPT, quantum annealers
+were used to solve Ising models that arise within the QHD
+framework. However, current quantum hardware remains constrained by noise, limited qubit counts, and a lack of fault
+tolerance, posing practical challenges for scalable deployment.
+To overcome these limitations while preserving the quantuminspired philosophy of Hamiltonian descent, we replace the
+quantum annealing step with the Simulated Bifurcation (SB)
+algorithm—a purely classical alternative.
+The SB algorithm is a heuristic method inspired by quantum
+adiabatic evolution but implemented entirely in a classical
+framework. It efficiently solves the Ising model by leveraging
+a network of coupled Duffing oscillators and their bifurcation
+dynamics. While quantum annealing relies on tunneling to
+overcome energy barriers, SB exploits the classical bifurcation
+mechanism of nonlinear oscillators to traverse complex energy
+landscapes. This allows highly parallel and scalable execution
+on modern classical hardware such as GPUs. In QHDOPT, we
+use SB to replace quantum annealing to perform Hamiltonian
+descent efficiently, retaining the benefits of quantum-inspired
+optimization with enhanced computational accessibility.
+SB encodes the objective into a Hamiltonian system of nonlinear oscillators, evolving the system from a symmetric initial
+state to a bifurcated state representing an optimal solution.
+This approach is rooted in quantum adiabatic optimization
+using Kerr-nonlinear parametric oscillators (KPOs), where
+each binary variable in the Ising model corresponds to a KPO.
+The SB algorithm is governed by the simplified Hamiltonian:
+
+N 
+X
+K †2 2 p(t) †2
+†
+2
+a a −
+(ai + ai ) + ∆i ai ai
+Hq (t) =ℏ
+2 i i
+2
+i=1
+− ℏξ0
+
+N X
+N
+X
+
+Iij a†i aj ,
+
+(9)
+
+i=1 j=1
+
+where ℏ is the reduced Planck constant, a†i and ai are the
+creation and annihilation operators of the ith oscillator, K
+is the Kerr coefficient, ∆i is the detuning, p(t) is the timedependent pumping amplitude, and ξ0 controls the coupling
+strength between oscillators through the Ising interaction matrix Iij .
+
+As the system evolves, the amplitude p(t) is increased
+slowly from zero, and each KPO transitions from the vacuum
+state to a coherent state with either positive or negative
+amplitude. According to the quantum adiabatic theorem, the
+system remains in its instantaneous ground state, and the signs
+of the final coherent amplitudes encode the Ising spins. This
+mechanism provides a quantum dynamical route to solving
+Ising problems.
+To implement this on classical hardware, a classical approximation is taken by replacing quantum operators with
+continuous-valued expectation variables. Specifically, each operator ai is approximated by a complex amplitude xi + iyi ,
+where xi and yi are interpreted as canonical position and
+momentum variables. This leads to the classical mechanical Hamiltonian used in the SB algorithm. Through this
+approximation, the SB method retains the quantum-inspired
+bifurcation dynamics while enabling efficient simulation on
+classical architectures.
+The SB algorithm evolves a system of coupled oscillators
+governed by the following simplified Hamiltonian:
+
+N 
+N
+X
+∆ 2 X K 4 ∆ − p(t) 2
+yi +
+xi +
+xi
+HSB (x, y, t) =
+2
+4
+2
+i=1
+i=1
+N
+
+N
+
+ξ0 X X
+Iij xi xj ,
+−
+2 i=1 j=1
+
+(10)
+
+where x and y denote position and momentum variables,
+respectively. The matrix I encodes problem-specific interactions, and p(t) is a bifurcation-driving parameter that increases
+during the simulation. All the detunings have been assumed
+to be the same value ∆. The system evolves according to
+Hamilton’s equations [8]:
+ẋi = ∆yi ,
+
+ẏi = − Kx3i − (p(t) − ∆)xi + ξ0
+
+(11)
+N
+X
+
+
+Iij xj  .
+
+(12)
+
+j=1
+
+These equations are numerically integrated using the explicit
+symplectic Euler method, which ensures numerical stability
+and allows for large time steps. All oscillator states are initialized near zero, and as p(t) increases, the system undergoes
+bifurcation. At the final time step, the spin configuration is
+determined by the sign of each oscillator position.
+The SB algorithm efficiently explores multiple minima
+and escapes poor local optima. Its simplicity allows for fast
+computation, with parallelization enabled by its structure.
+By replacing quantum annealing with SB, QHDOPT gains
+scalability, stability, and flexibility, enabling the solution of
+large-scale nonlinear optimization problems that would be
+difficult for current quantum devices.
+V. I NTEGRATION OF QHD WITH AUGMENTED
+L AGRANGIAN M ETHOD
+In this section, we will introduce how to integrate the
+QHDOPT into the ALM framework.
+
+A. General Formulation of ALM
+We consider a general NLP problem with both equality and
+inequality constraints, written in the standard form as shown in
+(1), (2) and (3). To handle the inequality constraints, we introduce nonnegative slack variables sj ≥ 0. This reformulates the
+original problem into an equality-constrained problem, where
+all inequality constraints are rewritten as
+gi (x) = 0,
+
+i ∈ I,
+
+hj (x) + sj = 0,
+
+sj ≥ 0,
+
+(13)
+j ∈ J.
+
+(14)
+
+The augmented Lagrangian function is then defined as:
+X
+X
+LA (x, s, λ, µ, ρ) = f (x) +
+λi gi (x) +
+µj (hj (x) + sj )
+i∈I
+
++
+
+X ρi
+i∈I
+
+2
+
+j∈J
+2
+
+gi (x) +
+
+X ρj
+j∈J
+
+2
+
+(hj (x) + sj )2 ,
+
+(15)
+where λi and µj are the Lagrange multipliers for the equality
+and transformed inequality constraints, and ρi , ρj > 0 are
+penalty parameters.
+The ALM algorithm proceeds by solving a sequence of
+unconstrained problems:
+(x(k) , s(k) ) = arg min LA (x, s, λ(k) , µ(k) , ρ(k) ),
+x,s
+
+and then updating the multipliers after each iteration using [9]:
+(k+1)
+(k)
+(k)
+λi
+= λi + ρi gi (x(k) ), i ∈ I,
+(k+1)
+(k)
+(k)
+(k)
+µj
+= µj + ρj (hj (x(k) ) + sj ),
+
+Fig. 1. Flow Chart of QHD-ALM Method
+
+(16)
+j ∈ J.
+
+(17)
+
+The penalty parameter ρ(k) is optionally increased over
+iterations to improve convergence.
+This framework enables the use of box-constrained or unconstrained solvers, such as QHDOPT or IPOPT, to efficiently
+solve the reformulated problem. In particular, for highly nonlinear or nonconvex problems, the use of QHD in the ALM
+framework can improve convergence and solution quality
+while maintaining the feasibility of the original constraints.
+B. Advantages of Using QHD-ALM
+Fig. 1 and Algorithm 1 illustrate the QHD-ALM framework.
+To enable compatibility with quantum solvers, the method
+first initializes Lagrange multipliers and penalty parameters, preparing the problem for transformation into a boxconstrained form via ALM. This box-constrained model is then
+passed to the QHDOPT solver, which generates a coefficient
+matrix representing the discretized optimization landscape.
+To solve this binary-encoded representation, QHDOPT can
+interface with a quantum annealer or a classical algorithm
+such as the simulated bifurcation method. These solvers return
+raw candidate solutions, which are then refined in a postprocessing step to improve feasibility and extract a suitable
+initial point for further local optimization. This initial point is
+used to warm-start a classical solver, such as IPOPT, which
+performs fine-grained numerical optimization on the original
+constrained problem. If the solution has not yet converged to
+an acceptable threshold, the framework updates the Lagrange
+
+multipliers and penalty parameters, and repeats the process
+iteratively. This hybrid loop continues until convergence criteria are met, at which point a high-quality final solution is
+returned.
+VI. C ASE S TUDY
+In this section, we apply our proposed QHD-ALM to solve
+a hydrogen production problem.
+A. Mathematical Model
+The objective of the optimization problem is to minimize
+the operational cost of hydrogen production. In the objective
+function (18a), the total electricity cost over the planning
+horizon is penalized, while the value of stored hydrogen at the
+final time step is rewarded. Here, C hyo is the market value of
+hydrogen, and Ctpower represents the electricity price at time
+step t.
+max C hyo (sN − s0 ) −
+
+N
+−1
+X
+
+Ctpower pbuy
+,
+t
+
+t=0
+R
+AC el
+AC
+s.t. pbuy
++
+p
+=
+m
+p
+,
+t
+t
+t +k
+el
+d
+st+1 = st + st − st ,
+S min ≤ st ≤ S max ,
+max
+0 ≤ pel
+,
+t ≤P
+buy
+pt ≥ 0,
+pel
+t
+sel
+· λel , sel
+t = ∆t ·
+t ≥ 0.
+HHVH2
+
+(18a)
+(18b)
+(18c)
+(18d)
+(18e)
+(18f)
+(18g)
+
+Algorithm 1 QHD-ALM Framework
+1: Input: Nonlinear programming model with constraints
+2: Step 1: Initialize
+3: Set initial Lagrange multipliers λ(0) , µ(0) , and penalty ρ(0)
+4: Set iteration counter k = 0
+5: repeat
+6:
+Step 2: Box-constrained Model Reformulation
+7:
+Construct the Augmented Lagrangian function (15)
+8:
+Step 3: Solve with QHDOPT
+9:
+Formulate Q matrix from the box-constrained model
+10:
+Use QHDOPT with either Simulated Bifurcation or
+Quantum Annealer to obtain a raw solution
+11:
+Step 4: Post-processing
+12:
+Map the raw solution to original feasible space
+13:
+Use it as an initial point
+14:
+Step 5: Refinement with Gradient Descent Algorithm
+15:
+Utilize gradient descent algorithm to solve the unconstrained NLP from an initial point
+16:
+Step 6: Check Convergence
+17:
+if convergence criterion is met then
+18:
+Output: Final solution
+19:
+Break
+20:
+else
+21:
+Step 7: Update Parameters
+22:
+Update λ(k+1) , µ(k+1)
+23:
+Increase penalty ρ(k+1) = γρ(k) , where γ > 1
+24:
+k ←k+1
+25:
+end if
+26: until convergence is achieved
+
+Constraint (18b) captures the power balance for the electrolyzer, where power demand is met by the grid power
+AC
+and
+pbuy
+and renewable power pR
+t
+t . The coefficients m
+AC
+k
+are linear conversion parameters reflecting losses or
+auxiliary loads. The storage dynamics in (18c) ensure that the
+hydrogen storage level st evolves based on production sel
+t and
+consumption sdt . Constraints (18d) and (18e) enforce upper
+and lower bounds on storage and electrolyzer power capacity,
+respectively. Constraint (18g) links the produced hydrogen
+el
+energy sel
+t to the electrolyzer’s input power pt , scaled by the
+higher heating value of hydrogen HHVH2 , time duration ∆t,
+and electrolyzer efficiency λel .
+The efficiency λel is a critical nonlinear factor influenced by
+the operating point of the electrolyzer, such as input power and
+temperature. While (18g) uses a generalized fixed efficiency
+for simplicity, the subsequent section develops a detailed
+dynamic efficiency model that incorporates nonlinear characteristics. This refined model improves fidelity by capturing
+variations in λel as a function of key physical and operational
+parameters, thereby enhancing the accuracy and realism of the
+overall optimization framework.
+We have investigated the relationship between power and
+efficiency, illustrating the performance characteristics under
+different operating conditions. We perform the curve fitting
+
+and obtain the fitted voltage and current in [10]:
+
+el
+I¯cell = i1 − i2 · exp(i3 · pel
+t ) + i4 · pt ,
+
+(19)
+
+el 2
+el 3
+el 4
+Ūcell = u1 + u2 pel
+t − u3 (pt ) + u4 (pt ) − u5 (pt ) .
+
+(20)
+
+Then model the efficiency as:
+
+λel ≤m1 + m2 · P max +
+
+max
+m3 · exp m4 · (100 · pel
+) ,
+(21)
+t /P
+
+
+
+2
+n3 + n4 T + n5 T
+λel ≤ n1 + n2 · exp
+/Ūcell , (22)
+I¯cell
+
+where i, u, m, n, T are parameters of the dynamic efficiency
+functions.
+To solve the nonlinear constrained hydrogen scheduling
+problem using box-constrained solvers, we employ the ALM.
+The ALM incorporates Lagrange multipliers and penalty terms
+that penalize violations of the constraints, enabling the problem to be treated as an unconstrained optimization task. The
+key advantage of this approach is that it allows us to apply boxconstrained solvers, which are often more efficient and widely
+available, to complex constrained optimization problems.
+In our case, we are dealing with a nonlinear constrained
+hydrogen scheduling problem, which involves both nonlinearities and multiple constraints. To apply box-constrained
+solvers, we need to transform these constraints into penalty
+terms, which is where the QHD algorithm comes into play.
+The QHD algorithm is specifically designed to solve boxconstrained nonconvex problems, making it a suitable choice
+for our problem. However, to apply QHD effectively, we must
+first reformulate the problem by transforming the original
+constraints into penalty terms.
+buy
+, st , λt }N
+Let x = {pel
+t , pt
+t=0 denote the decision variables.
+We define the following constraints in the standard NLP
+format:
+
+∆t
+λt
+pel ·
++ sdt .
+HHVH2 t 100
+
+
+T +n5 T 2
+n1 + n2 · exp n3 +nI4¯cell
+
+g1,t (x) = st+1 − st −
+h1,t (x) = λt −
+
+(23)
+
+,
+(24)
+Ūcell
+
+
+
+100pel
+h2,t (x) = λt − m1 + m2 P max + m3 exp m4 · maxt
+.
+P
+(25)
+
+To convert hi (x) ≤ 0 into an equality, we introduce slack
+variables sli,t ≥ 0. The resulting Augmented Lagrangian
+
+function becomes:
+LA = − C hyo (eN − e0 ) +
+
+N
+−1
+X
+
+Ctpower pbuy
+t
+
+t=0
+
++
+
++
+
+N
+−1
+X
+t=0
+N
+−1
+X
+t=0
+N
+−1
+X
+
+λ1,t g1,t (x) +
+
+ρ1
+g1,t (x)2
+2
+
+µt (h1,t (x) + sl1,t ) +
+
+ρ2
+(h1,t (x) + sl1,t )2
+2
+
+ρ3
+(h2,t (x) + sl2,t )2 ,
+2
+t=0
+(26)
+where the objective function includes hydrogen production
+costs, power purchasing costs, and penalty terms for the constraints. The optimization problem is subject to the following
+bounds:
++
+
+µt (h2,t (x) + sl2,t ) +
+
+max
+0 ≤ pel
+, S min ≤ st ≤ S max , pbuy
+≥ 0,
+t
+t ≤P
+
+0 ≤ λt ≤ 100, sli,t ≥ 0.
+
+(27)
+
+This formulation can be solved using QHDOPT, which is
+well-suited for solving nonlinear, non-convex optimization
+problems, leveraging quantum optimization advantages such
+as enhanced exploration of complex solution spaces.
+B. Simulation Results
+In the case study, we evaluate four optimization methods
+across problem instances of varying sizes, corresponding to
+6, 24, 168, and 720 time slots. These cases reflect increasing
+problem dimensions and computational complexity. The methods compared are: (1) pure IPOPT, which solves the problem
+from a single random initial point; (2) IPOPT with multiple
+initial points, where the best solution is selected from 1,000
+random initializations; (3) the classical Augmented Lagrangian
+Method; and (4) our proposed QHD-ALM algorithm. For
+each case, we compare the objective values achieved and the
+computational time required, highlighting both solution quality
+and efficiency.
+TABLE I
+O PTIMAL O BJECTIVE VALUE OF D IFFERENT M ETHODS
+Case
+
+Pure-IPOPT ($)
+
+1
+2
+3
+4
+
+6.42
+6.33
+-760.23
+3040.31
+
+IPOPT 1k
+Samples ($)
+892.06
+2312.92
+14153.52
+19368.54
+
+ALM ($)
+
+QHD-ALM ($)
+
+6.42
+6.33
+10124.05
+17423.74
+
+893.8
+2333.4
+13877
+18840.1
+
+TABLE II
+C OMPUTATION T IME OF D IFFERENT M ETHODS
+Case
+
+Pure-IPOPT
+
+1
+2
+3
+4
+
+0.089s
+0.289s
+1.767s
+3.184s
+
+IPOPT 1k
+Samples
+73s
+257s
+16 min
+52 min
+
+ALM
+
+QHD-ALM
+
+1.31s
+3.18s
+61.1s
+351.58s
+
+6.82s
+11.28s
+78.2s
+369.38s
+
+Table I illustrates the objective values obtained across
+different methods for various problem sizes. As shown, the
+IPOPT solver often struggles with nonconvexity, frequently
+converging to poor local minima when initialized from a
+single random point. Although running IPOPT 1,000 times
+with different initializations improves the solution quality,
+this brute-force approach is computationally intensive and
+inefficient.
+Table II compares the total runtime of the four optimization
+methods across increasing problem sizes. As expected, pure
+IPOPT is the fastest since it performs only a single local search
+from a random starting point. However, to reliably find highquality solutions for nonconvex problems, IPOPT must be executed multiple times with different initializations—resulting in
+significantly higher total computation time. In contrast, QHDALM achieves comparable or better objective values with
+much less computational cost than IPOPT with 1,000 restarts,
+offering a more time-efficient strategy for global exploration.
+VII. C ONCLUSION
+In this paper, we proposed a novel hybrid optimization
+framework named QHD-ALM, which integrates QHD into
+ALM. The proposed algorithm improves the convergence of
+the classical ALM framework. The application of our proposed
+algorithm to the hydrogen production management verified the
+efficiency and optimality of our algorithm.
+R EFERENCES
+[1] M. Li, W. Ren, L. Fan, and Y. Guan, “A preprocessing method for
+security-constrained unit commitment with AC power flows,” in 2025
+IEEE Texas Power and Energy Conference (TPEC), College Station, TX,
+USA, Feb. 2025, pp. 1–5.
+[2] M. Li, S. Wang, L. Fan, and Z. Han, “Quantum assisted combinatorial
+Benders’ algorithm for the synergy of hydrogen and power distribution
+systems with mobile storage,” IEEE Transactions on Power Systems, pp.
+1–12, Jan. 2025.
+[3] Z. Zhao, L. Fan, and Z. Han, “Hybrid quantum Benders’ Decomposition
+for mixed-integer linear programming,” in IEEE Wireless Communications and Networking Conference (WCNC), Austin, TX, Apr. 2022, pp.
+2536–2540.
+[4] J. Leng, E. Hickman, J. Li, and X. Wu, “Quantum Hamiltonian
+descent,” 2023. [Online]. Available: https://arxiv.org/abs/2303.01471
+[5] J. Leng, Y. Zheng, Z. Jia, L. Fan, C. Zhao, Y. Peng, and X. Wu,
+“Quantum Hamiltonian descent for non-smooth optimization,” 2025.
+[Online]. Available: https://arxiv.org/abs/2503.15878
+[6] J. Leng, J. Li, Y. Peng, and X. Wu, “Expanding Hardware-Efficiently
+manipulable Hilbert space via Hamiltonian embedding,” Jan. 2024.
+[Online]. Available: https://arxiv.org/abs/2401.08550
+[7] S. Kushnir, J. Leng, Y. Peng, L. Fan, and X. Wu, “QHDOPT: A
+software for nonlinear optimization with quantum Hamiltonian descent,”
+INFORMS Journal on Computing, vol. 37, no. 1, pp. 107–124, Nov.
+2024.
+[8] H. Goto, K. Tatsumura, and A. R. Dixon, “Combinatorial optimization
+by simulating adiabatic bifurcations in nonlinear Hamiltonian systems,”
+Science Advances, vol. 5, no. 4, p. eaav2372, Apr. 2019.
+[9] M. V. Afonso, J. M. Bioucas-Dias, and M. A. T. Figueiredo, “An augmented Lagrangian approach to the constrained optimization formulation
+of imaging inverse problems,” IEEE Transactions on Image Processing,
+vol. 20, no. 3, pp. 681–695, Sep. 2011.
+[10] M. Li, S. Wang, L. Fan, and Z. Han, “Integrated quantum Hamiltonian
+descent with interior point method for optimal schedule of hybrid
+electricity-to-hydrogen system,” in 2025 IEEE Kansas Power and Energy Conference (KPEC), Apr. 2025, pp. 1–5.
+
+

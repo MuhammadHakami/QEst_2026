@@ -1,0 +1,209 @@
+                                          A Distributed Quantum Approximate Optimization
+                                                   Algorithm For Unit Commitment
+                                                           Ali Rajabi                                 Milad Hasanzadeh                            Amin Kargarian
+                                           Electrical and Computer Engineering             Electrical and Computer Engineering          Electrical and Computer Engineering
+                                                 Louisiana State University                      Louisiana State University                   Louisiana State University
+                                                    Baton Rouge, USA                                Baton Rouge, USA                             Baton Rouge, USA
+                                                      arajab2@lsu.edu                                mhasa42@lsu.edu                              kargarian@lsu.edu
+
+
+
+                                           Abstract—This paper presents a distributed quantum                      commonly handled through methods such as branch-and-bound,
+                                        approximate      optimization    algorithm   (DQAOA)-enabled               branch-and-cut, and decomposition algorithms, as well as
+                                        three-block alternating direction method of multipliers (ADMM)             heuristic and metaheuristic search procedures [3]. Although
+                                        framework for unit commitment (UC). The relaxed commitment
+                                        and dispatch variables are solved in a continuous quadratic                these approaches have been successfully applied to many
+                                        programming block, while the binary commitment block is                    UC formulations, their computational burden can increase
+arXiv:2608.04159v1 [cs.DC] 4 Aug 2026
+
+
+
+
+                                        formulated as a quadratic unconstrained binary optimization                considerably as the problem size and operational complexity
+                                        (QUBO) problem. The DQAOA interface allows this QUBO to                    grow. Therefore, decomposition methods have become
+                                        be solved using brute-force enumeration, monolithic QAOA, or               particularly useful because they separate binary commitment
+                                        distributed QAOA, while the remaining ADMM updates are kept
+                                        unchanged. In the distributed mode, the logical commitment                 decisions from continuous dispatch calculations and coordinate
+                                        qubits are allocated across multiple capacity-constrained                  them via iterative updates. This structure also creates an
+                                        quantum processing units (QPU), avoiding the requirement                   opportunity to replace the binary optimization procedure
+                                        that the complete binary problem fits on a single device. The              while retaining efficient classical solvers for the continuous
+                                        framework is evaluated on a five-unit UC instance containing               components. Among the available decomposition frameworks,
+                                        15 binary variables. All three solver modes reduce the ADMM
+                                        primal residual below a certain tolerance and recover the same             three-block alternating direction method of multipliers
+                                        commitment schedule, dispatch, and operating cost. The results             (three-block ADMM) is particularly suitable for this purpose
+                                        demonstrate solution consistency across the three solver modes             because it coordinates continuous and binary variable blocks
+                                        and the multi-QPU capacity accommodation provided by the                   within a unified iterative procedure [4].
+                                        distributed QAOA method.
+                                           Index Terms—Unit Commitment, Distributed Quantum                          In a three-block UC formulation, the relaxed commitment
+                                        Computing, Quantum Approximate Optimization Algorithm,                     and dispatch variables are handled in the first block through a
+                                        Three-Block Alternating Direction Method of Multipliers,                   quadratic program (QP) with continuous variables. The binary
+                                        Quantum Processing Unit.                                                   commitment decisions are isolated in the second block, while
+                                                                                                                   the third block updates a slack variable to enforce consensus
+                                                                I. I NTRODUCTION                                   between the relaxed and binary commitment representations.
+                                           Unit commitment (UC) is a fundamental scheduling problem                This structure allows the solution method used for the binary
+                                        in power system operation and electricity markets. It determines           block to be changed without modifying the remaining UC and
+                                        which generating units should be committed and how their                   ADMM calculations. A hybrid quantum–classical UC method
+                                        outputs should be scheduled to meet system demand while                    based on this decomposition was previously presented in [5].
+                                        satisfying operational requirements at minimum cost [1].                      The second block can be expressed as a quadratic
+                                        Because UC combines binary on/off decision variables with                  unconstrained binary optimization (QUBO) problem, which
+                                        continuous dispatch variables, it is commonly formulated as                provides a standard representation for many combinatorial
+                                        a mixed-integer optimization problem [2]. The computational                optimization models [6]. A QUBO can be transformed into
+                                        complexity of UC increases as the number of generating                     an Ising cost Hamiltonian that is compatible with gate-based
+                                        units, scheduling periods, and operating constraints grows.                quantum optimization algorithms [7]. Among these algorithms,
+                                        Consequently, the development of efficient UC solution                     the quantum approximate optimization algorithm (QAOA) is
+                                        methods remains an active research topic [3].                              designed specifically for discrete optimization and constructs
+                                           UC has traditionally been addressed using classical                     a parameterized circuit by alternating problem-dependent cost
+                                        optimization techniques. Its binary decision component is                  operations with mixer operations [8]. A classical optimizer
+                                                                                                                   adjusts the circuit parameters to reduce the expected cost and
+                                          This work was supported by the National Science Foundation under Grant
+                                        ECCS-1944752 and Grant ECCS-2312086.                                       increase the likelihood of observing low-cost binary solutions.
+                                                                                                                   QAOA and its variants have consequently received significant
+attention for near-term combinatorial optimization [9].                 • Brute force, monolithic QAOA, and distributed QAOA
+   Quantum approaches to UC have included annealing-based,                are evaluated using identical UC data, QUBO objective
+variational circuit-based, and hybrid decomposition methods,              coefficients, ADMM settings, and convergence criteria.
+as reviewed in [3]. The hybrid method in [5] demonstrated               • The distributed implementation allocates the logical
+that a quantum routine can be used for the binary UC block                commitment qubits across multiple capacity-constrained
+while the continuous calculations remain classical. However,              QPUs while recovering the same commitment schedule,
+a monolithic quantum implementation requires the complete                 dispatch, and operating cost as the monolithic and
+circuit and all logical data qubits to be accommodated by a               brute-force modes for the tested case.
+single quantum processing unit (QPU). This requirement can
+become restrictive because near-term devices have limited qubit                             II. P ROBLEM F ORMULATION
+capacity, connectivity, and circuit fidelity [10].
+   Distributed quantum computing provides an alternative in              This section introduces the unit commitment model
+which a quantum circuit is implemented across multiple                considered in this work. It describes its decomposition into three
+connected QPUs [11]. Circuit operations involving qubits              coordinated subproblems: (i) a convex quadratic (QP) problem
+located on different QPUs can be implemented through                  for relaxed binary commitment variables and continuous
+distributed gate protocols and classical communication                generation dispatch, (ii) a QUBO problem to determine the
+[12]. Distributed QAOA extends this idea to combinatorial             status of binary variables, and (iii) a linear optimization problem
+optimization by assigning logical variables and circuit               based on slack variable update with closed-form solution
+operations across multiple quantum devices [13]. Its main             to enforce UC feasibility and satisfy consensus constraint.
+practical motivation is to use the combined qubit capacities of       The adopted three-block ADMM formulation follows the
+multiple QPUs rather than requiring the complete problem to           general construction in [14], whereas the binary subproblem
+fit on a single device.                                               in the present work is solved using different modes including
+   A recent study integrated a distributed variational quantum        brute force, monolithic QAOA, or distributed QAOA. The
+eigensolver (DVQE) into the binary block of a three-block             remaining ADMM blocks and their associated constraints are
+ADMM formulation for UC [14]. Furthermore, the DQAOA                  kept unchanged across all solver modes.
+framework introduced in [15] provides a common interface
+for solving QUBO problems using brute-force enumeration,              A. Unit Commitment Model
+monolithic QAOA, or distributed QAOA. The framework
+assigns logical data qubits based on the available QPU                   Consider a scheduling horizon containing T time periods
+capacities and supports the distributed realization of interactions   and a system with N generating units. The binary variable
+that span QPU boundaries. However, its integration as the             yi,t indicates whether unit i is committed during period t, and
+binary solution routine within a complete three-block ADMM            pi,t denotes its power output. The simplified UC problem is
+workflow for UC has not yet been evaluated in detail.                 formulated as follows:
+   This paper develops a DQAOA-enabled three-block ADMM                                      T X
+                                                                                               N
+framework for UC. At each ADMM iteration, the first block
+                                                                                             X
+                                                                                                       Ai yi,t + Bi pi,t + Ci p2i,t ,
+                                                                                                                                   
+                                                                                min                                                       (1a)
+updates the relaxed commitment and dispatch variables. These                  yi,t , pi,t
+                                                                                             t=1 i=1
+updated values, together with the current slack and dual                                     XN
+multiplier variables, are then used to construct the QUBO                           s.t.         pi,t = Lt ,      ∀t,                     (1b)
+objective associated with the binary commitment block. The                                   i=1
+resulting QUBO is passed to the common DQAOA interface                                       pmin
+                                                                                              i   yi,t ≤ pi,t ≤ pmax
+                                                                                                                 i    yi,t ,     ∀i, t,   (1c)
+and solved using brute-force enumeration, monolithic QAOA,                                   yi,t ∈ {0, 1},       ∀i, t.                  (1d)
+or distributed QAOA. The selected binary commitment solution
+is returned to the ADMM loop, after which the slack                   Here, Lt denotes the demand during period t. The coefficients
+variable and dual multiplier updates are performed in the             Ai , Bi , and Ci represent the fixed, linear, and quadratic
+same manner for all three solver modes. Accordingly, the              operating cost parameters of unit i, respectively. The quantities
+UC formulation, ADMM parameters, QUBO construction                    pmin   and pmax     specify the lower and upper generation
+                                                                        i           i
+procedure, and convergence criterion remain unchanged across          limits of generating unit i. The objective function in (1a)
+the three modes, while only the solution method for the binary        minimizes the total operating cost over the scheduling horizon.
+block varies.                                                         Constraint (1b) maintains the supply–demand balance, while
+   The main contributions of this work are summarized as              constraint (1c) couples the continuous dispatch variable to the
+follows:                                                              binary commitment variable. When yi,t = 0, the corresponding
+  •   The DQAOA package is integrated as a selectable                 generation output is forced to zero, while yi,t = 1 indicates
+      solver for the iteration-dependent binary block within          that the unit is allowed to operate inside its admissible output
+      a three-block ADMM formulation for UC.                          range.
+B. Three-Block ADMM Decomposition                                            where Q(k) , q (k) , and c(k) are obtained from the current
+   To separate the continuous generation variables from the                  ADMM variables and parameters. Equation (6) is the binary
+binary commitment decisions, the binary variable yi,t in (1d)                subproblem supplied to the selected solver. In this work,
+is first relaxed over the interval [0, 1]. An auxiliary binary               the QUBO problem is solved using brute-force enumeration,
+commitment variable zi,t is then introduced to preserve the                  monolithic QAOA, or distributed QAOA. Therefore, only the
+binary requirement. The relaxed and binary representations are               solution method used in Block 2 changes among the three
+coordinated through a slack variable ri,t and the associated                 modes.
+consensus equality constraint. Following the three-block                          c) Block 3: Slack variable update: Once the continuous
+construction in [14], the binary constraint in (1d) is replaced              and binary variables have been updated, the third block
+by                                                                           computes
+                                                                                                                               
+                           0 ≤ yi,t ≤ 1,          ∀i, t,              (2a)            r(k) = arg min Lρ ∆(k) , z (k) , r, λ(k−1) .    (7)
+                                                                                                   r
+                           zi,t ∈ {0, 1},         ∀i, t,              (2b)   Since this subproblem is unconstrained and quadratic in r, its
+                               ri,t ∈ R,          ∀i, t,              (2c)   solution is obtained analytically as
+                                                                                                                                
+                yi,t − zi,t + ri,t = 0,           ∀i, t.              (2d)                              (k−1)
+                                                                                                      λi,t
+                                                                                                                     (k)
+                                                                                                              + ρ yi,t − zi,t
+                                                                                                                             (k)
+                                                                                             (k)
+In this decomposition, yi,t remains as the continuous relaxed                               ri,t = −                               .    (8)
+                                                                                                                β+ρ
+commitment, whereas zi,t carries the binary commitment
+                                                                                  d) Dual variable update: The Lagrange multipliers are
+requirement. The variable ri,t supports coordination between
+                                                                             subsequently adjusted using the consensus violation remaining
+these two representations through (2d).
+                                                                             after the three primal updates:
+   Let λi,t denote the Lagrange multiplier associated with the
+                                                                                          (k)      (k−1)   ρ  (k)       (k)     (k)
+                                                                                                                                     
+consensus constraint, ρ > 0 denote the augmented Lagrangian                             λi,t = λi,t      +     yi,t − zi,t + ri,t .     (9)
+                                                                                                           2
+penalty coefficient, and β > 0 denote the regularization
+parameter applied to r. Defining the continuous variables as                    The ADMM iterations continue until the primal consensus
+∆ = {y, p}, the augmented Lagrangian is expressed as                         residual
+                                                                                                 (k)
+                                                                                                εpri = y (k) − z (k) + r(k)            (10)
+                       T X
+                       X N                                                                                                  2
+                                 Ai yi,t + Bi pi,t + Ci p2i,t
+                                                                  
+  Lρ (∆, z, r, λ) =                                                          falls below a certain tolerance or the maximum number of
+                       t=1 i=1                                               ADMM iterations is reached.
+                         XT X  N
+                       +             λi,t (yi,t − zi,t + ri,t )                           III. H YBRID DQAOA F RAMEWORK
+                           t=1 i=1                                              At each ADMM iteration, the binary commitment block
+                         ρ                    2   β        2                 generates a QUBO objective whose coefficients depend on
+                      + ∥yi,t − zi,t + ri,t ∥2 + ∥ri,t ∥2 (3)
+                         2                        2                          the current relaxed commitment, slack, and dual multiplier
+The optimization remains subject to the power balance and                    variables. The developed DQAOA package solves this
+generation limit constraints in (1b)–(1c), together with the                 QUBO problem using brute force, monolithic QAOA, or
+domains specified in (2). The three-block ADMM procedure                     distributed QAOA. All three modes receive the same QUBO
+updates the continuous variables, binary variables, and slack                coefficients, while the continuous, slack, and dual updates
+variables sequentially, followed by a correction of the Lagrange             remain unchanged.
+multipliers.
+                                                                             A. QUBO Encoding and Monolithic QAOA
+     a) Block 1: Continuous variables update: With z, r, and
+λ fixed at their values from the preceding iteration, the relaxed              At iteration k, Block 2 is expressed as
+commitment and dispatch variables are updated according to                                                           T
+                                                                                                                            (k)
+                                                                                       F (k) (z) = z T H (k) z + f (k) z + c0 ,
+                                                                                                                                       (11)
+                                                       
+       ∆(k) = arg min Lρ ∆, z (k−1) , r(k−1) , λ(k−1) ,        (4)
+                       ∆                                                                               z ∈ {0, 1}n .
+subject to (1b)–(1c) and 0 ≤ yi,t ≤ 1. This block is a convex                where n = N T is the number of binary commitment variables.
+QP in the relaxed commitment and dispatch variables.                         Using the standard binary-to-Ising mapping zbj = (I − Zj )/2,
+      b) Block 2: Binary commitment update: After obtaining                  the QUBO objective is transformed into a cost Hamiltonian
+∆(k) , the binary commitment vector is determined from                       expressed in terms of Pauli-Z operators.
+                                                     
+                                                                                                   n
+      z (k) = arg min Lρ ∆(k) , z, r(k−1) , λ(k−1) . (5)                            (k)
+                                                                                                   X      (k)
+                                                                                                                   X      (k)
+                 z∈{0,1}N T                                                       HC = α(k) I +          hj Zj +         Jjm Zj Zm ,   (12)
+The terms of (5) that depend on z can be collected in the                                          j=1             j<m
+
+standard QUBO form                                                           where I is the identity operator, Zj is the Pauli-Z operator
+                                                                                                            (k)      (k)
+                                      T                                    acting on qubit j, and α(k) , hj , and Jjm are obtained from
+           min       z T Q(k) z + q (k) z + c(k) ,     (6)                   the QUBO coefficients.
+          z∈{0,1}N T
+

@@ -1,0 +1,247 @@
+                                                                                                                                                                                        1
+
+
+
+
+                                                       Proving the Limits of Quantum Power Flow
+                                                                                      Cameron Khanpour⋆ and Samuel Talkington♯
+
+                                               Abstract—This letter proves realistic grid properties limit the                 II. I LL -C ONDITIONING IS S TRUCTURAL
+                                            applicability of quantum computers for power flow. Grids that
+                                            split into two large regions meeting at only a few buses, common               Let G = (V, E) be a connected graph with n = |V |
+                                            in transmission networks, force the pseudo condition number                 buses, m = |E| branches with series susceptances be > 0,
+                                            of the DC susceptance matrix to grow polynomially in the                    and maximum degree ∆. The DCPF problem is Bθ = p,
+                                            network size, and long chains of lines bridging such regions                p ⊥ 1, with susceptance Laplacian B = A⊤ diag(be )A ⪰ 0,
+                                            force quadratic growth. This rigorously verifies the empirical              ker B =P  span{1} for incidence matrix A. For F ⊆ E write
+                                            results of recent work. We also show that the theory holds
+                                            without model information with high probability for independent             b(F ) ≜ e∈F be , let b̄ ≜ b(E)/m, bmax ≜ maxe be , and let
+                                            bounded random line susceptances. Combined with query and                   ∂S be the edges leaving S ⊂ V . The pseudo condition number
+                                            tomography lower bounds, this precludes end-to-end quantum                  is κ+ (B) ≜ λmax (B)/λ2 (B), with λ2 the smallest nonzero
+                                            advantage for DC power flow at every readout level, and these               eigenvalue. All bounds transfer to the grounded matrix Br
+                                            obstructions persist through AC power flow, optimal power flow,             (slack bus deleted), which solvers invert. Poincaré separation
+                                            and unit commitment. All proofs are formally verified in Lean 4.
+                                                                                                                        gives λmin (Br ) ≤ λ2 (B), and tr(Br ) = 2b(E) − b(∂{r}),
+                                                                        I. I NTRODUCTION                                where b(∂{r}) ≤ ∆ · bmax and b(∂{r}) = o(b(E)) whenever
+                                                Quantum linear system (QLS) solvers [1], [2] prepare a ∆ · bmax = o(b(E)).
+arXiv:2607.19263v2 [quant-ph] 15 Aug 2026
+
+
+
+
+                                            state proportional to A−1 |b⟩ in time polylogarithmic in the                   Three computational facts anchor the analysis. (F1) Every
+                                            dimension of A, inspiring a sizable quantum power flow rigorous fault tolerant QLS solver in the fixed matrix oracle
+                                            literature advertising exponential speedups, e.g., [3]. The model, with controlled input preparation, uses Ω(κ) queries
+                                            generic caveats of QLS subroutines of input loading, output on some input, matched by [2]. (F2) Recovering a classical ε-
+                                            readout, and condition number dependence [4] were recently approximation of an n-dimensional pure state requires Θ(n/ε)              e
+                                            examined for DC power flow (DCPF) in [5]. They found end- applications of its preparation unitary and inverse [9], each a
+                                            to-end costs favor classical iterative methods, and practical fresh QLS solve, and loading a dense classical vector costs
+                                            HHL advantage requires readout level D and condition number Ω(n) gates per repetition absent QRAM [5]. (F3) Classically, B
+                                            κ with Dκ3/2 ≪ n/d on an n-bus system of row sparsity d. is symmetric diagonally dominant, solvable in O(m                    e log(1/ε))
+                                            However, this relies on an empirical fit κ ∼ n2 over PGLib time [10], [11], where O                    e hides polylog(n) factors. Combina-
+                                            test systems [6]. This insightful result leaves open the question torial preconditioning makes the κ-dependence logarithmic.
+                                            as to whether it applies to general classes of grid structures.
+                                                To this end, this letter asks the following question:                   Lemma 1 (Weighted cuts control conditioning). Let G be con-
+                                                       Is the ill-conditioning of power flow systems an                 nected. Then (i) λmax (B) ≥ max{2b(E)/(n − 1), 2 maxe be },
+                                                        inherent consequence of transmission network                    and (ii) for every nonempty proper S ⊂ V with γ ≜ |S|/n,
+                                                      topology that quantum algorithms cannot avoid?                    λ2 (B) ≤ b(∂S)/(γ(1 − γ)n). Consequently,
+                                            We prove this in the affirmative, and propagate the conse-                                       2γ(1 − γ)        n               o
+                                            quences through adjacent problems in power engineering.                             κ+ (B) ≥                 max b(E), n max be .         (1)
+                                                                                                                                               b(∂S)                    e∈E
+                                            Furthermore, every theoretical result is machine-checked in
+                                            Lean 41 ; the first power systems contribution to do so. Section II Proof. (i) tr(B) = 2b(E) spreads over at most n − 1 nonzero
+                                            shows that small balanced separators—which are implied by τ - eigenvalues,       √          and for e = {i, j} the unit vector y = (ei −
+                                            bounded treewidth or near planarity, both of which are common ej )/ 2 has y ⊤ By ≥ 2be . (ii) x = 1S − γ1 ⊥ 1 satisfies
+                                            characteristics of realistic transmission grids [7], [8]—force the x⊤ Bx = b(∂S) and x⊤ x = γ(1 − γ)n, then apply Rayleigh–
+                                            pseudo condition number of a grid with maximum degree ∆ to Ritz on 1⊥ . Combine with n/(n − 1) ≥ 1 for the result.
+                                            Ω(n/∆τ ), with transfer corridors forcing Ω(n2 ), explaining the
+                                            scaling in [5]. We then show that both bounds hold with high                   The weighted form (1) is strictly stronger than a homoge-
+                                            probability for any independent bounded random susceptances                 nized bound from bmin A⊤ A ⪯ B ⪯ bmax A⊤ A, as b(E)/b(∂S)
+                                            given a fixed topology. Section III adds query and tomography compares total network stiffness to interface stiffness. A single
+                                            lower bounds to rule out end-to-end advantage at every readout electrically weak tie line forces ill-conditioning even when the
+                                            level D ≥ 1 in the sense of [5]. Section IV discusses how the spread bmax /bmin renders the homogenized bound vacuous.
+                                            obstructions may impact AC power flow (ACPF), DC optimal                       Transmission networks supply such cuts on two grounds.
+                                            power flow (OPF), AC-OPF, security constrained OPF, unit                    Combinatorially,     tree decompositions of width far below
+                                            commitment (UC), and hybrid schemes. Section V concludes                    system  size   are routinely computed for large-scale grids, the
+                                            that nearly-linear time Laplacian solvers, randomized numerical             structure   behind   chordal  relaxations [7], [12]. Electrically,
+                                            linear algebra, and quantum-inspired algorithms may help                    Lemma    1   needs  only a balanced  cut with b(∂S) ≪ b(E), the
+                                            deliver the speedups sought from quantum hardware.                          “weak  connection”     premise  underlying  slow coherency. This
+                                                                                                                        is consistent with the inter-area oscillations observed in large
+                                               ⋆: School of Electrical and Computer Engineering, Georgia Institute of   interconnections [13], as B is also the synchronizing torque
+                                            Technology, Atlanta, GA, USA. Email: khanpour@gatech.edu.
+                                               ♯: Department of Electrical Engineering and Computer Science, University
+                                                                                                                        Laplacian of the swing dynamics. Separations certify such
+                                            of Michigan, Ann Arbor, MI, USA. Email: talks@umich.edu.                    cuts combinatorially. We say G admits an (s, β)-separation,
+                                               1 https://github.com/eigenergy/quantum-power-flow-limits                 β ∈ (0, 12 ], if V = VA ⊔ X ⊔ VB where X is the set of buses
+                                                                                                                                  2
+
+
+
+whose removal would disconnect the graph into two parts with           A corridor gives λ2 (B) = O(b(EP )/(nℓ2 )) while the rest of
+no VA –VB edges, |X| ≤ s, and min{|VA ∪ X|, |VB |} ≥ βn.            the network ensures λmax = Ω(b̄), providing an explanation for
+                                                                    the near quadratic fit κ ∼ n2 on the PGLib systems [5]. Finally,
+Theorem 1 (Separators force polynomial conditioning). If G
+                                                                    the bounds need no model information: randomize the branch
+has maximum degree ∆ and an (s, β)-separation, then
+                                                                  data to any bounded distribution [16] to yield the following.
+                   2β(1 − β)        b(E)
+          κ+ (B) ≥            max        ,n .                       Proposition 2 (Samplewise ill-conditioning, random suscep-
+                       s∆           bmax                            tances). Fix a topology with maximum degree ∆ and an
+Proof. Take S = VA ∪ X. Every edge of ∂S has an endpoint            (s, β)-separation, and let {be } be independent with be ∈
+in X, so b(∂S) ≤ s∆bmax , and γ(1 − γ) ≥ β(1 − β) since             (0, K] a.s.Pfor deterministic support bound K and mean
+γ ∈ [β, 1 − β]. Apply Lemma 1 for the desired result.               µ̄ ≜ m−1 e E[be ]. Then for every ε ∈ (0, 1), with probability
+                                                                    at least 1 − exp(−2ε2 mµ̄2 /K 2 ),
+Corollary 1. (i) If G has treewidth τ ≤ n/4 − 1, then G
+admits a (τ + 1, 41 )-separation and                                                                           µ̄m
+                                                                                  κ+ (B) ≥ 2β(1 − β)(1 − ε)         ,
+                                                                                                              Ks∆
+                  3 max{b(E)/bmax , n}
+       κ+ (B) ≥                        = Ω(n/(∆τ )).                and the substitution b(E) 7→ (1 − ε)mµ̄ applies, with the
+                       8(τ + 1)∆                                    same probability, to the weighted terms in Corollary 1 and
+(ii) If G is planar and n ≥ 288, then                               Proposition 1. The topology only bound holds for every
+                                             √                      realization under arbitrary joint laws on positive be .
+                   5 max{b(E)/bmax , n}
+       κ+ (B) ≥            √            = Ω( n/∆).
+                         18 8n ∆                                    Proof. The cut estimates hold samplewise. Only b(E), a sum
+                                                                    of m independent variables in intervals of length ≤ K, is
+Proof. (i) A graph of treewidth τ has a bag X, |X| ≤ τ + 1,         random, and Hoeffding gives Pr[b(E) ≤ (1 − ε)mµ̄] ≤
+whose removal leaves components of size ≤ n/2 [14, Ch. 7].          exp(−2ε2 mµ̄2 /K 2 ). Apply Theorem 1 for the result.
+Greedily group components into VB until |VB | ≥ n/4; then
+|VB | ≤ n/2, as either one component qualifies alone
+                                                   P or the           Boundedness makes each be sub-Gaussian, so Proposition 2
+last addition was < n/4, so |VA ∪ X| ≥ n/2, and i |Ci | ≥           covers genericity, uncertainty, or measurement error of be .
+3                                                           1
+4 n guarantees termination. Apply Theorem 1 with β = 4 ,
+m ≥ n − 1. (ii) Lipton–Tarjan √  [15] gives such                    III. N O E ND - TO -E ND Q UANTUM A DVANTAGE FOR DCPF
+                                             √ a partition
+with |VA |, |VB | ≤ 2n
+                     3 and |X| ≤   8n. Since
+                                         √    8n ≤ n/6 for            Call a sequence of DCPF instances a grid family if ∆, τ, s =
+n ≥ 288, both sides are at least n/6, a ( 8n, 61 )-separation.      O(1) (hence m = Θ(n)). By Corollary 1, κ = Ω(n), and
+Apply Theorem 1 with β = 61 for the desired result.                 Ω(n2 ) with macroscopic corridors.
+   Real grids are often near planar rather than planar, but part    Proposition 3 (End-to-end lower bounds). On a grid family,
+(ii) persists up to constants when c = O(n) branch crossings are    for any quantum DCPF algorithm built from a QLS solver
+                                                                    with a p-independent number of input preparation unitary and
+planarized. Reinvoking [15, Thm.p                     √ 1/n, 0
+                                     4], using nodal costs
+                                                                    inverse calls per solve for fixed B, even granting free (QRAM)
+on buses/crossings, projects size 2 8(n + c) = O( n). Either
+way κ+ grows polynomially, defeating polylog(κ) hopes. We           state preparation, with constant success probability: (i) for
+now show that quadratic growth can arise from corridors, long       some p∗ ⊥ 1 and 0 < ε < 1, outputting a classical θ̂ with
+interties and transfer interfaces that join regional subnetworks,   ∥θ̂ − θ∥2 ≤ ε∥θ∥2 costs Ω(nκ/ε)
+                                                                                                e           e 2 /ε) queries, versus
+                                                                                                          = Ω(n
+formalized below.                                                   O(n log(1/ε)) classically; (ii) estimating qi = (θi /∥θ∥2 )2 or
+                                                                     e
+                                                                    qij = ((θi −θj )/∥θ∥2 )2 across gap γ > 0 to error γ/4, using at
+Proposition 1 (Corridors imply quadratic conditioning). Sup-        least one QLS solve, costs Ω(κ) = Ω(n) on one input, already
+pose V = VS ⊔ P ⊔ VT with no VS –VT edges, where                    the price of the classical solve. Without QRAM, (F2) adds Ω(n)
+P = {p1 , . . . , pℓ }, ℓ ≥ 2, induces a path whose interior        loading gates per repetition when p∗ is dense. On corridor
+vertices have degree two in G and whose endpoints p1 , pℓ           families the gap in (i) widens to Ω(ne 3 /ε) vs. O(n
+                                                                                                                     e log(1/ε)).
+have neighbors only in VS ∪ {p2 } and VT ∪ {pℓ−1 }, respec-
+tively, and let EP be the ℓ − 1 path edges. If β > 0 and            Proof. By (F2) on the (n − 1)-dimensional balanced subspace,
+min{|VS |, |VT |} ≥ βn,                                             a classical output needs Θ(n/ε)
+                                                                                             e          unitary and inverse calls.
+                                                                                                                            √ For
+                          max{b(E), nbmax }                         unit modes u, v, put (p(0) , p(1) ) = (κu + v, κu − v)/ √κ2 + 1.
+ κ+ (B) ≥ 2β 2 (ℓ − 1)2                     ≥ 2β 2 n(ℓ − 1).        Their√input oracles and normalized solutions are 2/ κ2 + 1
+                               b(EP )                               and 2 apart, so the hybrid argument forces Ω(κ) oracle
+Since b(EP ) ≤ (ℓ − 1)bmax , ℓ = Θ(n) and fixed β > 0               queries. Reachability via p∗ = Bθ∗ /∥Bθ∗ ∥ transfers this
+give κ+ (B) = Ω(n2 ) for all positive weights. Letting ℓ = 2        cost to tomography’s hard input; γ/4 error on a γ-gap local
+recovers the tie line scaling of Theorem 1.                         observable proves (ii).
+Proof. Let xv = −1 on VS , +1 on VT , and xpi = −1+ 2(i−1)
+                                                       ℓ−1 .
+                                                                 With κ = Θ(n), conjugate gradient costs O(ne 3/2 log(1/ε))
+                                                                                       2 2           3 2
+Only path edges see a nonzero difference, each 2/(ℓ − 1), so while HHL pays Ω(nκ /ε ) = Ω(n /ε ). Substituting the
+                                                                                  e              e
+x⊤ Bx = 4b(EP )/(ℓ−1)2 . With x̃ = x−(1⊤ x/n)1, x̃⊤ B x̃ = bound κ = Ω(n) into the advantage criterion Dκ3/2 ≪ n/d
+x⊤ Bx, while x̃⊤ x̃ = minc ∥x − c1∥2 ≥ minc [ |VS |(1 + of [5] forces D ≪ n−1/2 < 1. No readout level, not even a
+c)2 + |VT |(1 − c)2 ] = 4|VS ||VT |/(|VS | + |VT |) ≥ 4β 2 n, single scalar, passes on separator structured families. Outputs
+using |VS ||VT | ≥ β 2 n2 and |VS | + |VT | ≤ n. Hence with provable quantum advantage, such as Forrelation-type
+λ2 (B) ≤ b(EP )/(β 2 n(ℓ − 1)2 ), then apply both bounds in observables [4], remain unlike any power system problem to
+Lemma 1(i).                                                   the best of our knowledge.
+                                                                                                                                                3
+
+
+
+               IV. B EYOND DC P OWER F LOW                                                      TABLE I
+                                                                     G RID STRUCTURE CONDITIONS ; ✓ INDICATES THE CONDITION APPLIES .
+   AC power flow. At the lossless unit voltage flat start, the
+active angle block equals the susceptance Laplacian [16], and               Case                     n   Near Plan. Sep. s tw ≤ U
+conditioning often degrades in regions away from flat start.                Texas7k [8]            6,717    ✓       ✓ 26    ✓ 46
+Newton outer iterations are also classically adaptive, forming              CATS [24]              8,870    ✓        ✓6     ✓ 22
+                                                                            PEGASE13k [25]        13,659    ✓       ✓ 15    ✓ 34
+each mismatch from a classical iterate, so a quantum inner                  Midwest24k [8]        23,643    ✓       ✓ 51    ✓ 82
+solver pays the Θ(n/ε)
+                  e        tomography cost of (F2) per iteration.           GOC30k [8]            30,000    ✓       ✓ 33    ✓ 67
+Nonetheless, very recent results indicate optimism for ACPF,                EPIGRIDS78k [26]      78,478    ✓       ✓ 57 ✓ 108
+obtaining an Ω(nκ/ε) end-to-end baseline [17].
+   DC optimal power flow. Interior point methods (IPMs) for                                       R EFERENCES
+DC-OPF reduce each iteration to a Newton system whose                [1] A. W. Harrow, A. Hassidim, and S. Lloyd, “Quantum Algorithm for
+positive barrier angle Hessian is a weighted susceptance                 Linear Systems of Equations,” Phys. Rev. Lett., vol. 103, no. 15, 2009.
+Laplacian A⊤ diag(wk,e be )A, wk,e > 0. Thus Theorem 1               [2] P. C. S. Costa et al., “Optimal Scaling Quantum Linear-Systems Solver
+applies at each strictly feasible iterate. Quantum IPMs [18] must        via Discrete Adiabatic Theorem,” PRX Quantum, vol. 3, no. 4, 2022.
+also extract the Newton direction classically at each of O(e √n)     [3] F. Feng, Y. Zhou, and P. Zhang, “Quantum Power Flow,” IEEE Trans.
+                                                                         Power Syst., vol. 36, no. 4, 2021.
+iterations, compounding the tomography cost. Classically, the        [4] A. M. Dalzell et al., Quantum Algorithms: A Survey of Applications
+                                                                         and End-to-End Complexities. Cambridge: Cambridge University Press,
+Laplacian structure is an asset; IPMs with fast Laplacian solvers        2025.
+underlie nearly-linear time network flow algorithms [19], which      [5] P. Pareek, A. Jayakumar, C. Coffrin, and S. Misra, “Limitations of Fault-
+may extend to DC-OPF itself.                                             Tolerant Quantum Linear System Solvers for Quantum Power Flow,”
+                                                                         IEEE Trans. Power Syst., vol. 41, no. 2, 2026.
+   AC-OPF, security constraints, and unit commitment. AC-            [6] S. Babaeinejadsarookolaee et al., “The Power Grid Library for Bench-
+OPF feasibility is strongly NP-hard [20], as is UC [21]. A               marking AC Optimal Power Flow Algorithms.” arXiv:1908.02788, 2021.
+polynomial time quantum algorithm for either general problem         [7] R. Madani et al., “Convex Relaxation for Optimal Power Flow Problem:
+                                                                         Mesh Networks,” IEEE Trans. Power Syst., vol. 30, no. 1, 2015.
+would imply NP ⊆ BQP, which is widely believed to not hold.          [8] A. B. Birchfield, T. Xu, K. M. Gegner, K. S. Shetye, and T. J. Overbye,
+A particular quantum algorithm may still solve a particular              “Grid Structural Characteristics as Validation Criteria for Synthetic
+problem instance fast; however, it is an open question whether           Networks,” IEEE Trans. Power Syst., vol. 32, no. 4, 2017.
+                                                                     [9] J. van Apeldoorn, A. Cornelissen, A. Gilyén, and G. Nannicini, “Quantum
+such instances are useful for the power engineering community.           Tomography using State-Preparation Unitaries,” in Proc. ACM-SIAM
+Additionally, relative to an enumerative or unstructured search          SODA, 2023.
+oracle, quantum search speedups are at most quadratic [22].         [10] R. Kyng and S. Sachdeva, “Approximate Gaussian Elimination for
+                                                                         Laplacians - Fast, Sparse, and Simple,” in Proc. IEEE FOCS, 2016.
+So their realistic contribution to these problems is likely a       [11] Y. Gao, R. Kyng, and D. A. Spielman, “AC(k): Robust Solution of Lapla-
+Grover-esque quadratic speedup of the branch-and-bound step,             cian Equations by Randomized Approximate Cholesky Factorization,”
+but current fault-tolerant overheads erase such speedups [23].           SIAM Journal on Scientific Computing, 2026.
+                                                                    [12] R. A. Jabr, “Exploiting Sparsity in SDP Relaxations of the OPF Problem,”
+Security constrained OPF inherits these conclusions by a                 IEEE Trans. Power Syst., vol. 27, no. 2, 2012.
+containment argument.                                               [13] J. H. Chow, ed., Time-Scale Modeling of Dynamic Networks with
+   Ironically, efficient classical approaches to AC-OPF, such            Applications to Power Systems. Springer, 1982.
+                                                                    [14] M. Cygan et al., Parameterized Algorithms. Springer, 2015.
+as [7], [12], exploit the small treewidth structure that dooms      [15] R. J. Lipton and R. E. Tarjan, “A Separator Theorem for Planar Graphs,”
+quantum linear algebra. While tempting, hybrid schemes                   SIAM J. Appl. Math., vol. 36, no. 2, 1979.
+likely do not escape either. Variational solvers still estimate     [16] S. Talkington, C. Khanpour, R. K. Gupta, et al., “Admittance Matrix
+                                                                         Concentration Inequalities for Understanding Uncertain Power Networks,”
+loss by repeated preparation and measurement, so repeated                in 1st Annual PowerUp Conference (to appear), 2026. arXiv:2510.17798.
+measurement costs persist and κ-dependence returns through          [17] P. Pareek, A. Jayakumar, C. Coffrin, and S. Misra, “Conditions for
+the optimization landscape [4]. A decomposition scheme                   Quantum Advantage in AC Power Flow.” arXiv:2608.06711, 2026.
+                                                                    [18] B. Augustino, G. Nannicini, T. Terlaky, and L. F. Zuluaga, “Quantum
+assigning UC’s combinatorial step to a quantum device, such as           Interior Point Methods for Semidefinite Optimization,” Quantum, vol. 7,
+an annealer, concedes the continuous subproblems—which may               2023.
+have fast classical algorithms—for a speedup at most quadratic.     [19] L. Chen et al., “Maximum Flow and Minimum-Cost Flow in Almost-
+                                                                         Linear Time,” in Proc. IEEE FOCS, 2022.
+Hybridization is worthwhile if the quantum module avoids            [20] D. Bienstock and A. Verma, “Strong NP-Hardness of AC Power Flows
+both linear system solving and classical readout; it relocates           Feasibility,” Oper. Res. Lett., vol. 47, no. 6, 2019.
+rather than removes computational barriers, and requires closer     [21] P. Bendotti, P. Fouilhoux, and C. Rottner, “On the Complexity of the
+                                                                         Unit Commitment Problem,” Ann. Oper. Res., vol. 274, no. 1–2, 2019.
+scrutiny for power engineering applications.                        [22] C. H. Bennett, E. Bernstein, G. Brassard, and U. Vazirani, “Strengths
+                                                                         and Weaknesses of Quantum Computing,” SIAM J. Comput., vol. 26,
+                                                                         no. 5, 1997.
+    V. O UTLOOK : T HE R IGHT C LASSICAL BASELINE ?                 [23] T. Hoefler, T. Häner, and M. Troyer, “Disentangling Hype from
+   This letter showed that common electric grid structures can           Practicality: On Realistically Achieving Quantum Advantage,” Commun.
+                                                                         ACM, vol. 66, no. 5, 2023.
+make quantum power flow (QPF) provably slow in areas where          [24] S. Taylor et al., “California Test System (CATS): A Geographically
+classical methods are already fast. Table I documents this               Accurate Test System Based on the California Grid,” IEEE Trans. Energy
+structure in realistic test cases. These numerical results and           Mark. Policy Regul., vol. 2, no. 1, 2024.
+                                                                    [25] C. Josz, S. Fliscounakis, J. Maeght, and P. Panciatici, “AC Power Flow
+all Lean 4 proof formalizations are open source. The Lean 4              Data in MATPOWER and QCQP format: iTesla, RTE Snapshots, and
+code also compiles to an executable C program that certifies             PEGASE,” arXiv:1603.01533, 2016.
+whether a test case exhibits QPF obstructions.                      [26] J. M. Snodgrass, Tractable Algorithms for Constructing Electric Power
+                                                                         Network Models. Ph.D. thesis, Univ. of Wisconsin–Madison, 2021.
+   How power engineering can best benefit from new computa-
+tional paradigms remains an open question. Quantum-inspired
+and randomized solvers exist today [10], [11] and remain
+largely untapped in power systems, warranting further study.
+

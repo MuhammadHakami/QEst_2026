@@ -1,0 +1,171 @@
+                                              Quantum Enhanced Deep Reinforcement Learning
+                                                 for Distribution Network Reconfiguration
+                                                      Daniel Germain*                    Mason Blanchard*                   Audrey Versteegen*                  Nora Bauer
+                                                      EPB Quantum                          EPB Quantum                        EPB Quantum                        IonQ Inc.
+                                                  Chattanooga, TN, USA                 Chattanooga, TN, USA               Chattanooga, TN, USA            Chattanooga, TN, USA
+                                                   germaind@epbqn.net                  blanchardm@epbqn.net               versteegena@epbqn.net            nora.bauer@ionq.co
+
+                                                        Jonathan Mei                       Claudio Girotto                       Paul Smith                  Martin Roetteler
+                                                         IonQ Inc.                             IonQ Inc.                       EPB Quantum                       IonQ Inc.
+                                                  Chattanooga, TN, USA                 Chattanooga, TN, USA               Chattanooga, TN, USA           College Park, MD, USA
+arXiv:2609.40327v1 [quant-ph] 30 Sep 2026
+
+
+
+
+                                                       jmei@ionq.co                    claudio.girotto@ionq.co               smithpj@epb.net             martin.roetteler@ionq.co
+
+
+
+                                               Abstract—Modern smart grids generate increasingly rich oper-               are nonlinear, while practical distribution networks are typ-
+                                            ational data and deploy greater numbers of remotely controlled                ically required to maintain a radial topology. Consequently,
+                                            switching assets than ever before, creating new opportunities for             DNR is formulated as a mixed-integer nonlinear optimiza-
+                                            data-driven distribution network reconfiguration (DNR). DNR
+                                            optimizes grid topology to improve efficiency, reduce power                   tion problem and is generally NP-hard [4], [5]. Classical
+                                            losses, and maintain operational constraints, but finding optimal             optimization approaches include exhaustive and branch ex-
+                                            switch configurations remains a computationally demanding                     change searches [1], [2], [6], metaheuristics such as genetic
+                                            combinatorial problem. In this paper, we propose a deep rein-                 algorithms [7], and mixed-integer convex reformulations [5],
+                                            forcement learning (DRL) framework for static DNR to system-                  among others [3]. These approaches can therefore become
+                                            atically investigate how the Q-network architecture affects both
+                                            solution quality and learning performance. We evaluate multiple               computationally expensive as network size increases, partic-
+                                            architectures within a controlled DRL framework, varying only                 ularly when the optimal configuration must be repeatedly
+                                            the Q-network to isolate the contribution of each architectural               determined under changing operating conditions [8]. In recent
+                                            choice. Our results show that quantum-enhanced Q-networks can                 years, the increasing deployment of smart meters and grid-
+                                            achieve higher rewards with fewer parameters than their classical             monitoring infrastructure has created opportunities for data-
+                                            counterpart, suggesting that such architectures are a promising
+                                            direction for combinatorial power systems optimization.                       driven approaches that can learn reconfiguration strategies
+                                               Index Terms—Quantum Machine Learning, Deep Reinforce-                      directly from system states [9].
+                                            ment Learning, Distribution Network Reconfiguration, Neural                      A variety of machine learning approaches have been inves-
+                                            Networks, Hybrid Quantum-Classical Learning                                   tigated for DNR, including artificial neural networks (ANNs)
+                                                                                                                          such as convolutional neural networks (CNNs) and long short-
+                                                                     I. I NTRODUCTION                                     term memory (LSTM) networks [10]. These methods have
+                                               Electrical distribution networks deliver electricity from                  been used to learn relationships between network states,
+                                            transmission systems to end users. Due to their wide geo-                     operating conditions, and desirable reconfiguration strategies
+                                            graphic spread and the resistive losses associated with power                 [10], [11]. For example, CNN-based approaches have been
+                                            delivery, a significant portion of generated energy is dissipated             developed to learn relationships between network topology
+                                            before reaching consumers. To mitigate these losses, utilities                and voltage stability, while LSTM models have been used
+                                            have explored various strategies, with distribution network re-               to learn mappings between load distributions and optimal
+                                            configuration (DNR) emerging as an effective and economical                   reconfiguration strategies [11]. Although these approaches can
+                                            solution [1], [2]. DNR involves selectively opening and closing               provide rapid inference after training, supervised learning gen-
+                                            network switches to modify the topology of the distribution                   erally requires labeled examples of optimal configurations and
+                                            system while maintaining operational constraints. Through                     may have difficulty adapting when operating conditions differ
+                                            appropriate reconfiguration, utilities can reduce power losses,               from those represented in the training data. Furthermore, the
+                                            improve voltage profiles, and enhance overall system reliabil-                combinatorial nature of the reconfiguration problem can make
+                                            ity with minimal additional infrastructure [3].                               it difficult for conventional learning approaches to directly
+                                               Despite these advantages, DNR presents a challenging op-                   model the sequential decision process involved in selecting
+                                            timization problem. The underlying AC power-flow equations                    a series of switching actions.
+                                                                                                                             Reinforcement learning (RL) provides a natural framework
+                                               *These authors contributed equally to this work. Research funded by NIST   for this sequential decision-making problem [12]. Rather than
+                                            Grant GONANB24D219-1 “Empowering the Future Grid: Quantum Training
+                                            for Software Innovation & Utility Applications.“ We thank Shaked Regev and    learning directly from a dataset of precomputed optimal con-
+                                            Phil Lotshaw for their insights throughout this study.                        figurations, an RL agent learns a policy by interacting with
+the distribution network environment and receiving rewards           Q-networks. Finally, trained 12-qubit models for both the
+based on the resulting system state. This enables the agent to       IEEE 33 and 69 bus systems are executed on the IonQ Forte
+learn reconfiguration strategies without requiring an explicit       Enterprise-1 trapped-ion quantum processor, with their hard-
+mapping between every possible network state and its optimal         ware inference outputs compared against the corresponding
+configuration. RL is particularly attractive for DNR because         noiseless-simulation results to quantify the impact of hardware
+the agent can repeatedly evaluate candidate switching actions        noise on model performance.
+and learn to optimize objectives such as power loss while               The remainder of this paper is organized as follows. Section
+satisfying operational and topological constraints. Moreover,        II provides background on distribution network reconfigura-
+once trained, the learned policy can generate decisions rapidly,     tion, deep reinforcement learning, and quantum reinforcement
+making RL well suited to environments in which operating             learning. Section III describes the proposed DRL environment
+conditions vary over time [11], [13].                                and its formulation for network reconfiguration. Section IV
+   Deep reinforcement learning (DRL), which combines re-             presents the Q-network architectures considered in this study,
+inforcement learning with neural networks to approximate             and section V summarizes the experimental results. Lastly,
+the action-selection policy or value function [14], [15], has        section VI concludes with key findings and directions for
+demonstrated success in reducing power losses in practical           future work.
+distribution networks [16]. Deep Q-network (DQN) [14] and
+                                                                                           II. BACKGROUND
+NoisyNet-DQN [17] approaches have subsequently been ap-
+plied to DNR, with NoisyNet introducing learnable parameter-         A. Reinforcement Learning
+ized noise to promote exploration during training [18]. Subse-          Reinforcement learning (RL) is a machine learning frame-
+quent work has extended DQN-based approaches through tech-           work for sequential decision-making in which an agent learns
+niques such as prioritized experience replay [19] and modified       through interactions with an environment E [12]. At time
+reward formulations, while also considering objectives beyond        step t, the agent observes the environment state st ∈ S,
+loss minimization, including reliability improvement [11],           selects an action at ∈ A from the set of available actions,
+[20]. These results demonstrate the potential of DRL to learn        receives a reward signal rt , and the environment transitions
+effective reconfiguration policies without explicitly solving        to a subsequent state st+1 . This interaction continues until a
+the underlying combinatorial optimization problem at every           terminal condition, such as a time limit or terminal state, is
+operating point [21].                                                reached.
+   In parallel, quantum computing has been proposed as a                The RL problem can be formalized as a Markov decision
+route to solve hard power system optimization tasks [22], [23].      process (MDP), defined by the tuple (S, A, P, R, γ) [12]. Here,
+Within machine learning specifically, quantum reinforcement          S denotes the set of possible environment states, A the set
+learning (QRL) has emerged as a promising research direction,        of possible actions, and P (st+1 | st , at ) the probability of
+investigating whether quantum circuits can be incorporated           transitioning to state st+1 after taking action at in state st .
+into reinforcement learning architectures to improve repre-          The reward function R(st , at ) specifies the immediate reward
+sentation, parameter efficiency, or learning performance [24].       associated with a state-action pair, while γ ∈ [0, 1] is the
+Approaches including quantum policy gradients [25], varia-           discount factor controlling the relative importance of future
+tional quantum policies [26], and quantum Q-networks [27],           rewards. The discounted return from time step t is defined as
+[28] have been investigated across a range of reinforcement
+                                                                                                  T
+learning problems. However, much of the existing QRL lit-                                         X          ′
+                                                                                           Rt =           γ t −t rt′ ,            (1)
+erature has focused on small-scale benchmark environments
+                                                                                                  t′ =t
+[26]–[28], leaving the performance of quantum reinforcement
+learning on larger, practically motivated optimization problems      where T denotes the time step at which the episode terminates.
+less well established.                                               The objective of the agent is to learn a policy π that maximizes
+   In an effort to scale quantum reinforcement learning to prob-     the expected return. The action-value function under policy π
+lems with higher-dimensional state spaces, hybrid quantum-           is therefore defined as
+classical Q-networks have been proposed with varying levels
+of success [29], [30]. In this work, we propose a hybrid                          Qπ (s, a) = Eπ [Rt | st = s, at = a] ,          (2)
+quantum-classical Q-network for distribution network recon-                   π
+                                                                     where Q (s, a) represents the expected discounted return ob-
+figuration and evaluate its ability to minimize line losses in the   tained by taking action a in state s and subsequently following
+IEEE 33 and 69 bus systems. In simulation, the proposed quan-        policy π.
+tum reinforcement learning framework successfully identifies
+the known optimal network configurations for both systems.           B. Q-Learning
+For the IEEE 33 bus system, a multi-seed ablation study is              RL algorithms can broadly be categorized as model-based
+conducted to investigate the relationship between model size,        or model-free [12]. Model-based methods use or learn a repre-
+training dynamics, and solution quality, demonstrating that          sentation of the environment dynamics, such as the transition
+the quantum models can achieve higher mean final rewards             probabilities P (st+1 | st , at ) and a reward model, which can
+while requiring fewer trainable parameters than larger classical     then be used for planning. In contrast, model-free methods
+Fig. 1. The deep reinforcement learning training procedure used in this work. Transitions are generated through interaction with a simulated distribution
+network and are stored in the replay buffer. The replay buffer is sampled to train the online Q-network. The online and target networks are used to construct
+the Bellman target, which is compared with the predicted action value to compute the training loss.
+
+
+
+learn a policy or value function directly from interactions                     is known as the temporal-difference (TD) error. In tabular Q-
+with the environment without explicitly learning a model of                     learning, the action-value estimate is iteratively updated toward
+its transition dynamics. This approach is well suited to the                    the Bellman target according to
+DNR formulation considered in this work because the state
+resulting from a switching action can be directly evaluated                                 Q(st , at ) ← Q(st , at ) + α [yt − Q(st , at )] ,           (6)
+through power-flow analysis, while the corresponding reward
+can be explicitly calculated from the resulting electrical and                  where α is the learning rate controlling the magnitude of each
+topological characteristics. Consequently, the agent does not                   update. Through repeated interactions with the environment,
+need to learn an approximation of either the system transition                  these updates progressively improve the action-value estimates
+dynamics or the reward function and can instead directly learn                  toward the optimal action-value function Q∗ .
+the long-term value of its switching actions. Q-learning is a                     Once the action values have been learned, the corresponding
+model-free RL algorithm that accomplishes this by learning                      greedy policy selects the action with the highest estimated
+the value associated with each state-action pair [15].                          value,
+   In Q-learning, the quality of taking action a in state s is
+represented by the action-value function Q(s, a). The optimal                                           at = arg max Q(st , a).                          (7)
+action-value function Q∗ (s, a) represents the maximum ex-                                                       a∈A
+
+pected discounted return obtainable from a state-action pair                    Although the greedy policy in Eq. 7 exploits the action
+and satisfies the Bellman optimality equation,                                  currently estimated to be optimal, relying exclusively on this
+                                                                                strategy during training can prevent the agent from discover-
+                h                                                i              ing potentially better actions. To balance exploitation of the
+  Q∗ (s, a) = E rt + γ max   Q ∗
+                                 (s t+1 , a′
+                                             ) | s t = s, a t = a  .            current value estimates with exploration of alternative actions,
+                          a′
+                                                                   (3)          Q-learning commonly employs an ϵ-greedy action-selection
+The Bellman equation expresses the value of a state-action                      strategy. At each time step, the agent selects a random action
+pair recursively as the immediate reward plus the discounted                    with probability ϵ and the action with the highest estimated
+value of the best action available from the subsequent state.                   value with probability 1 − ϵ,
+During Q-learning, this relationship is used to construct the
+one-step Bellman target                                                                     
+                                                                                            random action,             with probability ϵ,
+                                                     ′                               at =                                                                (8)
+                    yt = rt + γ max
+                                 ′
+                                    Q(st+1 , a ),                        (4)                arg max Q(st , a),         with probability 1 − ϵ.
+                                     a                                                           a∈A
+where yt provides a target estimate for the current state-action                The parameter ϵ therefore controls the exploration-exploitation
+value Q(st , at ). The difference between the Bellman target                    trade-off. During training, ϵ can be gradually decreased so
+and the current estimate,                                                       that the agent initially explores a wider range of actions be-
+                                                                                fore increasingly exploiting the learned action-value estimates.
+                         δt = yt − Q(st , at ),                          (5)    Once training is complete, the learned policy can be executed
+

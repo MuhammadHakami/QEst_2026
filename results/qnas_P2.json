@@ -1,0 +1,67 @@
+{
+ "nas": {
+  "values": [
+   0.5339364409446716,
+   109.875
+  ],
+  "arch": {
+   "space": "xy",
+   "p": 2,
+   "angles": "train",
+   "graph": "ring",
+   "trotter": 1,
+   "init": "warm",
+   "temp": 0.10029301319120439,
+   "loss": "cvar",
+   "alpha": 0.21724030349036208
+  }
+ },
+ "lean": {
+  "values": [
+   0.43445566296577454,
+   72.9375
+  ],
+  "arch": {
+   "space": "xy",
+   "p": 1,
+   "angles": "train",
+   "graph": "ring",
+   "trotter": 1,
+   "init": "warm",
+   "temp": 0.11618675498485101,
+   "loss": "cvar",
+   "alpha": 0.44329391197534324
+  }
+ },
+ "uniform": {
+  "values": [
+   0.11171134561300278,
+   109.875
+  ],
+  "arch": {
+   "space": "xy",
+   "p": 2,
+   "angles": "train",
+   "graph": "ring",
+   "trotter": 1,
+   "init": "w",
+   "loss": "cvar",
+   "alpha": 0.44929084199101094
+  }
+ },
+ "postnas": {
+  "values": [
+   0.5522695183753967,
+   72.9375
+  ],
+  "cfg": {
+   "keep": [
+    0
+   ],
+   "tau": 0.0,
+   "finetune": 20
+  },
+  "unpruned": 0.5339364409446716
+ },
+ "exact_eur": 2563090.4154882682
+}

@@ -1,0 +1,589 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>body{margin:0}img{max-width:100%}</style></head><body><title>KratTrade Twin 2026</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* layout: a control-room strip (name, views, the year clock) over one working surface per view; the simulation view is map + live panel */
+:root{color-scheme:dark;
+  --bg:#0b1720;--panel:rgba(8,12,16,.6);--chip:rgba(6,9,12,.55);--ink:#f3f6f8;--muted:#c6cfd6;--line:rgba(255,255,255,.16);--accent:#4fd1e0;
+  --s-base:#a68cf0;--s-samp:#2fd0bb;--s-qaoa:#f2a14b;--s-nqs:#ff8fd0;--warn:#ff7b72;--ok:#7ee08a;
+  --grid330:#ff5a3c;--grid110:#ffb347;--solar:#ffd23f;--wind:#ffffff;--wx:#5ee0f0;--real:#f3f6f8;
+  --display:'Barlow Semi Condensed','Arial Narrow',system-ui,sans-serif;--body:Barlow,system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+html,body{height:100%;overflow:hidden}[hidden]{display:none!important}
+body{background:#0b1720;color:var(--ink);font:15px/1.45 var(--body)}
+header{position:fixed;z-index:20;top:calc(10px + env(safe-area-inset-top,0px));left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;padding:8px 14px;background:color-mix(in srgb,var(--panel) 86%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+h1{font:700 21px/1 var(--display);letter-spacing:.02em;margin:0}
+h1 small{font:500 13px var(--body);color:var(--muted);letter-spacing:0;margin-left:6px}
+nav{display:flex;gap:4px}
+nav a{font:600 14px var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:6px}
+nav a.on{color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+nav a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#clock{display:flex;align-items:center;gap:8px 10px;flex:1;min-width:280px;justify-content:flex-end;flex-wrap:wrap}
+#clock .when{font:500 14px var(--mono);min-width:13em;text-align:right}
+#clock input[type=range]{width:min(320px,44vw)}
+button,select{font:600 13px var(--body);border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:6px;padding:6px 10px;cursor:pointer}
+button.on{border-color:var(--accent);color:var(--accent)}
+.pill{font:500 12px var(--mono);padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+.pill.test{border-color:var(--s-qaoa);color:var(--s-qaoa)}.pill.val{border-color:var(--accent);color:var(--accent)}
+main{position:fixed;inset:0}
+.view{position:absolute;inset:0}
+.surface{position:absolute;inset:0;overflow:hidden;background:#0b1720}
+aside{box-sizing:border-box;position:absolute;z-index:15;right:max(12px,env(safe-area-inset-right,0px));top:var(--top,80px);bottom:var(--bot,130px);width:380px;max-width:calc(100% - 24px);overflow:auto;padding:16px;display:flex;flex-direction:column;gap:16px;background:color-mix(in srgb,var(--panel) 86%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+aside h2,.card h2{font:600 14px var(--display);letter-spacing:.06em;text-transform:uppercase;margin:0 0 6px;color:var(--muted)}
+aside h3{font:700 19px/1.2 var(--display);margin:0;text-wrap:balance}
+table{border-collapse:collapse;width:100%;font-size:14px}
+td,th{padding:4px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+td.n,th.n{text-align:right;font:500 13px var(--mono);font-variant-numeric:tabular-nums}
+.bad{color:var(--warn);font-weight:600}.good{color:var(--ok);font-weight:600}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:13px}
+.legend label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none;outline:1px solid var(--line)}
+small,.note{color:var(--muted);font-size:13px}
+a{color:var(--accent)}
+.live{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.live div{border-left:3px solid var(--c,var(--line));padding-left:8px}
+.live b{display:block;font:600 22px/1.15 var(--display);font-variant-numeric:tabular-nums}
+.live span{font-size:12px;color:var(--muted)}
+.ek{color:var(--accent);font:600 11px var(--display);letter-spacing:.12em;text-transform:uppercase;margin:12px 0 4px}
+.etiles{display:grid;grid-template-columns:1fr 1fr;gap:6px}.etile,.ecard{background:var(--chip);border-radius:8px;padding:6px 8px}.ecard{margin-bottom:6px}
+.etile .el{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.etile .ev{font:600 17px var(--mono)}.etile .ev small{font:400 11px var(--mono);color:var(--muted)}
+.edot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}.elg{font-size:11px;color:var(--muted);margin-top:3px}.elg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin:0 4px 0 9px;vertical-align:-1px}
+.em{color:var(--muted);font-size:11px}#fc svg text,#strat svg text,#scard svg text{fill:var(--muted);font:10px var(--mono);text-shadow:none}
+.emrow{display:grid;grid-template-columns:100px minmax(0,1fr) 54px 54px 30px;min-width:0;gap:5px;align-items:center;padding:3px 4px;border-radius:5px;font-size:12px;cursor:pointer}.emrow:hover{background:var(--chip)}.emrow .n{text-align:right;font:600 12px var(--mono)}
+.echip{padding:1px 6px;border-radius:9px;font:600 10px var(--mono);color:#0b0f13;text-shadow:none}
+.bat{display:grid;grid-template-columns:auto 1fr auto;gap:4px 8px;align-items:center;font-size:13px}
+.bar{height:10px;border-radius:5px;background:color-mix(in srgb,var(--line) 70%,transparent);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--c)}
+#tip{position:absolute;pointer-events:none;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:13px;max-width:260px;z-index:5}
+#zoom{position:absolute;right:calc(424px + env(safe-area-inset-right,0px));top:var(--top,80px);display:flex;flex-direction:column;gap:4px;z-index:14}
+#zoom button{width:34px;height:34px;padding:0;font-size:18px}
+#maphud{position:absolute;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(var(--bot,130px));z-index:14;background:color-mix(in srgb,var(--panel) 90%,transparent);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:500 12px var(--mono);max-width:calc(100% - 440px)}
+#hud{position:absolute;left:max(12px,env(safe-area-inset-left,0px));top:var(--top,80px);z-index:14;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:500 13px/1.5 var(--mono);max-width:calc(100% - 430px)}
+#parkbtns{display:flex;flex-direction:column;gap:6px}#parkbtns button{text-align:left}
+canvas.chip{width:100%;max-width:340px;aspect-ratio:1;border-radius:6px;border:1px solid var(--line);background:#0b1720}
+.list button{display:block;width:100%;text-align:left;margin:0 0 4px;font-weight:500}
+#v-replay{overflow:auto;display:block;background:var(--bg);padding-top:var(--top,80px);padding-bottom:var(--bot,130px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px;max-width:1400px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.card.wide{grid-column:1/-1}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.kpi{border-top:3px solid var(--c);padding-top:8px}
+.kpi b{display:block;font:600 26px/1.1 var(--display);font-variant-numeric:tabular-nums}
+.kpi span{font-size:13px;color:var(--muted)}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{fill:var(--muted);font:11px var(--mono)}
+.keys{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px}
+.keys i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:6px;border-radius:2px}
+#dock{position:fixed;z-index:20;bottom:calc(10px + env(safe-area-inset-bottom,0px));left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));padding:8px 14px 10px;display:flex;flex-direction:column;gap:8px;background:color-mix(in srgb,var(--panel) 86%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+#drow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#dtrack{position:relative;height:34px}  /* the 24 h line spans the dock, above the year */
+#speed,#mode{display:inline-flex;gap:2px}
+#dtrack input{width:100%;margin:0;position:absolute;top:0}
+#dmarks i{position:absolute;top:18px;width:2px;height:8px;background:var(--s-qaoa)}#dmarks i.sun{background:var(--solar);height:8px}
+#dticks{position:absolute;top:22px;left:0;right:0;display:flex;justify-content:space-between;font:11px var(--mono);color:var(--muted)}
+#when{font:500 14px var(--mono);min-width:15em}#when small{display:block;font:12px var(--body);color:var(--muted)}
+#ytrack{position:relative;height:46px;cursor:pointer;border-radius:6px;background:color-mix(in srgb,var(--line) 45%,transparent)}
+#yspans .sp{position:absolute;top:4px;height:16px;border:1px solid;border-radius:4px}
+#yspans .sp b{position:absolute;left:4px;top:0;font:600 11px/16px var(--body);white-space:nowrap;overflow:hidden;max-width:calc(100% - 6px)}
+#yspans .sp.nodata{background:repeating-linear-gradient(45deg,transparent 0 5px,color-mix(in srgb,var(--muted) 25%,transparent) 5px 7px)}
+#yev i{position:absolute;top:2px;width:3px;height:22px;border-radius:2px;background:var(--ink);transform:translateX(-1px)}
+#yev i:hover{background:var(--accent)}
+#ymonths span{position:absolute;bottom:2px;font:11px var(--mono);color:var(--muted);border-left:1px solid var(--line);padding-left:3px}
+#ynow{position:absolute;top:0;bottom:0;width:2px;background:var(--warn)}
+/* over the imagery: text straight on the picture with a shadow; small chips (buttons, pills, readouts) dark and see-through */
+header,aside,#dock{background:none!important;border:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+header,aside,#dock,#v-replay{text-shadow:0 1px 2px rgba(0,0,0,.95),0 0 10px rgba(0,0,0,.7)}
+button,select,.pill,#maphud,#hud3,#tip,.bar,#ytrack{background:var(--chip)!important;border:1px solid rgba(255,255,255,.16)!important;color:var(--ink)!important;text-shadow:none}
+button.on,nav a.on{background:rgba(79,209,224,.28)!important;color:#fff!important}nav a{color:var(--ink)}
+td,th{border-bottom-color:rgba(255,255,255,.14)}
+svg text{paint-order:stroke;stroke:rgba(0,0,0,.85);stroke-width:3px;fill:var(--muted)}
+#v-replay .card{background:var(--chip);border-color:rgba(255,255,255,.12)}
+#hud3{position:absolute;left:max(12px,env(safe-area-inset-left,0px));top:var(--top,80px);z-index:14;border-radius:8px;padding:8px 10px;font:500 13px/1.5 var(--mono);max-width:calc(100% - 430px)}
+.list{display:flex;flex-direction:column;gap:4px}#fly.list{flex-direction:row;flex-wrap:wrap;gap:6px}#fly.list button{display:inline-block;width:auto;margin:0;padding:4px 9px;font-size:12px}  /* fly-to as chips, so the simulation panels stay in view in 3D */
+@media (max-width:760px){aside{left:12px;width:auto;top:auto;max-height:38%}#zoom{right:12px}#maphud,#hud{max-width:calc(100% - 24px)}#maphud{display:none}}
+</style>
+
+<header>
+  <h1>KratTrade Twin <small>Estonia · 2026 scenario</small></h1>
+  <nav><a href="#sim" data-v="sim">Simulation</a><a href="#3d" data-v="3d">Estonia 3D</a><a href="#replay" data-v="replay">Results</a></nav>
+  <span class="pill" id="splitpill"></span>
+</header>
+
+<main>
+  <section class="view" id="v-sim">
+    <div class="surface" id="mapbox"><canvas id="mapc"></canvas><div id="tip" hidden></div><div id="maphud"></div>
+      <div id="zoom"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">−</button><button id="zfit" aria-label="Fit Estonia">⌂</button></div></div>
+    <aside id="side">
+      <div class="only3d" hidden style="display:contents">
+      <div><h2>View</h2><button id="fogbtn">Weather fog: off (clear view)</button><p class="note">Off by default (?fog=1 starts with it on). On, fog follows the hour's ERA5 cloud cover (overcast pulls it in); the switch only changes the view, the weather keeps running.</p></div>
+      <div><h2>Fly to</h2><div id="fly" class="list"></div></div>
+      </div>
+      <div><h2>Estonia now, simulated vs measured</h2><div class="live" id="live"></div><p class="note" id="livenote"></p></div>
+      <div><h2>Forecast vs real</h2><div id="fc"></div><p class="note">Forecasts as each strategy saw them at gate A (D-1 09:00): Chronos-2 prices with their 10–90 % band, D-1 weather for the plants. The real line runs up to the clock.</p></div>
+      <div><h2>Estonia's grid now (Elering)</h2><div class="live" id="grid"></div><p class="note" id="gridnote"></p></div>
+      <div><h2>Strategies · Hertz 1 100 MW / 200 MWh + hybrid</h2><div id="strat"></div><div id="scard"></div><p class="note">Official settlement, per traded day. Click a strategy to follow it on the map and in 3D. The reachable optimum knows the day's prices but not the TSO's activations: the ceiling any forecaster could reach. Hindsight is the best plan knowing the day's prices, under the same rules.</p></div>
+      <div><h2>Last 7 days, MW</h2><div class="keys"><span><i style="background:var(--accent)"></i>wind fleet, simulated</span><span><i style="background:var(--solar)"></i>solar fleet, simulated</span><span><i style="background:var(--real)"></i>Elering measured</span></div><div id="ch7"></div></div>
+      <div id="sel"><h2>Selection</h2><p class="note">Click any turbine, solar plant, wind plant or the battery. Zoom in to see each asset's own close-up photo in place.</p></div>
+      <div><h2>Sim to real, whole fleet</h2><table id="fits"></table><p class="note" id="fitnote"></p></div>
+      <div><h2>Photo checks</h2><div id="checks"></div></div>
+      <div><h2>Imagery</h2><select id="basemap" aria-label="Imagery"><option value="maaamet" selected>Estonian Land Board orthophoto · 25–30 cm</option><option value="esri">Esri World Imagery · up to ~30 cm</option><option value="off">Offline: country mosaic + close-ups</option></select>
+        <p class="note">Tiles stream from the source as you zoom (the Land Board to zoom 18, 0.31 m per pixel here; Esri to 19). Esri imagery is shown, not stored.</p></div>
+      <div><h2>Layers</h2><div class="legend" id="layers"></div></div>
+      <div class="only3d" hidden style="display:contents">
+      <div><h2>In the scene</h2><p class="note">Ground: the imagery picked on the Simulation tab, streamed for the view (Land Board photo on land, Esri at sea).
+        Every mapped turbine at its position, drawn per maker at the record's hub and rotor, facing the hour's ERA5 wind; rotor speed follows its simulated output inside the wakes.
+        Solar: one 4 m table per module cell found in the plant's photo, shaded by the hour's sunlight. Grid: OSM's 110 / 330 kV lines with pylons every 300 / 400 m and two sagging conductors;
+        underground and subsea cables dashed (EstLink 1-2 to Finland in cyan); substations; each asset's link to its substation (Hertz 1 to Kiisa 330 kV public, the rest assumed nearest).
+        Hertz 1: 54 containers on the detected field, glowing orange when discharging, blue when charging. Drag to pan, right-drag to tilt, scroll to zoom.</p></div>
+      </div>
+      <small>Photos: Maa-amet orthophoto (CC BY 4.0). Assets and grid: © OpenStreetMap contributors (ODbL), corrected by public records. Weather: Open-Meteo ERA5. Measured: Elering.</small>
+    </aside>
+  </section>
+
+  <section class="view" id="v-3d" hidden>
+    <div class="surface" id="box3d"><div id="hud3"></div></div>
+  </section>
+
+  <section class="view" id="v-replay" hidden>
+    <div class="rgrid">
+      <div class="card wide"><h2>Euros to date: battery 100 MW / 200 MWh + hybrid, official settlement</h2><div class="kpis" id="kpis"></div><p class="note" id="replaynote"></p></div>
+      <div class="card wide"><h2>Gap to the baseline, cumulative EUR</h2><div class="keys" id="keys1"></div><div id="ch-diff"></div>
+        <p class="note">Above zero means more revenue than the baseline. Shaded: Q3 validation and Q4 test. Click to jump to a day.</p></div>
+      <div class="card"><h2>Daily revenue, EUR</h2><div id="ch-daily"></div></div>
+      <div class="card"><h2 id="dayh">The selected day</h2><table id="daytab"></table></div>
+      <div class="card"><h2>Prices that day, EUR/MWh</h2><div class="keys"><span><i style="background:var(--accent)"></i>Day-ahead</span><span><i style="background:var(--s-qaoa)"></i>Imbalance</span></div><div id="ch-px"></div></div>
+      <div class="card"><h2>Battery state of charge that day, MWh</h2><div class="keys" id="keys2"></div><div id="ch-soc"></div></div>
+    </div>
+  </section>
+</main>
+<footer id="dock">
+  <div id="drow"><button id="dprev" title="previous day">◀ day</button><button id="play" title="run or pause the clock">▶</button><button id="dnext" title="next day">day ▶</button>
+    <span id="speed" role="group" aria-label="Clock speed, times real time"><button data-x="1">1×</button><button data-x="10">10×</button><button data-x="60">60×</button><button data-x="360">360×</button><button data-x="1440">1440×</button><button data-x="2440" class="on">2440×</button></span>
+    <span id="mode" role="group" aria-label="View"><button data-m="active" class="on" title="what the strategy saw and did at gate A: forecasts and its dispatch">Active</button><button data-m="truth" title="what happened: measured prices, output and the settled dispatch">Ground truth</button><button data-m="hind" title="the perfect-foresight plan on what happened">Hindsight</button></span>
+    <div id="when">loading…</div></div>
+  <div id="dtrack"><input type="range" id="hr" min="0" max="23" step="1" value="12" aria-label="Hour of the day"><div id="dmarks"></div><div id="dticks"></div></div>
+  <div id="ytrack" title="2026: click a day to jump there"><div id="yspans"></div><div id="yev"></div><div id="ymonths"></div><i id="ynow"></i></div>
+</footer>
+
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/addons/"}}</script>
+<script type="module">
+import * as THREE from 'three';import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+const D=await (await fetch('data.json')).json();const M=D.map,R=D.replay,HR=R.hourly,S=D.sim;
+const $=s=>document.querySelector(s);const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmt=x=>x==null||!isFinite(x)?'—':Math.round(x).toLocaleString('en-US');const eur=x=>(x<0?'−':'')+'€'+fmt(Math.abs(x));
+const SK=Object.keys(R.labels),SC={'milp@chronos':'--s-base','samples@chronos':'--s-samp','qaoa@chronos':'--s-qaoa','p_nqs@chronos':'--s-nqs'};
+const SPLIT={train:'Q1–Q2 replay',val:'Q3 validation',test:'Q4 test'};
+const u8=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));const dq=(v,sc)=>v===255?null:v/250*sc;
+const WCF=u8(S.wcf),TCF=u8(S.tcf),NT=S.nt,SPU=u8(S.spu),NP=S.plants.length,NC=S.cells.length;const cellCol=new Map(S.cells.map((c,i)=>[c,i]));
+const BAT={};for(const k of SK)BAT[k]={soc:u8(S.bat[k].soc),dl:u8(S.bat[k].dl)};const HIND={soc:u8(S.hind.soc),dl:u8(S.hind.dl)};const bsrc=()=>MODE==='hind'?HIND:BAT[selStrat];
+const plantIdx=new Map(S.plants.map((n,i)=>[n,i]));const pcol=M.plants.map(p=>plantIdx.get(p.name));
+const cf=(h,p)=>dq(WCF[h*NP+pcol[p]],1)??0,tcf=(h,i)=>dq(TCF[h*NT+i],1)??0,pu=(h,c)=>{const j=cellCol.get(c);return j==null?0:(dq(SPU[h*NC+j],1)??0)};
+/* ---------------- clock: the Makkah twin's day bar (day buttons, hour track, the year below with its spans and events) ---------------- */
+const t0=Date.parse(S.t0),N=S.n;const st={h:0,playing:false,acc:0};let MODE='active';
+function tzOff(ms){return ms>=Date.UTC(2026,2,29,1)&&ms<Date.UTC(2026,9,25,1)?3:2}
+function local(h){const ms=t0+h*3600e3,o=tzOff(ms);const d=new Date(ms+o*3600e3);return{d,day:d.toISOString().slice(0,10),hh:d.getUTCHours()}}
+function hourAt(day,hh){let ms=Date.parse(day+'T00:00:00Z')+hh*3600e3;ms-=tzOff(ms-2*3600e3)*3600e3;return Math.round((ms-t0)/3600e3)}
+const dayIdx=h=>R.days.indexOf(local(h).day);const LAST=local(N-1).day;
+const doy=d=>(Date.parse(d+'T00:00:00Z')-Date.UTC(2026,0,1))/864e5,yx=d=>`${100*doy(d)/365}%`;
+const SPANS=[['Q1–Q2 replay',R.days[0],'2026-06-30','--s-base'],['Q3 validation','2026-07-01','2026-09-30','--accent'],['Q4 test','2026-10-01',LAST,'--s-qaoa'],['after the dataset (ends 25 Oct)','2026-10-26','2026-12-31','--muted']];
+$('#yspans').innerHTML=SPANS.map(([l,a,b,c])=>`<div class="sp ${c==='--muted'?'nodata':''}" title="${l}: ${a} to ${b}" style="left:${yx(a)};width:${100*(doy(b)-doy(a)+1)/365}%;border-color:var(${c});background:${c==='--muted'?'':`color-mix(in srgb,var(${c}) 22%,transparent)`}"><b style="color:var(${c})">${l}</b></div>`).join('');
+$('#ymonths').innerHTML=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((m,i)=>`<span style="left:${yx(`2026-${String(i+1).padStart(2,'0')}-01`)}">${m}</span>`).join('');
+$('#yev').innerHTML=S.events.map(([d,l])=>`<i style="left:${yx(d)}" title="${d} · ${l}" data-d="${d}"></i>`).join('');
+$('#dticks').innerHTML=[0,3,6,9,12,15,18,21,24].map(h=>`<span>${String(h).padStart(2,'0')}</span>`).join('');
+$('#ytrack').onclick=e=>{const ev=e.target.dataset?.d;let day=ev;if(!day){const r=$('#ytrack').getBoundingClientRect();const k=Math.floor(365*(e.clientX-r.left)/r.width);day=new Date(Date.UTC(2026,0,1+k)).toISOString().slice(0,10)}
+  if(day>LAST){$('#when').innerHTML=`${day}<small>after the dataset: market data ends 25 Oct 2026</small>`;return}setH(hourAt(day,ev?12:local(st.h).hh))};
+const hrS=$('#hr');let SPD=2440;  // clock speed, times real time (the Makkah twin's buttons)
+function whenTxt(){const L=local(st.h),ev=S.events.find(e=>e[0]===L.day),mm=Math.floor((st.acc||0)*60);
+  $('#when').innerHTML=L.d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric',timeZone:'UTC'})+' · '+String(L.hh).padStart(2,'0')+':'+String(mm).padStart(2,'0')+'<small>'+(ev?ev[1]+' · ':'')+(st.playing?SPD+'× real time':'paused')+'</small>'}
+for(const b of document.querySelectorAll('#speed button'))b.onclick=()=>{SPD=+b.dataset.x;for(const x of document.querySelectorAll('#speed button'))x.classList.toggle('on',x===b);whenTxt()};
+function setH(h){st.h=Math.max(0,Math.min(N-1,h));const L=local(st.h);hrS.value=L.hh;
+  const k=dayIdx(st.h),sp=k>=0?R.split[k]:null;const ev=S.events.find(e=>e[0]===L.day);
+  st.acc=0;whenTxt();
+  const p=$('#splitpill');p.textContent=sp?SPLIT[sp]:'not traded';p.className='pill '+(sp||'');$('#ynow').style.left=yx(L.day);
+  // the day's marks: sunrise / sunset at Kiisa, the day-ahead price peak
+  const h0=hourAt(L.day,0);let sr=null,ss=null,pk=0,pv=-1e9;for(let i=0;i<24;i++){const ms=t0+(h0+i)*3600e3;const e1=sunPos(ms,59.24,24.7).el,e2=sunPos(ms+3600e3,59.24,24.7).el;if(e1<0&&e2>=0)sr=i+(-e1)/(e2-e1);if(e1>=0&&e2<0)ss=i+e1/(e1-e2);const v=HR.da[h0+i];if(v!=null&&v>pv){pv=v;pk=i}}
+  $('#dmarks').innerHTML=[sr,ss].filter(x=>x!=null).map(x=>`<i class="sun" style="left:${x/24*100}%" title="${x===sr?'sunrise':'sunset'}"></i>`).join('')+`<i style="left:${pk/24*100}%" title="day-ahead peak ${pv.toFixed(0)} EUR/MWh"></i>`;
+  drawMap();livePanel();tick3();drawReplay()}
+hrS.oninput=()=>setH(hourAt(local(st.h).day,+hrS.value));
+$('#dprev').onclick=()=>setH(st.h-24);$('#dnext').onclick=()=>setH(st.h+24);
+let timer=null;const H0=()=>hourAt(R.days[0],0);
+$('#play').onclick=()=>{st.playing=!st.playing;$('#play').textContent=st.playing?'❚❚':'▶';$('#play').classList.toggle('on',st.playing);clearInterval(timer);whenTxt();
+  if(st.playing){if(st.h>=N-1)setH(H0());st.acc=0;timer=setInterval(()=>{const a=(st.acc||0)+SPD/36000,k=Math.floor(a);if(!k){st.acc=a;whenTxt();return}const n=st.h+k;if(n>=N){setH(N-1);$('#play').click();return}setH(n);st.acc=a-k;whenTxt()},100)}};  // SPD x real time: 1440x is a day a minute; the data are hourly, the clock shows minutes between
+for(const b of document.querySelectorAll('#mode button'))b.onclick=()=>{MODE=b.dataset.m;for(const x of document.querySelectorAll('#mode button'))x.classList.toggle('on',x===b);setH(st.h)};
+/* ---------------- views ---------------- */
+function route(){const v=(location.hash||'#sim').slice(1);const ok=['sim','3d','replay'].includes(v)?v:'sim';
+  for(const s of document.querySelectorAll('.view'))s.hidden=s.id!=='v-'+ok;for(const a of document.querySelectorAll('nav a'))a.classList.toggle('on',a.dataset.v===ok);
+  const side=$('#side');if(ok!=='replay'&&side.parentElement.id!=='v-'+ok)$('#v-'+ok).appendChild(side);for(const e of document.querySelectorAll('.only3d'))e.hidden=ok!=='3d';  // the same panels (live, forecasts, strategies, selection) in 2D and 3D
+  if(ok==='sim')sizeMap();if(ok==='3d')init3d();if(ok==='replay')drawReplay()}
+addEventListener('hashchange',route);
+/* ---------------- map ---------------- */
+const B=M.bounds,Z=2**B.zoom;const tx=lon=>(lon+180)/360*Z,ty=lat=>(1-Math.asinh(Math.tan(lat*Math.PI/180))/Math.PI)/2*Z;
+const X0=tx(B.west),Y0=ty(B.north);const P=(lat,lon)=>[(tx(lon)-X0)*256,(ty(lat)-Y0)*256];
+const img=new Image();img.src=M.img;img.onload=()=>{fitMap();const q=new URLSearchParams(location.search).get('at');  // ?at=lat,lon,zoom (web map zoom, e.g. 17)
+  if(q){const[la,lo,zz]=q.split(',').map(Number);const[a,c]=P(la,lo);view.s=2**((zz||16)-9);view.x=W/2-a*view.s;view.y=H/2-c*view.s}drawMap()};
+const AT={};function atlas(a){if(!AT[a]){AT[a]=new Image();AT[a].onload=()=>drawMap();AT[a].src=`chips_${a}.jpg`}return AT[a]}
+const mc=$('#mapc'),mx=mc.getContext('2d');let view={s:1,x:0,y:0},W=0,H=0,dpr=1;
+const LAY={conn:['Grid connections','--wx',true],photos:['Close-up photos','--wx',true],grid330:['330 kV','--grid330',true],grid110:['110 kV','--grid110',true],subs:['Substations','--grid110',false],
+  solar:['Solar plants','--solar',true],wind:['Wind turbines','--wind',true],plants:['Wind plants','--wind',false],bat:['Battery','--s-base',true],wx:['ERA5 points','--wx',false]};
+const on={};for(const[k,[lab,c,v]]of Object.entries(LAY)){on[k]=v;const l=document.createElement('label');l.innerHTML=`<input type="checkbox" id="ly-${k}" ${v?'checked':''}><span class="sw" style="background:var(${c})"></span>${lab}`;
+  l.querySelector('input').onchange=e=>{on[k]=e.target.checked;drawMap()};$('#layers').appendChild(l)}
+function sizeMap(){const r=$('#mapbox').getBoundingClientRect();if(!r.width)return;dpr=Math.min(devicePixelRatio,2);W=r.width;H=r.height;mc.width=W*dpr;mc.height=H*dpr;mc.style.width=W+'px';mc.style.height=H+'px';drawMap()}
+function fitMap(){const r=$('#mapbox').getBoundingClientRect(),cs=getComputedStyle(document.documentElement);const top=parseFloat(cs.getPropertyValue('--top'))||80,bot=parseFloat(cs.getPropertyValue('--bot'))||130;
+  const right=r.width>760?404:12,w=r.width-right-12,h=r.height-top-bot;const s=Math.min(w/img.width,h/img.height)*1.02;view={s,x:12+(w-img.width*s)/2,y:top+(h-img.height*s)/2}}
+function frame(){const hd=$('header').getBoundingClientRect(),dk=$('#dock').getBoundingClientRect(),R0=document.documentElement.style;R0.setProperty('--top',(hd.bottom+10)+'px');R0.setProperty('--bot',(innerHeight-dk.top+10)+'px')}
+{const ro=new ResizeObserver(()=>{frame();sizeMap();size3d()});ro.observe($("header"));ro.observe($("#dock"))}frame();
+addEventListener('resize',()=>{sizeMap();size3d()});
+const scr=(lat,lon)=>{const[a,b]=P(lat,lon);return[a*view.s+view.x,b*view.s+view.y]};
+let phase=new Float32Array(M.turbines.length),lastF=performance.now();
+function chipRect(b){const[x0,y0]=scr(b[0],b[2]),[x1,y1]=scr(b[1],b[3]);return[x0,y0,x1-x0,y1-y0]}
+function drawChip(c){if(!c)return;const[x,y,w,h]=chipRect(c.b);if(w<36||x>W||y>H||x+w<0||y+h<0)return;const A=atlas(c.a);if(!A.complete||!A.naturalWidth)return;
+  const[C,G]=M.chip;mx.drawImage(A,(c.c%G)*C,Math.floor(c.c/G)*C,C,C,x,y,w,h)}
+function drawMap(){if(!W||$('#v-sim').hidden)return;const h=st.h;mx.setTransform(dpr,0,0,dpr,0,0);mx.fillStyle='#0b1720';mx.fillRect(0,0,W,H);
+  mx.save();
+  if(img.complete&&(BASE==='off'||tileFail))mx.drawImage(img,view.x,view.y,img.width*view.s,img.height*view.s);
+  drawTiles();
+  if(on.photos&&view.s>8&&(BASE==='off'||tileFail)){for(const s of M.solar)drawChip(s.img);for(const t of M.turbines)drawChip(t.img);for(const b of M.battery)drawChip(b.img)}
+  mx.lineWidth=1.2;mx.strokeStyle='rgba(255,255,255,.5)';mx.setLineDash([4,3]);for(const b of M.border){mx.beginPath();for(let i=0;i<b.length;i+=2){const[x,y]=scr(b[i],b[i+1]);i?mx.lineTo(x,y):mx.moveTo(x,y)}mx.stroke()}mx.setLineDash([]);
+  const dim=view.s>8?.35:.8;mx.globalAlpha=dim;
+  for(const l of M.lines){const k=l.v>=220?'grid330':'grid110';if(!on[k])continue;mx.strokeStyle=css('--'+k);mx.lineWidth=l.v>=220?2:1.1;mx.beginPath();for(let i=0;i<l.p.length;i+=2){const[x,y]=scr(l.p[i],l.p[i+1]);i?mx.lineTo(x,y):mx.moveTo(x,y)}mx.stroke()}
+  if(on.subs){mx.fillStyle='#fff';mx.strokeStyle=css('--grid330');for(const s of M.subs){const[x,y]=scr(s[0],s[1]);const r=s[3]>=220?4.5:3;mx.fillRect(x-r,y-r,2*r,2*r);mx.lineWidth=1.5;mx.strokeRect(x-r,y-r,2*r,2*r)}}
+  mx.globalAlpha=1;const big=view.s>8;
+  if(on.conn)drawConn(h);
+  if(on.solar){for(const s of M.solar){const[x,y]=scr(s.lat,s.lon);if(x<-20||y<-20||x>W+20||y>H+20)continue;const r=Math.max(2,Math.sqrt(s.mw||0.02)*3*Math.min(view.s,4)/1.5);
+    if(big&&s.img){mx.strokeStyle=s.seen?css('--solar'):css('--warn');mx.lineWidth=2;const[cx,cy,cw,ch]=chipRect(s.img.b);mx.strokeRect(x-r,y-r,2*r,2*r);continue}
+    const v=s.mw>0?pu(h,s.cell):0;if(s.mw>0){mx.fillStyle=`rgba(255,${150+Math.round(80*v)},40,${.3+.7*v})`;mx.fillRect(x-r,y-r,2*r,2*r)}else{mx.strokeStyle='rgba(255,210,63,.5)';mx.lineWidth=1;mx.strokeRect(x-r,y-r,2*r,2*r)}}}
+  const dt=Math.min(.1,(performance.now()-lastF)/1000);lastF=performance.now();
+  for(let i=0;i<M.turbines.length;i++){const c=tcf(h,i);phase[i]+=dt*(0.6+5*Math.cbrt(c))*(c>0)}
+  if(on.wind){M.turbines.forEach((t,ti)=>{const[x,y]=scr(t.lat,t.lon);if(x<-30||y<-30||x>W+30||y>H+30)return;const c=tcf(h,ti);
+    if(view.s>3){const R0=big?14:7;mx.strokeStyle=big?(t.img&&t.img.ok?'#fff':css('--warn')):'#fff';mx.lineWidth=big?2.4:1.6;mx.beginPath();for(let k=0;k<3;k++){const a=phase[ti]+k*2.094;mx.moveTo(x,y);mx.lineTo(x+R0*Math.cos(a),y+R0*Math.sin(a))}mx.stroke()}
+    mx.fillStyle=`hsl(190,90%,${30+55*c}%)`;mx.beginPath();mx.arc(x,y,big?4:2.6,0,7);mx.fill()})}
+  if(on.plants){mx.strokeStyle='rgba(255,255,255,.8)';mx.lineWidth=1.4;for(const p of M.plants){const[x,y]=scr(p.lat,p.lon);const r=6+Math.sqrt(p.mw)*1.1;mx.beginPath();mx.arc(x,y,r,0,7);mx.stroke();if(view.s>1.4&&p.mw>=20)label(p.name.replace(/ tuulepark| Tuulepark/,''),x+r+4,y+4)}}
+  if(on.bat){const k=selStrat;for(const b of M.battery){const[x,y]=scr(b.lat,b.lon);if(!b.dispatch){mx.strokeStyle=css('--s-base');mx.lineWidth=3;mx.setLineDash(/under construction/.test(b.status)?[4,3]:[]);mx.beginPath();mx.arc(x,y,big?16:9,0,7);mx.stroke();mx.setLineDash([]);label(`${b.name} · ${b.mw} MW / ${b.mwh} MWh${/under construction/.test(b.status)?' (building)':''}`,x+14,y+4);continue}const soc=dq((MODE==='hind'?HIND:BAT[k]).soc[h],200),dl=dq((MODE==='hind'?HIND:BAT[k]).dl[h],200);const r=big?22:12;
+    mx.fillStyle='rgba(0,0,0,.55)';mx.beginPath();mx.arc(x,y,r,0,7);mx.fill();mx.strokeStyle=css(SC[k]);mx.lineWidth=big?6:4;mx.beginPath();mx.arc(x,y,r,-Math.PI/2,-Math.PI/2+2*Math.PI*((soc??0)/200));mx.stroke();
+    const mw=dl==null?0:dl-100;mx.fillStyle='#fff';mx.font='600 12px IBM Plex Mono, monospace';mx.textAlign='center';mx.fillText(soc==null?'—':Math.round(soc/2)+'%',x,y+4);mx.textAlign='left';
+    label(`Hertz 1 · ${mw>1?'discharging '+Math.round(mw)+' MW':mw<-1?'charging '+Math.round(-mw)+' MW':'idle'}`,x+r+6,y+4,true)}}
+  if(on.wx){mx.strokeStyle=css('--wx');mx.lineWidth=2;for(const w of M.weather){const[x,y]=scr(w[1],w[2]);mx.beginPath();mx.moveTo(x-5,y);mx.lineTo(x+5,y);mx.moveTo(x,y-5);mx.lineTo(x,y+5);mx.stroke()}}
+  mx.restore();if(selHit){const[x,y]=scr(selHit.lat,selHit.lon);mx.strokeStyle=css('--accent');mx.lineWidth=3;mx.beginPath();mx.arc(x,y,18,0,7);mx.stroke()}
+  const mpp=156543*Math.cos(58.6*Math.PI/180)/Z/view.s;$('#maphud').textContent=`${mpp>=1000?(mpp/1000).toFixed(2)+' km':mpp.toFixed(1)+' m'} per screen px${view.s>8?' · close-up photos on':view.s>3?' · zoom in further for photos':''}`;
+  if((view.s>3||on.conn)&&!$('#v-sim').hidden){cancelAnimationFrame(raf);raf=requestAnimationFrame(drawMap)}}
+let raf=0;const t00=performance.now();
+// streaming VHR imagery: Web Mercator tiles for the view at zoom 9 + log2(scale); missing tiles borrow a cropped parent
+let PROXY=false;fetch('./tiles/ping').then(r=>{PROXY=r.ok}).catch(()=>{});  // served by qest.serve: Land Board tiles through its disk cache
+const SRC={maaamet:{url:(z,x,y)=>PROXY?`./tiles/maaamet/${z}/${x}/${y}.jpg`:`https://tiles.maaamet.ee/tm/tms/1.0.0/foto@GMC/${z}/${x}/${2**z-1-y}.jpg`,max:18,att:'Maa-amet ortofoto (CC BY 4.0)'},
+  esri:{url:(z,x,y)=>`https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`,max:19,att:'Esri, Maxar, Earthstar Geographics'}};
+let BASE='maaamet',tileFail=false,fails=0;const TC=new Map();
+$('#basemap').onchange=e=>{BASE=e.target.value;tileFail=false;fails=0;drawMap()};
+function tile(src,z,x,y){const k=src+z+'/'+x+'/'+y;let t=TC.get(k);if(!t){t=new Image();t.crossOrigin='anonymous';t.onload=()=>{fails=0;drawMap()};t.onerror=()=>{t.bad=1;if(++fails>40)tileFail=true};t.src=SRC[src].url(z,x,y);TC.set(k,t);
+  if(TC.size>1200)TC.delete(TC.keys().next().value)}return t}
+function layer(src,z){const k=2**(z-9),sz=256*view.s/k;const bx=v=>(v-view.x)/view.s/256,by=v=>(v-view.y)/view.s/256;
+  const x0=Math.floor((X0+bx(0))*k),x1=Math.floor((X0+bx(W))*k),y0=Math.max(0,Math.floor((Y0+by(0))*k)),y1=Math.min(2**z-1,Math.floor((Y0+by(H))*k));if((x1-x0+1)*(y1-y0+1)>700)return;  // a 2x screen needs ~300 at full zoom
+  for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const sx=(x/k-X0)*256*view.s+view.x,sy=(y/k-Y0)*256*view.s+view.y,t=tile(src,z,x,y);
+    if(t.complete&&t.naturalWidth&&!t.bad){mx.drawImage(t,sx,sy,sz+.5,sz+.5);continue}
+    for(let d=1;d<=5&&z-d>=3;d++){const p=TC.get(src+(z-d)+'/'+(x>>d)+'/'+(y>>d));if(p&&p.complete&&p.naturalWidth&&!p.bad){const f=256/2**d;mx.drawImage(p,(x%2**d)*f,(y%2**d)*f,f,f,sx,sy,sz+.5,sz+.5);break}}}}
+function drawTiles(){if(BASE==='off'||tileFail)return;const zf=9+Math.log2(view.s*dpr)+.35;  // round(zf): tile pixels never more than ~1.3x a screen pixel (was 0.8x scale: up to 2.2x blur)
+  if(BASE==='esri'||zf<11.5)layer('esri',Math.max(3,Math.min(19,Math.round(zf))));  // Esri under the Land Board at country scale (sea, neighbours)
+  if(BASE==='maaamet'&&zf>=7.5)layer('maaamet',Math.max(8,Math.min(18,Math.round(zf))));
+  const S0=SRC[BASE],z=Math.max(3,Math.min(S0.max,Math.round(zf)));
+  mx.save();mx.fillStyle='rgba(0,0,0,.55)';mx.font='11px IBM Plex Mono, monospace';const a='© '+S0.att+(BASE==='maaamet'&&zf<11.5?', Esri':'')+` · zoom ${z}`;const w=mx.measureText(a).width+12;
+  const yb=H-(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bot'))||130)+4;mx.fillRect(W-w-416,yb-22,w,18);mx.fillStyle='#fff';mx.fillText(a,W-w-410,yb-9);mx.restore()}
+// grid connections: each asset to its substation (nearest 110-330 kV; Hertz 1 -> Kiisa 330 kV, public), line width by the MW it sends
+// now, dashes moving toward the grid (export) or toward the asset (the battery charging); substations sized by what they take in
+function drawConn(h){const inj=new Float32Array(M.subs.length),dash=(performance.now()-t00)/60;const link=(lat,lon,c,mw)=>{if(!c||Math.abs(mw)<.05)return;const s=M.subs[c[0]];
+    const[x0,y0]=scr(lat,lon),[x1,y1]=scr(s[0],s[1]);inj[c[0]]+=mw;mx.lineWidth=Math.min(7,.8+Math.sqrt(Math.abs(mw))*.45);mx.setLineDash([6,5]);mx.lineDashOffset=mw>0?-dash:dash;mx.beginPath();mx.moveTo(x0,y0);mx.lineTo(x1,y1);mx.stroke()};
+  mx.strokeStyle='rgba(94,224,240,.85)';M.plants.forEach((p,i)=>link(p.lat,p.lon,p.conn,p.mw*cf(h,i)));
+  mx.strokeStyle='rgba(255,210,63,.85)';for(const s of M.solar)if(s.conn&&(s.mw>=1||view.s>6))link(s.lat,s.lon,s.conn,(s.mw||0)*pu(h,s.cell));
+  for(const b of M.battery){if(!b.dispatch)continue;const dl=dq(bsrc().dl[h],200);mx.strokeStyle=css(SC[selStrat]);link(b.lat,b.lon,b.conn,dl==null?0:dl-100)}
+  mx.setLineDash([]);M.subs.forEach((s,i)=>{if(Math.abs(inj[i])<.05)return;const[x,y]=scr(s[0],s[1]);const r=3+Math.sqrt(Math.abs(inj[i]))*.7;mx.fillStyle=inj[i]>0?'rgba(255,255,255,.95)':css(SC[selStrat]);mx.strokeStyle='#0b1720';mx.lineWidth=1.5;
+    mx.beginPath();mx.rect(x-r,y-r,2*r,2*r);mx.fill();mx.stroke();if(view.s>2.5&&Math.abs(inj[i])>=5)label(`${(s[2]||'substation').replace(' alajaam','')} ${s[3]} kV · ${Math.round(inj[i])} MW`,x+r+4,y+4)})}
+function label(t,x,y,bold){mx.font=(bold?'600 13px ':'500 12px ')+'Barlow, sans-serif';mx.lineWidth=3;mx.strokeStyle='rgba(0,0,0,.75)';mx.strokeText(t,x,y);mx.fillStyle='#fff';mx.fillText(t,x,y)}
+let drag=null;mc.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY,vx:view.x,vy:view.y,moved:false};mc.setPointerCapture(e.pointerId)};
+mc.onpointermove=e=>{if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>3)drag.moved=true;view.x=drag.vx+dx;view.y=drag.vy+dy;drawMap();return}hover(e)};
+mc.onpointerup=e=>{if(drag&&!drag.moved)pick(e);drag=null};
+function zoomAt(f,cx,cy){const s=Math.max(.3,Math.min(2048,view.s*f));f=s/view.s;view.x=cx-(cx-view.x)*f;view.y=cy-(cy-view.y)*f;view.s=s;drawMap()}
+mc.addEventListener('wheel',e=>{e.preventDefault();const r=mc.getBoundingClientRect(),dy=e.deltaMode===1?e.deltaY*33:e.deltaY;zoomAt(Math.exp(-Math.max(-300,Math.min(300,dy))*.0012),e.clientX-r.left,e.clientY-r.top)},{passive:false});  // ~1.13x a mouse notch, smooth on trackpads
+$('#zin').onclick=()=>zoomAt(1.6,W/2,H/2);$('#zout').onclick=()=>zoomAt(1/1.6,W/2,H/2);$('#zfit').onclick=()=>{fitMap();drawMap()};
+function flyTo(lat,lon,b){const[a,c]=P(lat,lon);let s=60;if(b){const[x0,y0]=P(b[0],b[2]),[x1,y1]=P(b[1],b[3]);s=Math.min(W,H)*.7/Math.max(x1-x0,y1-y0)}view.s=s;view.x=W/2-a*s;view.y=H/2-c*s;drawMap()}
+function hits(e){const r=mc.getBoundingClientRect(),X=e.clientX-r.left,Y=e.clientY-r.top;const c=[];
+  const add=(o,lat,lon,rad)=>{const[x,y]=scr(lat,lon);const d=Math.hypot(x-X,y-Y);if(d<rad)c.push([d,o])};
+  if(on.bat)for(const b of M.battery)add({k:'bat',b,lat:b.lat,lon:b.lon},b.lat,b.lon,24);
+  if(on.wind)M.turbines.forEach((t,i)=>add({k:'turb',t,i,lat:t.lat,lon:t.lon},t.lat,t.lon,9));
+  if(on.plants)for(const p of M.plants)add({k:'plant',p,lat:p.lat,lon:p.lon},p.lat,p.lon,8+Math.sqrt(p.mw));
+  if(on.solar)M.solar.forEach((s,i)=>add({k:'solar',s,i,lat:s.lat,lon:s.lon},s.lat,s.lon,9));
+  if(on.subs)for(const s of M.subs)add({k:'sub',s,lat:s[0],lon:s[1]},s[0],s[1],8);
+  c.sort((a,b)=>a[0]-b[0]);return c[0]?.[1]}
+const tip=$('#tip');function hover(e){const h=hits(e);if(!h){tip.hidden=true;mc.style.cursor='grab';return}mc.style.cursor='pointer';tip.hidden=false;
+  const r=mc.getBoundingClientRect();tip.style.left=Math.min(e.clientX-r.left+14,W-270)+'px';tip.style.top=(e.clientY-r.top+14)+'px';tip.innerHTML=short(h)}
+function nowMW(h0){const h=st.h;if(h0.k==='turb')return h0.t.mw*tcf(h,h0.i);if(h0.k==='solar')return(h0.s.mw||0)*pu(h,h0.s.cell);if(h0.k==='plant'){const i=M.plants.indexOf(h0.p);return h0.p.mw*cf(h,i)}return null}
+function short(h){if(h.k==='turb'){const p=M.plants[h.t.p];return`<b>${p.name}</b><br>${p.model} · ${h.t.mw} MW · now ${nowMW(h).toFixed(2)} MW`}
+  if(h.k==='plant')return`<b>${h.p.name}</b><br>${h.p.n} × ${h.p.model} · now ${nowMW(h).toFixed(1)} of ${h.p.mw} MW`;
+  if(h.k==='solar')return`<b>${h.s.name||'Solar plant'}</b><br>${h.s.mw?h.s.mw.toFixed(2)+' MW · now '+nowMW(h).toFixed(2)+' MW':'no capacity confirmed'}`;
+  if(h.k==='bat')return`<b>${h.b.name}</b><br>${h.b.mw} MW / ${h.b.mwh} MWh`;return`<b>${h.s[2]||'Substation'}</b><br>${h.s[3]} kV`}
+let selHit=null;
+function chipCanvas(c){if(!c)return'<p class="note">No close-up for this asset.</p>';const id='cc'+Math.random().toString(36).slice(2,7);setTimeout(()=>{const cv=document.getElementById(id);if(!cv)return;const A=atlas(c.a);
+  const go=()=>{const g=cv.getContext('2d'),[C,G]=M.chip;g.drawImage(A,(c.c%G)*C,Math.floor(c.c/G)*C,C,C,0,0,512,512);g.strokeStyle='#ff5a36';g.lineWidth=2;g.beginPath();g.arc(256,256,20,0,7);g.stroke()};A.complete&&A.naturalWidth?go():A.addEventListener('load',go,{once:true})},0);
+  return`<canvas class="chip" id="${id}" width="512" height="512"></canvas><p class="note">photo ${(c.mpp).toFixed(2)} m per pixel · ${Math.round((c.b[3]-c.b[2])*111320*Math.cos(c.b[0]*Math.PI/180))} m across</p>`}
+const verdict=(ok,yes,no)=>`<p class="${ok?'good':'bad'}">${ok?yes:no}</p>`;
+function pick(e){const h=hits(e);selHit=h||null;drawMap();const el=$('#sel');if(!h){el.innerHTML='<h2>Selection</h2><p class="note">Nothing there. Click a marker.</p>';return}
+  let html='<h2>Selection</h2>';
+  if(h.k==='turb'){html+=`<button data-fly="${h.t.lat},${h.t.lon},450">Show in 3D</button>`;const p=M.plants[h.t.p],c=h.t.img;html+=`<h3>${p.name}</h3><p class="note">${p.n} × ${p.model}, ${h.t.mw} MW, rotor ${p.rotor} m, hub ${p.hub} m · ${h.t.lat.toFixed(5)} N ${h.t.lon.toFixed(5)} E</p>`+
+    `<p>Output now <b>${nowMW(h).toFixed(2)} MW</b> of ${h.t.mw}, inside the park's wakes</p>`+(c?verdict(c.ok,`Turbine visible in the photo (${c.offset_m} m from the mapped point)`,'No turbine found in the photo: built after the flight, or the position is off'):'')+chipCanvas(c)+plantRec(p)}
+  else if(h.k==='plant'){html+=`<h3>${h.p.name}</h3>`+plantRec(h.p)}
+  else if(h.k==='solar'){const s=h.s,c=s.img;html+=`<h3>${s.name||'Solar plant (unnamed)'}</h3><p class="note">${s.lat.toFixed(5)} N ${s.lon.toFixed(5)} E</p>
+    <table><tr><td>Capacity in OSM</td><td class="n">${s.mw_osm!=null?s.mw_osm+' MW':'not tagged'}</td></tr><tr><td>Modules seen in the photo</td><td class="n">${c?fmt(c.module_m2)+' m² → '+(c.mwp).toFixed(2)+' MWp':'—'}</td></tr>
+    <tr><td>Used in the simulation</td><td class="n">${s.mw?s.mw.toFixed(2)+' MW AC':'0 (not confirmed)'}</td></tr><tr><td>Output now</td><td class="n">${nowMW(h).toFixed(2)} MW</td></tr></table>`+
+    (c?verdict(c.ok,`Panels visible: ${Math.round(c.share*100)} % of the plant's box`,'No panels found in the photo: built after the flight, a rooftop the colour rule misses, or not built'):'')+chipCanvas(c)}
+  else if(h.k==='bat'){const c=h.b.img;html+=`<h3>${h.b.name}</h3><p class="note">${h.b.mw} MW / ${h.b.mwh} MWh · ${h.b.status} · <a href="${h.b.src}" target="_blank" rel="noopener">source</a>${h.b.dispatch?'':' · its dispatch is not in our data'}</p>`+(c?verdict(true,'Compound detected ('+fmt(c.compound_m2)+' m²); the photo predates completion',''):'')+chipCanvas(c)+
+    `<button data-fly="${h.b.lat},${h.b.lon},700">Show in 3D</button>`}
+  else html+=`<p>${short(h)}</p>`;
+  el.innerHTML=html;el.querySelector('[data-fly]')?.addEventListener('click',ev=>{const[a,o,d]=ev.target.dataset.fly.split(',').map(Number);location.hash='#3d';setTimeout(()=>fly3(a,o,d),60)})}
+function plantRec(p){const v=p.ver;const row=(n,a,b)=>`<tr><td>${n}</td><td class="n">${a??'—'}</td><td class="n">${b??'—'}</td></tr>`;
+  return`<table><tr><th></th><th class="n">Simulation</th><th class="n">Public record</th></tr>${row('Model',p.model,v?.model)}${row('Turbines',p.n,v?.n)}${row('Rotor, m',p.rotor,v?.rotor)}${row('Hub, m',p.hub,v?.hub??'not published')}${row('Plant MW',p.mw,v?.n&&v?.mw?(v.n*v.mw).toFixed(1):null)}</table><p class="note">Output now ${(p.mw*cf(st.h,M.plants.indexOf(p))).toFixed(1)} MW · wake loss over the year ${((M.fits.wind.wake_loss?.[p.name]??0)*100).toFixed(1)} % (PyWake TurbOPark on the mapped layout)</p>`+
+    (v?.note?`<p class="note">${v.note}</p>`:'')+(v?`<p class="note">Source: <a href="${v.src}" target="_blank" rel="noopener">${new URL(v.src).hostname}</a></p>`:'<p class="note">No public record checked: OSM tags or datasheet defaults.</p>')+
+    `<button data-fly="${p.lat},${p.lon},${Math.max(1500,Math.sqrt(p.mw)*350)}">Show in 3D</button>`}
+/* live panel */
+let selStrat='milp@chronos';
+/* ---- forecast vs real and the strategies, drawn as the Makkah twin's energy panel (web/energy.js): bands, hit strips, accuracy rings, money lines ---- */
+const P2=(a,x,y)=>a.map((v,i)=>v==null?'':`${x(i).toFixed(1)},${y(v).toFixed(1)}`).filter(Boolean).join(' ');
+const sg=(x,d=1)=>(x>=0?'+':'−')+Math.abs(x).toFixed(d);const p2=i=>String(i).padStart(2,'0');
+const keyL=it=>`<div class="elg">${it.map(([l,c,d])=>d?`<span style="color:var(${c});margin-left:9px">- -</span> ${l}`:`<i style="background:var(${c})"></i>${l}`).join('')}</div>`;
+const FCS=[['Day-ahead price','€/MWh','--accent','da','da_q50','da_q10','da_q90'],['Imbalance price','€/MWh','--s-qaoa','imb','imb_q50'],['Pihlaka solar','MW','--solar','pv','pv_d1'],['Paldiski wind','MW','--wx','wind','wind_d1']];
+function dayOf(h){const L=local(h),h0=hourAt(L.day,0);return{h0,hh:Math.max(0,Math.min(23,h-h0)),day:L.day}}
+const sl=(a,h0)=>Array.from({length:24},(_,i)=>a?.[h0+i]??null);
+function rng(f){const a=[...f.re,...f.fc,...(f.lo||[]),...(f.hi||[])].filter(v=>v!=null);if(!a.length)return null;let mn=Math.min(0,...a),mx=Math.max(1,...a);const pd=(mx-mn)*.08;return[mn<0?mn-pd:0,mx+pd]}
+function bulletS(f,i,W=150){const r=rng(f);if(!r)return'';const x=v=>2+(W-4)*Math.max(0,Math.min(1,(v-r[0])/(r[1]-r[0]))),lo=f.lo?.[i],hi=f.hi?.[i],fc=f.fc[i],re=f.re[i];
+  return`<svg viewBox="0 0 ${W} 12" width="100%" height="12"><rect x="2" y="4" width="${W-4}" height="4" rx="2" style="fill:var(--line)"/>${lo!=null&&hi!=null?`<rect x="${x(lo)}" y="2" width="${Math.max(2,x(hi)-x(lo))}" height="8" rx="2" style="fill:var(${f.c});fill-opacity:.4"/>`:''}${fc==null?'':`<line x1="${x(fc)}" x2="${x(fc)}" y1="0" y2="12" style="stroke:var(${f.c})" stroke-width="2" stroke-dasharray="2 1"/>`}${re==null?'':`<line x1="${x(re)}" x2="${x(re)}" y1="0" y2="12" stroke="#fff" stroke-width="2"/>`}</svg>`}
+function bandS(f,hh,W=360){const H=92,r=rng(f);if(!r)return'<p class="note">No data this day.</p>';const[mn,mx]=r,x=i=>30+i*(W-36)/23,y=v=>H-14-(H-22)*(v-mn)/(mx-mn);let g='';
+  if(f.lo){const ok=i=>f.lo[i]!=null&&f.hi[i]!=null,up=f.hi.map((v,i)=>ok(i)?`${x(i)},${y(v)}`:'').filter(Boolean),dn=f.lo.map((v,i)=>ok(i)?`${x(i)},${y(v)}`:'').filter(Boolean).reverse();g+=`<polygon points="${up.join(' ')} ${dn.join(' ')}" style="fill:var(${f.c});fill-opacity:.22"/>`}
+  if(mn<0)g+=`<line x1="30" x2="${W-6}" y1="${y(0)}" y2="${y(0)}" style="stroke:var(--line)"/>`;
+  g+=`<polyline fill="none" style="stroke:var(${f.c})" stroke-width="1.6" stroke-dasharray="4 3" points="${P2(f.fc,x,y)}"/><polyline fill="none" stroke="#fff" stroke-width="2" points="${P2(f.re.slice(0,hh+1),x,y)}"/>`;
+  g+=`<line x1="${x(hh)}" x2="${x(hh)}" y1="2" y2="${H-12}" style="stroke:var(--solar)" stroke-width="1.5"/>${f.re[hh]!=null?`<circle cx="${x(hh)}" cy="${y(f.re[hh])}" r="3" fill="#fff"/>`:''}`;
+  g+=`<text x="0" y="${y(mx)+8}">${fmt(mx)}</text><text x="0" y="${y(mn)}">${fmt(mn)}</text>`+[0,6,12,18,23].map(i=>`<text x="${x(i)-6}" y="${H-1}">${p2(i)}</text>`).join('');
+  return`<svg viewBox="0 0 ${W} ${H}" width="100%">${g}</svg>`}
+function hitsS(f,hh,W=360){const w=(W-36)/23;return`<svg viewBox="0 0 ${W} 8" width="100%" height="8">${f.re.map((a,i)=>{const no=i>hh||a==null||f.lo[i]==null,inb=!no&&a>=f.lo[i]-1e-6&&a<=f.hi[i]+1e-6;
+  return`<rect x="${30+i*w-w/2+.5}" y="0" width="${w-1}" height="8" rx="1.5" style="fill:var(${no?'--line':inb?'--ok':'--warn'})"/>`}).join('')}</svg>`}
+function ringS(p,c,s=46){const r=s/2-5,L=2*Math.PI*r;return`<svg viewBox="0 0 ${s} ${s}" width="${s}" height="${s}" style="flex:none;width:${s}px;height:${s}px"><circle cx="${s/2}" cy="${s/2}" r="${r}" fill="none" style="stroke:var(--line)" stroke-width="5"/><circle cx="${s/2}" cy="${s/2}" r="${r}" fill="none" style="stroke:var(${c})" stroke-width="5" stroke-dasharray="${L*p/100} ${L}" transform="rotate(-90 ${s/2} ${s/2})"/><text x="50%" y="58%" text-anchor="middle" style="font:600 11px var(--mono);fill:var(--ink)">${Math.round(p)}%</text></svg>`}
+function fcPanel(h){const{h0,hh}=dayOf(h),nx=Math.min(23,hh+1),dg=f=>f.u==='MW'?0:1;
+  const F=FCS.map(([n,u,c,re,fc,lo,hi])=>({n,u,c,re:sl(HR[re],h0),fc:sl(HR[fc],h0),lo:lo?sl(HR[lo],h0):null,hi:hi?sl(HR[hi],h0):null}));
+  const next=F.map(f=>`<div class="etile"><div class="el"><span class="edot" style="background:var(${f.c})"></span>${f.n}</div><div class="ev">${f.fc[nx]==null?'—':f.fc[nx].toFixed(dg(f))}<small> → ${f.re[nx]==null?'—':f.re[nx].toFixed(dg(f))} ${f.u}</small></div>${bulletS(f,nx)}</div>`).join('');
+  const cards=F.map(f=>{const ix=[...Array(hh+1).keys()].filter(i=>f.re[i]!=null&&f.fc[i]!=null),mae=ix.length?ix.reduce((s,i)=>s+Math.abs(f.fc[i]-f.re[i]),0)/ix.length:null,
+    inb=f.lo?ix.filter(i=>f.lo[i]!=null&&f.re[i]>=f.lo[i]-1e-6&&f.re[i]<=f.hi[i]+1e-6).length:0;
+    return`<div class="ecard"><div style="display:flex;align-items:center;gap:8px">${f.lo&&ix.length?ringS(100*inb/ix.length,f.c):''}<div><div style="color:var(${f.c});font-weight:600">${f.n}</div><div class="em"><b style="font:600 13px var(--mono);color:var(--ink)">±${mae==null?'—':mae.toFixed(1)}</b> ${f.u} mean error, ${ix.length} h so far${f.lo?' · ring: hours inside the band':''}</div></div></div>${bandS(f,hh)}${f.lo?hitsS(f,hh):''}</div>`}).join('');
+  return`<div class="ek">Next hour · ${p2(nx)}:00 · forecast → real</div><div class="etiles">${next}</div>${keyL([['10–90 % band','--muted'],['forecast','--muted',1],['real','--real']])}
+   <div class="ek">Today, forecast vs real so far</div>${cards}${keyL([['band','--muted'],['forecast','--muted',1],['real','--real'],['now','--solar'],['in band','--ok'],['outside','--warn']])}`}
+const REF={hind:'Hindsight',reach:'Reachable optimum'},SKH=[...SK,...(R.reach?['reach']:[]),'hind'],SLAB=k=>REF[k]||R.labels[k].split(' (')[0].replace('Baseline · ','Baseline '),SCOL=k=>k==='hind'?'--ok':k==='reach'?'--accent':SC[k];
+const CUM=Object.fromEntries(SKH.map(k=>{let c=0;return[k,(k==='hind'?R.hind:k==='reach'?R.reach:R.strat[k].total).map(v=>c+=v??0)]}));
+function lastDay(h){const d=local(h).day;let k=-1;for(let i=0;i<R.days.length&&R.days[i]<=d;i++)k=i;return k}  // the last traded day up to the clock
+function stratPanel(h){const k=lastDay(h);if(k<0)return'<p class="note">Trading starts 8 Jan: Chronos-2 needs 7 days of history.</p>';
+  const W=130,Hh=24,base=CUM['milp@chronos'],top=Math.max(1,...SKH.map(s=>CUM[s][k])),x=i=>1+i*(W-2)/Math.max(1,k),y=v=>Hh-1-(Hh-2)*Math.max(0,v)/top,hd=CUM.hind[k];
+  const head=`<div class="emrow em" style="cursor:default"><span>to ${R.days[k].slice(5)}</span><span>€ to date</span><span class="n" style="font:inherit">total</span><span>vs base</span><span class="n" style="font:inherit">of best</span></div>`;
+  return head+SKH.map(s=>({s,v:CUM[s][k]})).sort((a,b)=>b.v-a.v).map(({s,v})=>{const d=SK.includes(s)&&s!=='milp@chronos'?100*(v-base[k])/Math.abs(base[k]||1):null;
+    return`<div class="emrow" data-s="${s}" style="${s===selStrat?`outline:1px solid var(${SCOL(s)});background:var(--chip)`:REF[s]?'cursor:default':''}"><span style="color:var(${SCOL(s)});font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${s==='hind'?'Perfect foresight of prices, activations and output':s==='reach'?'Perfect day-ahead and capacity prices, forecast activations: the best any forecaster could reach':R.labels[s]}">${SLAB(s)}</span>
+     <svg viewBox="0 0 ${W} ${Hh}" width="100%" height="${Hh}">${s!=='milp@chronos'?`<polyline fill="none" style="stroke:var(--muted)" stroke-dasharray="3 2" points="${P2(base.slice(0,k+1),x,y)}"/>`:''}<polyline fill="none" style="stroke:var(${SCOL(s)})" stroke-width="1.6" points="${P2(CUM[s].slice(0,k+1),x,y)}"/></svg>
+     <span class="n">€${(v/1e6).toFixed(2)}M</span><span>${d==null?'':`<span class="echip" style="background:var(${d>=0?'--ok':d>-.5?'--solar':'--warn'})">${sg(d,2)}%</span>`}</span><span class="n em">${s==='hind'?'—':Math.round(100*v/hd)+'%'}</span></div>`}).join('')}
+const PARTS=[['cap','capacity','--accent'],['da','day-ahead','--solar'],['mfrr','mFRR','--wx'],['afrr','aFRR','--s-samp'],['imbalance','imbalance','--s-qaoa']];
+function dispatchCard(h){const s=selStrat,{h0,hh,day}=dayOf(h),kd=R.days.indexOf(day),W=360,H=110,mid=50,sc=.45,bw=(W-36)/24,x=i=>30+i*bw;
+  const mw=b=>Array.from({length:24},(_,i)=>{const v=dq(b.dl[h0+i],200);return v==null?null:v-100}),so=b=>Array.from({length:24},(_,i)=>dq(b.soc[h0+i],200));
+  const A=mw(BAT[s]),Hd=mw(HIND),SA=so(BAT[s]),SH=so(HIND);if(A.every(v=>v==null))return`<div class="ek">${SLAB(s)} · ${day}</div><p class="note">Not a traded day.</p>`;
+  let g=`<line x1="30" x2="${W-6}" y1="${mid}" y2="${mid}" style="stroke:var(--line)"/>`;
+  for(let i=0;i<24;i++){if(Hd[i]!=null&&Math.abs(Hd[i])>.5)g+=`<rect x="${x(i)+.5}" y="${Math.min(mid,mid-Hd[i]*sc)}" width="${bw-1}" height="${Math.abs(Hd[i]*sc)}" fill="none" style="stroke:var(--ok)"/>`;
+    if(A[i]!=null&&Math.abs(A[i])>.5)g+=`<rect x="${x(i)+2.5}" y="${Math.min(mid,mid-A[i]*sc)}" width="${bw-5}" height="${Math.abs(A[i]*sc)}" style="fill:var(${SC[s]});fill-opacity:${i<=hh?1:.35}"/>`}
+  g+=`<line x1="${x(hh)+bw/2}" x2="${x(hh)+bw/2}" y1="2" y2="${H-12}" style="stroke:var(--solar)" stroke-width="1.5"/><text x="0" y="9">out</text><text x="0" y="${mid+4}">0</text><text x="0" y="${mid+46}">in</text>`+[0,6,12,18].map(i=>`<text x="${x(i)}" y="${H-1}">${p2(i)}</text>`).join('');
+  const H2=58,ys=v=>H2-6-(H2-12)*v/200,xs=i=>x(i)+bw/2;let g2=`<polyline fill="none" style="stroke:var(--ok)" stroke-dasharray="4 3" stroke-width="1.5" points="${P2(SH,xs,ys)}"/><polyline fill="none" style="stroke:var(${SC[s]})" stroke-width="2" points="${P2(SA,xs,ys)}"/>`;
+  g2+=`<line x1="${xs(hh)}" x2="${xs(hh)}" y1="0" y2="${H2}" style="stroke:var(--solar)" stroke-width="1.5"/><text x="0" y="10">200</text><text x="0" y="${H2-4}">0</text>`;
+  let money='';if(kd>=0){const st=R.strat[s],v=PARTS.map(([c,l,col])=>[l,st[c]?.[kd]??0,col]);v.push(['other (penalties, end SoC, cycling, tariff)',st.total[kd]-v.reduce((a,b)=>a+b[1],0),'--muted']);const tot=v.reduce((a,b)=>a+Math.abs(b[1]),0)||1;let xx=0;
+    const bar=v.map(([,a,col])=>{const w=360*Math.abs(a)/tot,r=`<rect x="${xx}" y="0" width="${Math.max(0,w-1)}" height="12" rx="2" style="fill:var(${a<0?'--warn':col})"/>`;xx+=w;return r}).join('');
+    money=`<div class="ek">That day · ${eur(st.total[kd])} · hindsight ${eur(R.hind[kd])}${s!=='milp@chronos'?` · vs baseline ${eur(st.total[kd]-R.strat['milp@chronos'].total[kd])}`:''}</div><svg viewBox="0 0 360 12" width="100%" height="12">${bar}</svg>${keyL(v.map(([l,a,col])=>[`${l} ${eur(a)}`,a<0?'--warn':col]))}`}
+  return`<div class="ek" style="color:var(${SC[s]})">${SLAB(s)} · ${day} · battery MW</div><svg viewBox="0 0 ${W} ${H}" width="100%">${g}</svg>${keyL([['this strategy, discharge up / charge down',SC[s]],['hindsight','--ok']])}
+   <div class="ek">State of charge, MWh</div><svg viewBox="0 0 ${W} ${H2}" width="100%">${g2}</svg>${keyL([['this strategy',SC[s]],['hindsight','--ok',1]])}${money}`}
+function livePanel(){const h=st.h,F=S.fleet;const lv=(c,lab,v,sub)=>`<div style="--c:var(${c})"><span>${lab}</span><b>${fmt(v)} MW</b><span>${sub}</span></div>`;
+  $('#live').innerHTML=lv('--accent','Wind fleet, simulated',F.wind[h],`measured renewable ${fmt(F.ren[h])} MW`)+lv('--solar','Solar fleet, simulated',F.solar[h],`measured solar ${fmt(F.esol[h])} MW`);
+  const prod=F.prod[h],cons=F.cons[h];$('#grid').innerHTML=lv('--ink','Production',prod,'all sources')+lv('--ink','Consumption',cons,prod!=null&&cons!=null?(cons>prod?`net import ${fmt(cons-prod)} MW`:`net export ${fmt(prod-cons)} MW`):'');
+  $('#gridnote').textContent='Imports and exports run over EstLink 1-2 (Finland) and the 330 kV ties to Latvia. Lines on the map: each asset to its substation (nearest 110-330 kV; Hertz 1 to Kiisa 330 kV is public).';
+  $('#fc').innerHTML=fcPanel(h);$('#strat').innerHTML=stratPanel(h);$('#scard').innerHTML=dispatchCard(h);
+  for(const r of document.querySelectorAll('#strat [data-s]'))if(!REF[r.dataset.s])r.onclick=()=>{selStrat=r.dataset.s;livePanel();drawMap();tick3()};
+  const L=local(h);$('#livenote').textContent=`Air at Kiisa ${HR.temp[h]??'—'} °C · Pihlaka irradiance ${HR.ghi[h]??'—'} W/m² · day-ahead ${HR.da[h]?.toFixed(1)??'—'} EUR/MWh.`;
+  const a=Math.max(0,h-167),xs=[...Array(h-a+1).keys()];const tk=[];for(let i=0;i<xs.length;i+=24){tk.push([i,local(a+i).day.slice(5)])}
+  chart($('#ch7'),{w:380,h:190,band:false,xs:Object.assign(xs,{tick:tk.slice(-4)}),series:[{c:'--accent',y:F.wind.slice(a,h+1)},{c:'--real',y:F.ren.slice(a,h+1),dash:true},{c:'--solar',y:F.solar.slice(a,h+1)},{c:'--real',y:F.esol.slice(a,h+1),dash:true}],cursor:xs.length-1})}
+function fitsPanel(){const f=M.fits;const row=(n,o)=>`<td class="n">${o.r}</td><td class="n">${fmt(o.mae)}</td>`;
+  $('#fits').innerHTML=`<tr><th>Fleet</th><th class="n">r Jan–Jun</th><th class="n">MAE</th><th class="n">r Jul–Oct</th><th class="n">MAE</th></tr>
+  <tr><td>Wind</td>${row('',f.wind.fit)}${row('',f.wind.test)}</tr><tr><td>Solar</td>${row('',f.solar.fit)}${row('',f.solar.test)}</tr>`;
+  $('#fitnote').innerHTML=`Hourly. Wind: ${M.plants.length} plants, ${fmt(f.wind.nameplate_mw)} MW through the turbine models; measured renewable = ${f.wind.a} × simulated + ${fmt(f.wind.b)} MW (biomass, hydro, waste), fitted on Jan–Jun, scored on Jul–Oct.
+   Solar: ${f.solar.plants_used} of ${f.solar.plants} OSM plants with a confirmed capacity (${fmt(f.solar.osm_mw)} MW); measured = ${f.solar.k} × simulated, so OSM's plants make about ${Math.round(100/f.solar.k)} % of Estonia's solar output (rooftops are mostly unmapped). MAE in MW.`}
+function checksPanel(){const T=M.turbines.filter(t=>t.img),Sx=M.solar.filter(s=>s.img);const tOk=T.filter(t=>t.img.ok).length,sOk=Sx.filter(s=>s.img.ok).length;
+  const miss=[...T.filter(t=>!t.img.ok).map(t=>({n:M.plants[t.p].name+' turbine',lat:t.lat,lon:t.lon,b:t.img.b,mw:t.mw})),...Sx.filter(s=>!s.img.ok&&s.mw_osm).map(s=>({n:(s.name||'Solar plant')+` (${s.mw_osm} MW in OSM)`,lat:s.lat,lon:s.lon,b:s.img.b,mw:s.mw_osm}))].sort((a,b)=>b.mw-a.mw).slice(0,14);
+  const big=[...Sx].filter(s=>s.img.ok).sort((a,b)=>(b.mw||0)-(a.mw||0)).slice(0,6);
+  $('#checks').innerHTML=`<table><tr><td>Turbines with a visible nacelle / blades</td><td class="n">${tOk} / ${T.length}</td></tr><tr><td>Solar plants with visible modules</td><td class="n">${sOk} / ${Sx.length}</td></tr><tr><td>Battery compound</td><td class="n">found</td></tr></table>
+   <p class="note">Automatic rules (white blob within 40 m; blue-grey modules with row texture). The photos carry no per-tile date: anything built after the flight shows as bare ground. Click to fly there and look.</p>
+   <div class="list"><b style="font-size:13px">Largest confirmed solar plants</b>${big.map((s,i)=>`<button data-f="b${i}">${s.name||'unnamed'} · ${(s.mw||0).toFixed(1)} MW</button>`).join('')}
+   <b style="font-size:13px">Not found in the photo (largest first)</b>${miss.map((m,i)=>`<button data-f="m${i}">${m.n}</button>`).join('')}</div>`;
+  for(const b of document.querySelectorAll('#checks [data-f]'))b.onclick=()=>{const k=b.dataset.f,o=k[0]==='b'?big[+k.slice(1)]:miss[+k.slice(1)];flyTo(o.lat,o.lon,o.img?.b||o.b)}}
+/* ---------------- Estonia in 3D: streamed photo ground, every asset at its place, on the clock ---------------- */
+const LAT0=58.65,LON0=24.9,KX=111320*Math.cos(LAT0*Math.PI/180),KZ=110574;const L3=(lat,lon)=>[(lon-LON0)*KX,-(lat-LAT0)*KZ];
+const WDP=u8(S.wd);const wdir=(h,p)=>dq(WDP[h*NP+pcol[p]],360)??270;
+let R3=null,cam,ctl,sc,sunL,hemi,inited3=false,rotors=[],tabMesh=null,tabPlant=null,batMesh=null,tPts=null,sPts=null,lastT=performance.now(),fly=null;const G3={};
+function lineGeo(pts,y){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pts.flatMap(([x,z])=>[x,y,z]),3));return g}
+function bladeGeo(R){const s=new THREE.Shape();const c=R*.075;s.moveTo(-c*.35,0);s.lineTo(-c*.5,R*.2);s.quadraticCurveTo(-c*.25,R*.7,-c*.08,R);s.lineTo(c*.06,R);s.quadraticCurveTo(c*.35,R*.6,c*.55,R*.22);s.lineTo(c*.35,0);s.closePath();
+  return new THREE.ExtrudeGeometry(s,{depth:Math.max(.3,R*.006),bevelEnabled:false})}
+const GC={};const gget=(k,f)=>GC[k]||(GC[k]=f());
+function turbine3(fam,hub,rot,mat){const g=new THREE.Group(),k=rot/100,key=fam+hub+'/'+rot;
+  const tw=new THREE.Mesh(gget('t'+key,()=>new THREE.CylinderGeometry(Math.max(1.2,hub*.012),Math.max(2,hub*(fam==='enercon'||fam==='eleon'?.04:.025)),hub,16)),mat);tw.position.y=hub/2;g.add(tw);
+  const yaw=new THREE.Group();yaw.position.y=hub;g.add(yaw);let nac,hubZ;
+  if(fam==='enercon'||fam==='eleon'){nac=new THREE.Mesh(gget('n'+key,()=>new THREE.SphereGeometry(2.6*k,20,14)),mat);nac.scale.set(1,1,2.1);hubZ=5.6*k}
+  else if(fam==='vestas'){nac=new THREE.Mesh(gget('n'+key,()=>new THREE.CapsuleGeometry(2*k,8*k,4,12)),mat);nac.rotation.x=Math.PI/2;nac.position.z=-1*k;hubZ=6.4*k}
+  else if(fam==='winwind'){nac=new THREE.Mesh(gget('n'+key,()=>new THREE.BoxGeometry(4*k,4*k,6*k)),mat);hubZ=4.6*k}
+  else{nac=new THREE.Mesh(gget('n'+key,()=>new THREE.BoxGeometry(4*k,4.2*k,11*k)),mat);nac.position.z=-1.5*k;hubZ=5*k}
+  yaw.add(nac);const rotor=new THREE.Group();rotor.position.z=hubZ;yaw.add(rotor);
+  const sp=new THREE.Mesh(gget('s'+key,()=>new THREE.ConeGeometry(1.9*k,3.6*k,12)),mat);sp.rotation.x=Math.PI/2;rotor.add(sp);
+  const bg=gget('b'+key,()=>bladeGeo(rot/2));for(let i=0;i<3;i++){const a=new THREE.Group();a.rotation.z=i*2*Math.PI/3;const bl=new THREE.Mesh(bg,mat);bl.position.y=1.2*k;a.add(bl);rotor.add(a)}
+  return{g,yaw,rotor}}
+function ground(){const b=M.bounds,Zb=2**b.zoom,geo=new THREE.PlaneGeometry(1,1,48,48),pos=geo.attributes.position,uv=geo.attributes.uv;
+  for(let i=0;i<pos.count;i++){const u=uv.getX(i),v=1-uv.getY(i);const ty=Y0+v*b.height/256;const lat=Math.atan(Math.sinh(Math.PI*(1-2*ty/Zb)))*180/Math.PI,lon=b.west+u*(b.east-b.west);const[x,z]=L3(lat,lon);pos.setXYZ(i,x,0,z)}
+  const tex=new THREE.TextureLoader().load(M.img);tex.colorSpace=THREE.SRGBColorSpace;const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:tex,depthWrite:false,side:THREE.DoubleSide}));m.renderOrder=0;sc.add(m)}
+// streamed tiles around the view: a 7 x 7 window at the zoom the camera height asks for, and one at two zooms coarser
+// streamed tiles: a quadtree from zoom 7 down, each tile split until its pixels are no bigger than the screen's pixels at that tile's
+// distance (or the source's finest zoom), culled to the view; parents stay underneath until children arrive; loads go nearest first
+const TT=new Map(),TQ=[];let tLast=0,tBusy=0;const TMAX=6;  // ponytail: 6 in flight per host, the browser's own HTTP/1.1 cap
+const tll=(z,X,Y)=>{const n=2**z;return[Math.atan(Math.sinh(Math.PI*(1-2*Y/n)))*180/Math.PI,X/n*360-180]};
+let LEAF=[],pfBusy=0;const PF=new Set();
+function prefetch(){if(BASE==='off')return;let n=0;for(const[d,src,z,x,y]of LEAF){if(n>=4||pfBusy>=4)break;if(z>=SRC[src].max)continue;  // idle: warm the next zoom under the nearest tiles, so zooming in finds them cached
+  for(const[dx,dy]of[[0,0],[1,0],[0,1],[1,1]]){const k=src+(z+1)+'/'+(2*x+dx)+'/'+(2*y+dy);if(PF.has(k)||TT.has(k))continue;PF.add(k);n++;pfBusy++;const im=new Image();im.crossOrigin='anonymous';im.onload=im.onerror=()=>pfBusy--;im.src=SRC[src].url(z+1,2*x+dx,2*y+dy)}}}
+function tPump(){TQ.sort((a,b)=>a.pri-b.pri);if(!TQ.length&&!tBusy)prefetch();while(tBusy<TMAX&&TQ.length){const q=TQ.shift();if(!q.m.visible&&q.m.parent){q.m.userData.q=0;continue}tBusy++;
+  const ld=new THREE.TextureLoader();ld.setCrossOrigin('anonymous');const fin=()=>{tBusy--;tPump()};
+  const done=t=>{t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=R3.capabilities.getMaxAnisotropy();q.m.material.map=t;q.m.material.opacity=1;q.m.material.needsUpdate=true;fin()};
+  ld.load(SRC[q.src].url(q.z,q.x,q.y),done,undefined,()=>{if(q.src!=='esri')ld.load(SRC.esri.url(q.z,q.x,q.y),done,undefined,fin);else fin()})}}  // the Land Board has no tiles at sea or abroad: Esri there
+function tileMesh(src,z,x,y,pri){const k=src+z+'/'+x+'/'+y;let m=TT.get(k);
+  if(!m){const c=[tll(z,x,y),tll(z,x+1,y),tll(z,x,y+1),tll(z,x+1,y+1)].map(([a,o])=>L3(a,o));const g=new THREE.PlaneGeometry(1,1),p=g.attributes.position;
+    c.forEach((v,i)=>p.setXYZ(i,v[0],0,v[1]));g.computeBoundingSphere();
+    m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({depthWrite:false,transparent:true,opacity:0,side:THREE.DoubleSide}));m.renderOrder=z;m.userData={src,z,x,y};TT.set(k,m);sc.add(m)}
+  if(!m.material.map&&!m.userData.q){m.userData.q={m,src,z,x,y,pri};TQ.push(m.userData.q)}else if(m.userData.q)m.userData.q.pri=pri;
+  TT.delete(k);TT.set(k,m);return m}  // most recently wanted last: eviction takes the oldest unseen
+const FR=new THREE.Frustum(),PM=new THREE.Matrix4(),BX=new THREE.Box3(),V3=new THREE.Vector3();
+function updateTiles(){if(BASE==='off')return;const now=performance.now();if(now-tLast<200)return;tLast=now;
+  const src=BASE,mx=SRC[src].max,want=new Set(),leaf=[],cp=cam.position,ppm=R3.domElement.height/(2*Math.tan(cam.fov*Math.PI/360));  // device pixels per metre at 1 m
+  cam.updateMatrixWorld();FR.setFromProjectionMatrix(PM.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse));
+  const visit=(z,x,y)=>{const[a0,o0]=tll(z,x,y),[a1,o1]=tll(z,x+1,y+1),[x0,z0]=L3(a0,o0),[x1,z1]=L3(a1,o1);
+    BX.min.set(Math.min(x0,x1),-5,Math.min(z0,z1));BX.max.set(Math.max(x0,x1),5,Math.max(z0,z1));if(!FR.intersectsBox(BX))return;
+    const dist=Math.max(1,BX.distanceToPoint(cp)),tpx=Math.abs(x1-x0)/256;  // tile metres per pixel
+    if(want.size<900)want.add(tileMesh(src,z,x,y,dist/(z+1)));
+    if(z<mx&&tpx*ppm/dist>1.15)for(const[dx,dy]of[[0,0],[1,0],[0,1],[1,1]])visit(z+1,2*x+dx,2*y+dy);else leaf.push([dist,src,z,x,y])};  // its pixel would cover >1.15 screen pixels: split
+  for(let x=71;x<=74;x++)for(let y=36;y<=39;y++)visit(7,x,y);  // zoom 7 over Estonia and its sea
+  LEAF=leaf.sort((a,b)=>a[0]-b[0]);for(const m of TT.values())m.visible=want.has(m);
+  for(const[k,m]of TT){if(TT.size<=1500)break;if(want.has(m))continue;sc.remove(m);m.geometry.dispose();m.material.map?.dispose();m.material.dispose();TT.delete(k)}
+  tPump()}
+function build3d(){sc=new THREE.Scene();sc.background=new THREE.Color(0x9fc2dc);sc.fog=new THREE.Fog(0x9fc2dc,250000,900000);
+  hemi=new THREE.HemisphereLight(0xffffff,0x56664a,1);sc.add(hemi);sunL=new THREE.DirectionalLight(0xffffff,1.6);sc.add(sunL);ground();
+  const white=new THREE.MeshStandardMaterial({color:0xf2f3f1,roughness:.45,side:THREE.DoubleSide});
+  // wind: every mapped turbine, its maker's shape at the record's hub and rotor
+  M.turbines.forEach((t,i)=>{const p=M.plants[t.p];const[x,z]=L3(t.lat,t.lon);const o=turbine3(p.fam||'generic',p.hub||100,p.rotor||100,white);o.g.position.set(x,0,z);o.i=i;o.D=p.rotor||100;sc.add(o.g);rotors.push(o)});
+  const tp=new Float32Array(M.turbines.length*3);M.turbines.forEach((t,i)=>{const[x,z]=L3(t.lat,t.lon);tp.set([x,(M.plants[t.p].hub||100)+20,z],i*3)});
+  const tg=new THREE.BufferGeometry();tg.setAttribute('position',new THREE.BufferAttribute(tp,3));tg.setAttribute('color',new THREE.BufferAttribute(new Float32Array(tp.length).fill(1),3));
+  tPts=new THREE.Points(tg,new THREE.PointsMaterial({size:6,sizeAttenuation:false,vertexColors:true,depthWrite:false}));tPts.renderOrder=200;sc.add(tPts);
+  // solar: one 4 m table per module cell seen in the photo, south-facing at 25 deg
+  {const xz=new Int32Array(Uint8Array.from(atob(M.tables.xz),c=>c.charCodeAt(0)).buffer),own=new Uint16Array(Uint8Array.from(atob(M.tables.own),c=>c.charCodeAt(0)).buffer),n=M.tables.n;
+    tabMesh=new THREE.InstancedMesh(new THREE.BoxGeometry(3.8,.06,3.6),new THREE.MeshStandardMaterial({color:0xffffff,metalness:.5,roughness:.32}),n);
+    const m4=new THREE.Matrix4(),q=new THREE.Quaternion().setFromEuler(new THREE.Euler(-25*Math.PI/180,0,0)),s1=new THREE.Vector3(1,1,1),v=new THREE.Vector3(),c0=new THREE.Color(0x1d2f5a);
+    for(let i=0;i<n;i++){v.set(xz[2*i],1.3,xz[2*i+1]);m4.compose(v,q,s1);tabMesh.setMatrixAt(i,m4);tabMesh.setColorAt(i,c0)}tabMesh.renderOrder=100;sc.add(tabMesh);tabPlant=own}
+  const sp=M.solar.filter(s=>s.mw>0);const spp=new Float32Array(sp.length*3);sp.forEach((s,i)=>{const[x,z]=L3(s.lat,s.lon);spp.set([x,8,z],i*3)});const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(spp,3));
+  sPts=new THREE.Points(sg,new THREE.PointsMaterial({size:5,sizeAttenuation:false,color:0xffd23f,depthWrite:false}));sPts.renderOrder=200;sc.add(sPts);
+  // transmission grid: lattice pylons every 300 m (110 kV, 30 m) / 400 m (330 kV, 45 m), two conductors with a 3 % sag
+  const pyl=[],wire={110:[],330:[]};for(const l of M.lines){const hv=l.v>=220,H0=hv?45:30,span=hv?400:300,arm=hv?9:5;const P2=[];for(let i=0;i<l.p.length;i+=2)P2.push(L3(l.p[i],l.p[i+1]));
+    let acc=0,prev=null,pts=[];for(let i=0;i<P2.length;i++){if(!i){pts.push(P2[0]);continue}const[a,b]=[P2[i-1],P2[i]];const d=Math.hypot(b[0]-a[0],b[1]-a[1]);let t=span-acc;while(t<=d){pts.push([a[0]+(b[0]-a[0])*t/d,a[1]+(b[1]-a[1])*t/d]);t+=span}acc=(acc+d)%span}
+    if(P2.length>1&&pts[pts.length-1]!==P2[P2.length-1])pts.push(P2[P2.length-1]);
+    for(let i=0;i<pts.length;i++){const a=pts[Math.max(0,i-1)],b=pts[Math.min(pts.length-1,i+1)];pyl.push([pts[i][0],pts[i][1],Math.atan2(b[1]-a[1],b[0]-a[0]),H0,arm])}
+    for(let i=1;i<pts.length;i++){const[a,b]=[pts[i-1],pts[i]];const ang=Math.atan2(b[1]-a[1],b[0]-a[0]),ox=-Math.sin(ang),oz=Math.cos(ang),L=Math.hypot(b[0]-a[0],b[1]-a[1]);
+      for(const s of[-1,1])for(let k=0;k<8;k++){const f0=k/8,f1=(k+1)/8,y=f=>H0-2-4*.03*L*f*(1-f);const w=hv?wire[330]:wire[110];
+        w.push(a[0]+(b[0]-a[0])*f0+s*ox*arm,y(f0),a[1]+(b[1]-a[1])*f0+s*oz*arm,a[0]+(b[0]-a[0])*f1+s*ox*arm,y(f1),a[1]+(b[1]-a[1])*f1+s*oz*arm)}}}
+  const steel=new THREE.MeshStandardMaterial({color:0x8d949a,metalness:.6,roughness:.5});const pm=new THREE.InstancedMesh(new THREE.CylinderGeometry(.6,2.6,1,4),steel,pyl.length),am=new THREE.InstancedMesh(new THREE.BoxGeometry(1,.8,.8),steel,pyl.length);
+  {const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),v=new THREE.Vector3(),s=new THREE.Vector3();pyl.forEach(([x,z,ang,H0,arm],i)=>{q.setFromEuler(new THREE.Euler(0,-ang,0));v.set(x,H0/2,z);s.set(1,H0,1);m4.compose(v,q,s);pm.setMatrixAt(i,m4);
+    v.set(x,H0-2,z);s.set(1,1,2*arm+2);q.setFromEuler(new THREE.Euler(0,-ang+Math.PI/2,0));m4.compose(v,q,new THREE.Vector3(2*arm+2,1,1));am.setMatrixAt(i,m4)})}
+  pm.renderOrder=am.renderOrder=100;sc.add(pm,am);
+  for(const[v,c]of[[330,0xff5a3c],[110,0xffb347]]){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(wire[v],3));const ls=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:c}));ls.renderOrder=150;sc.add(ls)}
+  // cables (underground / subsea, EstLink 1-2 to Finland): drawn at ground level, dashed
+  for(const c of M.cables){const P2=[];for(let i=0;i<c.p.length;i+=2)P2.push(L3(c.p[i],c.p[i+1]));const g=lineGeo(P2,1.5);const l=new THREE.Line(g,new THREE.LineDashedMaterial({color:/estlink/i.test(c.name||'')?0x5ee0f0:0xffb347,dashSize:120,gapSize:80}));l.computeLineDistances();l.renderOrder=150;sc.add(l)}
+  // substations: a fenced gravel pad and transformers
+  const sm=new THREE.InstancedMesh(new THREE.BoxGeometry(70,1.5,45),new THREE.MeshStandardMaterial({color:0xb8b4aa,roughness:.9}),M.subs.length),tm=new THREE.InstancedMesh(new THREE.BoxGeometry(9,7,6),new THREE.MeshStandardMaterial({color:0x5d6a72,roughness:.6}),M.subs.length*2);
+  {const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),one=new THREE.Vector3(1,1,1),v=new THREE.Vector3();M.subs.forEach((s,i)=>{const[x,z]=L3(s[0],s[1]);v.set(x,.75,z);m4.compose(v,q,one);sm.setMatrixAt(i,m4);for(const k of[0,1]){v.set(x-12+24*k,5,z);m4.compose(v,q,one);tm.setMatrixAt(2*i+k,m4)}})}
+  sm.renderOrder=tm.renderOrder=100;sc.add(sm,tm);
+  const shape=pts=>{const sh=new THREE.Shape();pts.forEach(([x,z],i)=>i?sh.lineTo(x,-z):sh.moveTo(x,-z));return sh};  // xz -> shape in x,-z, then rotated flat
+  const pad=new THREE.MeshStandardMaterial({color:0xb8b4aa,roughness:.9,side:THREE.DoubleSide});for(const s of M.subs){const o=s[4]||[];if(o.length<6)continue;const P2=[];for(let i=0;i<o.length;i+=2)P2.push(L3(o[i],o[i+1]));
+    const m=new THREE.Mesh(new THREE.ShapeGeometry(shape(P2)),pad);m.rotation.x=-Math.PI/2;m.position.y=.4;m.renderOrder=90;sc.add(m)}
+  const plantMat=new THREE.MeshStandardMaterial({color:0x8a8f94,roughness:.7}),stack=new THREE.MeshStandardMaterial({color:0xd8d4cc,roughness:.6});
+  for(const o of M.other){const P2=[];for(let i=0;i<o.poly.length;i+=2)P2.push(L3(o.poly[i],o.poly[i+1]));const[cx,cz]=L3(o.lat,o.lon);const thermal=/oil|gas|bio|coal|waste|wood/.test(o.source||'');
+    if(P2.length>2){const m=new THREE.Mesh(new THREE.ExtrudeGeometry(shape(P2),{depth:o.source==='hydro'?6:18,bevelEnabled:false}),plantMat);m.rotation.x=-Math.PI/2;m.renderOrder=100;sc.add(m)}
+    if(thermal){const hgt=/oil_shale/.test(o.source)?150:60;const c=new THREE.Mesh(new THREE.CylinderGeometry(hgt/30,hgt/18,hgt,16),stack);c.position.set(cx,hgt/2,cz);c.renderOrder=100;sc.add(c)}}
+  // connections: asset to substation (Hertz 1 -> Kiisa 330 kV public; the rest the nearest 110-330 kV substation, assumed)
+  const cn=[];const add=(lat,lon,c)=>{if(!c)return;const s=M.subs[c[0]];const a=L3(lat,lon),b=L3(s[0],s[1]);cn.push(a[0],1,a[1],b[0],1,b[1])};M.plants.forEach(p=>add(p.lat,p.lon,p.conn));M.solar.forEach(s=>{if(s.mw>=1)add(s.lat,s.lon,s.conn)});M.battery.forEach(b=>add(b.lat,b.lon,b.conn));
+  {const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(cn,3));const l=new THREE.LineSegments(g,new THREE.LineDashedMaterial({color:0x5ee0f0,dashSize:40,gapSize:30,transparent:true,opacity:.7}));l.computeLineDistances();l.renderOrder=150;sc.add(l)}
+  // Hertz 1: 54 containers on the detected field, along the compound's axis; lit by the dispatch of the strategy picked
+  for(const b of M.battery){const a=-b.axis*Math.PI/180,[cx,cz]=L3(b.field[0],b.field[1]),built=!/under construction/.test(b.status);
+    const mesh=new THREE.InstancedMesh(new THREE.BoxGeometry(12.2,2.9,2.6),new THREE.MeshStandardMaterial({color:0xf2f2ee,roughness:.6,emissive:0x000000,transparent:!built,opacity:built?1:.3,wireframe:!built}),b.n);if(b.dispatch)batMesh=mesh;
+    const m4=new THREE.Matrix4(),q=new THREE.Quaternion().setFromEuler(new THREE.Euler(0,a+Math.PI/2,0)),one=new THREE.Vector3(1,1,1),v=new THREE.Vector3();const cols=9,rows=Math.ceil(b.n/cols);let i=0;
+    for(let r=0;r<rows;r++)for(let c=0;c<cols&&i<b.n;c++,i++){const u=(c-(cols-1)/2)*6.5,w=(r-(rows-1)/2)*16;v.set(cx+u*Math.cos(a)+w*Math.sin(a),1.45,cz-u*Math.sin(a)+w*Math.cos(a));m4.compose(v,q,one);mesh.setMatrixAt(i,m4)}
+    mesh.renderOrder=100;sc.add(mesh);if(!b.outline.length)continue;const ol=[];for(let k=0;k<b.outline.length;k+=2)ol.push(L3(b.outline[k],b.outline[k+1]));ol.push(ol[0]);const o=new THREE.Line(lineGeo(ol,.6),new THREE.LineBasicMaterial({color:0xeb6834}));o.renderOrder=150;sc.add(o)}
+  G3.flyto=[['Estonia',LAT0,LON0,330000],['Hertz 1 · Kiisa',M.battery[0].lat,M.battery[0].lon,700],['Pihlaka solar',M.pihlaka.lat,M.pihlaka.lon,1800],
+    ...M.plants.slice(0,8).map(p=>[p.name.replace(/ tuulepark| Tuulepark/,''),p.lat,p.lon,Math.max(1500,Math.sqrt(p.mw)*350)]),['EstLink 2 · Püssi',59.36,27.05,6000],['Tallinn grid',59.43,24.75,9000]]}
+function init3d(){if(!inited3){inited3=true;R3=new THREE.WebGLRenderer({antialias:true,logarithmicDepthBuffer:true});R3.setPixelRatio(Math.min(devicePixelRatio,2));$('#box3d').appendChild(R3.domElement);
+  cam=new THREE.PerspectiveCamera(45,1,1,3e6);ctl=new OrbitControls(cam,R3.domElement);  // the water / Jeddah twins' controls: left-drag turns, right-drag pans, wheel zooms
+  ctl.enableDamping=true;ctl.dampingFactor=.08;ctl.maxPolarAngle=Math.PI*.78;ctl.minDistance=8;ctl.maxDistance=600000;ctl.screenSpacePanning=false;ctl.touches={ONE:THREE.TOUCH.PAN,TWO:THREE.TOUCH.DOLLY_ROTATE};
+  build3d();cam.position.set(0,230000,210000);ctl.target.set(0,0,0);{const q=new URLSearchParams(location.search).get('fly');if(q){const[a,o,d]=q.split(',').map(Number);const[x,z]=L3(a,o);ctl.target.set(x,0,z);cam.position.set(x-d*.35,d*.8,z+d*.7)}}  // ?fly=lat,lon,distance_m
+  const fogUI=()=>{$('#fogbtn').textContent=FOG?'Weather fog: on':'Weather fog: off (clear view)';$('#fogbtn').classList.toggle('on',FOG)};fogUI();$('#fogbtn').onclick=()=>{FOG=!FOG;fogUI();tick3()};
+  $('#fly').innerHTML=G3.flyto.map((f,i)=>`<button data-i="${i}">${f[0]}</button>`).join('');for(const b of document.querySelectorAll('#fly button'))b.onclick=()=>fly3(...G3.flyto[+b.dataset.i].slice(1));
+  R3.setAnimationLoop(loop3)}size3d();tick3()}
+let FOG=new URLSearchParams(location.search).get('fog')==='1';  // off by default; ?fog=1 starts with fog
+function fly3(lat,lon,dist){const[x,z]=L3(lat,lon);const t1=new THREE.Vector3(x,0,z),p1=new THREE.Vector3(x-dist*.35,dist*.8,z+dist*.7);fly={t0:performance.now(),a:ctl.target.clone(),b:t1,pa:cam.position.clone(),pb:p1}}
+function size3d(){if(!R3)return;const el=$('#box3d');R3.setSize(el.clientWidth,el.clientHeight);cam.aspect=el.clientWidth/el.clientHeight;cam.updateProjectionMatrix()}
+function tick3(){if(!sc)return;const h=st.h,ms=t0+h*3600e3+1800e3,sun=sunPos(ms,58.7,25),day=Math.max(0,Math.sin(sun.el)),ghi=HR.ghi[h]??0;
+  const cl=(HR.cloud[h]??50)/100,sky=new THREE.Color().setHSL(.58,.38*(1-.7*cl),.1+.62*Math.min(1,day*2.2)*(1-.35*cl));sc.background=sky;sc.fog.color=sky;
+  sc.fog.far=FOG?60000+540000*(1-cl):2e9;sc.fog.near=FOG?sc.fog.far*.12:1e9;  // off: near < far, never equal (GLSL smoothstep is undefined there)
+  hemi.intensity=.3+.9*Math.min(1,day*2);sunL.intensity=.08+1.7*Math.min(1,ghi/700);
+  sunL.position.set(ctl.target.x+Math.sin(sun.az)*80000,Math.max(3000,Math.sin(sun.el)*90000),ctl.target.z-Math.cos(sun.az)*80000);sunL.target.position.copy(ctl.target);sunL.target.updateMatrixWorld();
+  const col=tPts.geometry.attributes.color;rotors.forEach(o=>{const t=M.turbines[o.i],c=tcf(h,o.i);o.rpm=c>.001?80/(Math.PI*o.D)*60*(.35+.65*Math.cbrt(c)):0;o.yaw.rotation.y=Math.PI-wdir(h,t.p)*Math.PI/180;col.setXYZ(o.i,.25+.75*c,.6+.4*c,1)});col.needsUpdate=true;
+  if(tabMesh){const C=new THREE.Color();for(let i=0;i<tabPlant.length;i++){const s=M.solar[tabPlant[i]];const v=s.mw>0?pu(h,s.cell):0;C.setRGB(.11+.5*v,.18+.35*v,.35-.1*v);tabMesh.setColorAt(i,C)}tabMesh.instanceColor.needsUpdate=true}
+  if(batMesh){const dl=dq(bsrc().dl[h],200),mw=dl==null?0:dl-100;batMesh.material.emissive.setRGB(mw>1?.9*mw/100:0,mw<-1?.25*-mw/100:0,mw<-1?.9*-mw/100:0)}
+  const dl=dq(bsrc().dl[h],200),soc=dq(bsrc().soc[h],200);
+  $('#hud3').innerHTML=`Wind fleet ${fmt(S.fleet.wind[h])} MW · solar ${fmt(S.fleet.solar[h])} MW (simulated)<br>Hertz 1 · ${R.labels[selStrat].split(' (')[0]}: ${dl==null?'not traded':(dl-100>1?'discharging ':dl-100<-1?'charging ':'idle ')+fmt(Math.abs(dl-100))+' MW'} · ${soc==null?'—':fmt(soc)+' MWh'}<br>sun ${(sun.el*180/Math.PI).toFixed(0)}° · irradiance ${ghi} W/m²`}
+function loop3(t){const dt=Math.min(.1,(t-lastT)/1000);lastT=t;for(const o of rotors)o.rotor.rotation.z+=o.rpm/60*2*Math.PI*dt;
+  if(fly){const f=Math.min(1,(t-fly.t0)/1600),e=1-(1-f)**3;ctl.target.lerpVectors(fly.a,fly.b,e);cam.position.lerpVectors(fly.pa,fly.pb,e);if(f>=1)fly=null}
+  ctl.update();const d=cam.position.distanceTo(ctl.target);if(cam.position.y<4)cam.position.y=4;cam.near=Math.max(.5,d/2000);cam.updateProjectionMatrix();  // the water twin's: near plane follows the zoom, the camera stays above ground
+  tPts.visible=d>12000;sPts.visible=d>12000;updateTiles();R3.render(sc,cam)}
+function sunPos(ms,lat,lon){const d=(ms-Date.UTC(2026,0,1))/864e5,g=2*Math.PI/365*(d+.5),decl=.006918-.399912*Math.cos(g)+.070257*Math.sin(g)-.006758*Math.cos(2*g)+.000907*Math.sin(2*g);
+  const eqt=229.18*(.000075+.001868*Math.cos(g)-.032077*Math.sin(g)-.014615*Math.cos(2*g)-.040849*Math.sin(2*g));const utcMin=(ms/6e4)%1440;const ha=((utcMin+eqt+4*lon)/4-180)*Math.PI/180,la=lat*Math.PI/180;
+  const el=Math.asin(Math.sin(la)*Math.sin(decl)+Math.cos(la)*Math.cos(decl)*Math.cos(ha));const az=Math.atan2(Math.sin(ha),Math.cos(ha)*Math.sin(la)-Math.tan(decl)*Math.cos(la))+Math.PI;return{el,az}}
+/* ---------------- results ---------------- */
+function chart(el,{w=900,h=220,series,xs,band=true,cursor,bars=false,click}){const pad={l:56,r:10,t:10,b:24};const iw=w-pad.l-pad.r,ih=h-pad.t-pad.b;
+  let lo=Infinity,hi=-Infinity;for(const s of series)for(const v of s.y)if(v!=null){lo=Math.min(lo,v);hi=Math.max(hi,v)}if(!isFinite(lo)){lo=0;hi=1}if(bars||lo>0)lo=Math.min(lo,0);if(hi===lo)hi=lo+1;
+  const step=nice((hi-lo)/4);lo=Math.floor(lo/step)*step;hi=Math.ceil(hi/step)*step;const n=xs.length;const X=i=>pad.l+(n<2?0:i/(n-1)*iw),Y=v=>pad.t+(hi-v)/(hi-lo)*ih;
+  let s=`<svg viewBox="0 0 ${w} ${h}" role="img">`;
+  if(band){let a=R.split.indexOf('val'),b=R.split.indexOf('test');s+=`<rect x="${X(a)}" y="${pad.t}" width="${X(b)-X(a)}" height="${ih}" fill="var(--accent)" opacity=".07"/><rect x="${X(b)}" y="${pad.t}" width="${X(n-1)-X(b)}" height="${ih}" fill="var(--s-qaoa)" opacity=".1"/>`}
+  for(let v=lo;v<=hi+1e-9;v+=step)s+=`<line x1="${pad.l}" x2="${w-pad.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pad.l-6}" y="${Y(v)+4}" text-anchor="end">${short2(v)}</text>`;
+  for(const[i,t]of xs.tick||[])s+=`<text x="${X(i)}" y="${h-6}" text-anchor="middle">${t}</text>`;
+  if(bars){const bw=Math.max(1,iw/n/series.length-1);series.forEach((se,j)=>se.y.forEach((v,i)=>{if(v==null)return;const y0=Y(0),y1=Y(v);s+=`<rect x="${X(i)-bw*series.length/2+j*bw}" y="${Math.min(y0,y1)}" width="${bw}" height="${Math.max(.5,Math.abs(y1-y0))}" fill="var(${se.c})"/>`}))}
+  else for(const se of series){let d='';se.y.forEach((v,i)=>{if(v==null)return;d+=(d?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)});s+=`<path d="${d}" fill="none" stroke="var(${se.c})" stroke-width="${se.dash?1.4:2}" ${se.dash?'stroke-dasharray="4 3"':''} stroke-linejoin="round"/>`}
+  if(cursor!=null)s+=`<line x1="${X(cursor)}" x2="${X(cursor)}" y1="${pad.t}" y2="${pad.t+ih}" stroke="var(--ink)" stroke-dasharray="3 3"/>`;
+  el.innerHTML=s+'</svg>';if(click){const sv=el.firstChild;sv.style.cursor='pointer';sv.onclick=e=>{const r=sv.getBoundingClientRect();click(Math.round(((e.clientX-r.left)/r.width*w-pad.l)/iw*(n-1)))}}}
+function nice(x){const p=10**Math.floor(Math.log10(x)),f=x/p;return(f<=1?1:f<=2?2:f<=5?5:10)*p}
+function short2(v){const a=Math.abs(v);return a>=1e6?(v/1e6).toFixed(1)+'M':a>=1e3?(v/1e3).toFixed(0)+'k':v.toFixed(0)}
+const cum={};for(const k of SK){let c=0;cum[k]=R.strat[k].total.map(v=>c+=v??0)}
+const mticks=[];R.days.forEach((d,i)=>{if(d.endsWith('-01')||i===0)mticks.push([i,new Date(d).toLocaleDateString('en-GB',{month:'short'})])});
+$('#keys1').innerHTML=SK.slice(1).map(k=>`<span><i style="background:var(${SC[k]})"></i>${R.labels[k]}</span>`).join('');$('#keys2').innerHTML=SK.map(k=>`<span><i style="background:var(${SC[k]})"></i>${R.labels[k]}</span>`).join('');
+function hourOfDay(k){const day=Date.parse(R.days[k]+'T00:00:00Z');let ms=day;ms-=tzOff(ms)*3600e3;return Math.round((ms-t0)/3600e3)}
+function drawReplay(){if($('#v-replay').hidden)return;let d=dayIdx(st.h);if(d<0)d=0;
+  $('#kpis').innerHTML=SK.map(k=>{const v=cum[k][d],b=cum['milp@chronos'][d];return`<div class="kpi" style="--c:var(${SC[k]})"><span>${R.labels[k]}</span><b>${eur(v)}</b><span>${k==='milp@chronos'?R.days[0]+' to '+R.days[d]:`${v-b>=0?'+':'−'}€${fmt(Math.abs(v-b))} vs baseline (${((v-b)/Math.abs(b)*100).toFixed(2)} %)`}</span></div>`}).join('');
+  const ssum=(k,sp)=>R.strat[k].total.reduce((a,v,i)=>a+(R.split[i]===sp?v:0),0);const hcum=R.hind.slice(0,d+1).reduce((a,v)=>a+(v??0),0);
+  $('#kpis').innerHTML+=`<div class="kpi" style="--c:var(--ink)"><span>Hindsight optimum (perfect foresight)</span><b>${eur(hcum)}</b><span>the baseline captures ${(cum['milp@chronos'][d]/hcum*100).toFixed(1)} % of it</span></div>`;
+  if(R.reach){const rcum=R.reach.slice(0,d+1).reduce((a,v)=>a+(v??0),0);$('#kpis').innerHTML+=`<div class="kpi" style="--c:var(--accent)"><span>Reachable optimum (perfect prices, forecast activations)</span><b>${eur(rcum)}</b><span>the baseline captures ${(cum['milp@chronos'][d]/rcum*100).toFixed(1)} % of what any forecaster could reach</span></div>`}
+  $('#replaynote').innerHTML=['train','val','test'].map(sp=>`<b>${SPLIT[sp]}</b>: `+SK.slice(1).map(k=>{const g=(ssum(k,sp)/ssum('milp@chronos',sp)-1)*100;return`${k.split('@')[0]} ${g>=0?'+':'−'}${Math.abs(g).toFixed(2)} %`}).join(', ')).join(' · ')+
+    ` vs the baseline. Q1–Q2 is a replay: activation tables fitted on those days, bid knobs tuned on Q3. Monthly grid tariff booked on each month's last day. 1–7 Jan not traded (the forecaster needs a week of history).`;
+  chart($('#ch-diff'),{h:240,xs:Object.assign([...R.days],{tick:mticks}),series:SK.slice(1).map(k=>({c:SC[k],y:cum[k].map((v,i)=>v-cum['milp@chronos'][i])})),cursor:d,click:i=>setH(hourOfDay(Math.max(0,Math.min(R.days.length-1,i)))+12)});
+  const a=Math.max(0,d-20),xs=R.days.slice(a,d+1);
+  chart($('#ch-daily'),{w:460,h:240,bars:true,band:false,xs:Object.assign([...xs],{tick:[[0,xs[0].slice(5)],[xs.length-1,xs[xs.length-1].slice(5)]]}),series:SK.map(k=>({c:SC[k],y:R.strat[k].total.slice(a,d+1)})),cursor:xs.length-1});
+  $('#dayh').textContent=new Date(R.days[d]).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})+' · '+SPLIT[R.split[d]];
+  const C=[['cap','Capacity'],['da','Day-ahead'],['mfrr','mFRR energy'],['afrr','aFRR energy'],['imbalance','Imbalance'],['total','Total']];
+  $('#daytab').innerHTML=`<tr><th>EUR</th>${SK.map(k=>`<th class="n" style="color:var(${SC[k]})">${k.split('@')[0]}</th>`).join('')}</tr>`+C.map(([c,l])=>`<tr><td>${l}</td>${SK.map(k=>`<td class="n">${fmt(R.strat[k][c][d])}</td>`).join('')}</tr>`).join('');
+  const i0=hourOfDay(d),hs=[...Array(24).keys()].map(h=>i0+h),L=local(st.h).hh,hx=Object.assign(hs.map((_,i)=>i),{tick:[[0,'00'],[6,'06'],[12,'12'],[18,'18'],[23,'23']]});
+  chart($('#ch-px'),{w:460,h:220,band:false,xs:hx,series:[{c:'--accent',y:hs.map(i=>HR.da[i])},{c:'--s-qaoa',y:hs.map(i=>HR.imb[i])}],cursor:L});
+  chart($('#ch-soc'),{w:460,h:220,band:false,xs:hx,series:SK.map(k=>({c:SC[k],y:hs.map(i=>dq(BAT[k].soc[i],200))})),cursor:L})}
+fitsPanel();checksPanel();route();{const q=new URLSearchParams(location.search).get('day');setH(hourAt(q&&/^2026-\d\d-\d\d$/.test(q)?q:R.days[0],12))}  // ?day=2026-07-15 opens that day
+</script>
+</body></html>

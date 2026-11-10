@@ -1,0 +1,3380 @@
+In collaboration
+with Aramco
+
+Quantum for
+Energy and Utilities:
+Key Opportunities
+for Energy Transition
+WHITE PAPER
+APRIL 2026
+
+Images: Adobe Images, Getty Images
+
+Contents
+Foreword
+
+3
+
+Executive summary
+
+4
+
+1 Introduction
+
+6
+
+1.1	
+Methodology
+
+6
+
+1.2	
+What is pushing quantum technology7
+adoption in energy and utilities?
+1.3	
+When will quantum applications8
+materialize in energy and utilities?
+1.4	
+Quantum solutions across the9
+energy and utilities value chain
+2 Energy (generation and supply)
+
+11
+
+2.1	
+Fossil fuels11
+2.2	
+Renewable and nuclear energy16
+3 Power and grid infrastructure
+
+22
+
+3.1	
+Transmission22
+3.2 Distribution
+
+23
+
+3.3 Storage
+
+23
+
+4 Utilities (public services and critical infrastructure)
+
+29
+
+4.1 Electricity and gas29
+4.2 Water and wastewater29
+4.3 Heating and cooling30
+5 Strategic roadmap for leaders 
+
+33
+
+5.1	
+What holds quantum technology adoption back?33
+5.2	
+Actions to overcome quantum technology35
+adoption challenges
+5.3	
+Organization roadmap to adopt quantum
+technologies in energy and utilities
+
+37
+
+Conclusion
+
+39
+
+Contributors
+
+40
+
+Endnotes
+
+43
+
+Disclaimer
+This document is published by the World Economic Forum
+as a contribution to a project, insight area or interaction.
+The findings, interpretations and conclusions expressed
+herein are a result of a collaborative process facilitated and
+endorsed by the World Economic Forum but whose results
+do not necessarily represent the views of the World Economic
+Forum, nor the entirety of its Members, Partners or other
+stakeholders.
+© 2026 World Economic Forum. All rights reserved. No part of
+this publication may be reproduced or transmitted in any form
+or by any means, including photocopying and recording, or by
+any information storage and retrieval system.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+2
+
+April 2026
+
+Quantum for Energy and Utilities:
+Key Opportunities for Energy Transition
+
+Foreword
+Jeremy Jurgens
+Managing Director,
+World Economic Forum
+
+The world is facing a tightening “energy trilemma”1
+that requires reducing emissions while keeping
+energy reliable and affordable, in an environment
+shaped by geopolitical volatility and persistent
+uncertainty. Progress on transition indicators has
+continued, but unevenly and slower than required.
+Meanwhile, electricity demand is accelerating as
+economies digitize and artificial intelligence scales
+up, intensifying pressure on grids and bringing
+infrastructure upgrades, flexibility and security to
+the forefront of national agendas.
+Against this backdrop, the limits of conventional
+computation are becoming more visible. Renewableheavy power systems exhibit non-linear dynamics
+that are difficult to model with sufficient fidelity.
+Breakthroughs in batteries, catalysts, carbon capture
+and storage, and hydrogen rely on molecular
+interactions that are costly to simulate with classical
+methods. And across supply chains, trading and
+network operations, optimization problems grow
+combinatorially, where incremental improvements
+in solution quality or time-to-decision can translate
+into material operational and economic value.
+Quantum technologies, including computing,
+sensing and communication, do not replace existing
+tools, but they can expand what is tractable.
+Quantum computing may help explore vast design
+
+Ahmad Al Khowaiter
+Executive Vice President,
+Technology & Innovation,
+Aramco
+
+and planning spaces and, eventually, improve
+materials simulation accuracy. Quantum sensing can
+increase measurement fidelity for subsurface imaging
+and monitoring. Quantum communication can
+strengthen critical-infrastructure security when longlived assets must remain trustworthy for decades.
+This white paper has been developed through a
+strategic partnership between the World Economic
+Forum and Aramco – part of the industry track of
+the Forum’s Quantum Economy Network – and
+focuses on practical paths rather than hype. It
+draws on expert input, surveys and early projects
+to highlight use cases across the energy value
+chain, from generation to transmission and system
+security. Turning pilots into routine capability will
+require investment in skills, better data integration
+and continued progress in hardware reliability.
+We extend our sincere thanks to the experts and
+organizations across industry, academia, technology
+providers and policy who contributed time and
+insight to this paper. We hope it equips energy and
+utilities industry decision-makers with a practical
+basis to prioritize credible quantum opportunities,
+align stakeholders and investments, and build the
+technical, security and talent foundations needed
+for responsible integration in the years ahead.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+3
+
+Executive summary
+This report offers business leaders a roadmap
+to move from low-risk, high-value pilots towards
+scaling-up quantum alongside high-performance
+computing and AI.
+Quantum solutions are emerging for energy and
+utilities in grid optimization, materials discovery
+and infrastructure security, with near-term gains
+using hybrid workflows. Leaders should prioritize
+high-impact cases, benchmark data and scale up
+when results outperform classical methods.
+
+applications and post-quantum cybersecurity
+upgrades. Over the longer horizon, advances in
+quantum simulation and sensing could unlock
+higher-fidelity modelling and measurement that
+support cleaner, more resilient energy systems.
+
+Quantum technologies in computing, sensing,
+communication and cybersecurity are moving
+from research to early pilots and entering the
+energy and utilities sector as an additional set of
+tools for specific, hard problems. They will not
+replace classical computing, but they may expand
+what can be explored, simulated and optimized,
+particularly when used in hybrid workflows that
+combine quantum methods with established highperformance computing and AI approaches.
+The earliest opportunities are concentrated in hybrid
+quantum-classical optimization, emerging sensing
+
+FIGURE 1
+
+1
+
+–
+
+Transition and materials acceleration
+
+–
+
+Operational optimization
+
+–
+
+Trusted infrastructure and cyber resilience
+
+–
+
+Precision monitoring and sensing
+
+Targeted quantum value pillars for energy and utilities
+
+Transition and materials acceleration
+
+2
+
+Complement classical methods to improve materials discovery
+for batteries, catalysts, carbon capture, hydrogen and solar
+
+3
+
+Quantum solutions offer high-impact benefits
+for targeted use cases across energy and utilities.
+While hardware for sensing, communication and
+computing continue to mature, applications are
+gaining traction across four value pillars (see
+Figure 1):
+
+Operational optimization
+
+Improve planning and control problems, such as AC optimal
+power flow, grid resilience and EV smart charging
+
+Trusted infrastructure and cyber resilience
+
+4
+
+Precision monitoring and sensing
+
+Advance subsurface mapping and non-invasive
+detection use cases, such as leaks and emissions
+
+Reduce “harvest now, decrypt later” exposure through disciplined
+post-quantum cryptography migration planning and assessing
+quantum-secured communication approaches
+
+Notes: This figure is non-exhaustive.
+Source: World Economic Forum’s Quantum for Energy and Utilities Working Group.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+4
+
+To help leaders sequence investment and capability
+building, this paper presents an organizational
+roadmap with three horizons:
+
+scaling-up mechanisms and collaboration
+frameworks, and rolling out post-quantum
+cryptography (PQC) and quantum key
+distribution (QKD).
+
+Within 2 years
+Beyond 5 years
+Focus on a small set of high-value use cases, run
+low-risk pilots with measurable success criteria, and
+build internal literacy and partner ecosystems, while
+strengthening the security foundation through postquantum cryptography readiness assessments.
+Over 3-5 years
+Move from experimentation to institutionalization
+by embedding quantum into digital, operational
+technology (OT) and cyber roadmaps, expanding
+
+Treat quantum as part of the permanent compute
+and security stack alongside high-performance
+computing (HPC) and artificial intelligence (AI),
+sustaining continuous innovation pipelines and
+coordinating across the sector so that standards,
+procurement and regulation keep pace with
+technical capability. Organizations that start
+now, with disciplined measurement and strong
+collaboration, will be best placed to turn early
+pilots into scalable operational capability.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+5
+
+1
+
+Introduction
+Quantum technologies are emerging as
+complementary tools for energy and utilities,
+offering potential improvements in efficiency,
+measurement sensitivity and data security.
+Quantum technologies are gradually moving from
+research and experimental study to early-stage
+deployment, presenting new opportunities for
+efficiency and reliability improvements in the energy
+and utilities sector. While many capabilities remain
+at a developmental stage, early findings indicate
+that these tools can complement existing digital
+systems and support more informed decisionmaking in complex energy environments.
+
+Quantum sensing can boost measurement
+sensitivity and data quality in certain operations.
+By detecting subtle magnetic or gravitational
+variations, it may improve subsurface
+characterization, anomaly detection and
+monitoring of storage or transmission assets,
+supporting more predictive maintenance and
+safer performance. Broad deployment, however,
+still requires validation in real conditions.
+
+Quantum technologies comprise three broad
+areas as follows:
+
+Quantum communication, including quantum key
+distribution (QKD), can add protection for critical
+data flows as networks become more connected.
+It will not replace today’s security stack soon, but it
+can strengthen layered defences and help prepare
+for future cryptographic risks. For further technical
+insights, refer to resources on the World Economic
+Forum’s Quantum Economy Network, such as:
+quantum fundamentals, quantum economy and
+quantum security.
+
+Quantum computing may help with optimization
+and simulation tasks that strain classical methods,
+potentially improving grid planning, asset scheduling
+and materials research. Real-world impact will
+depend on continued advances in hardware and
+software, but over time quantum algorithms could
+enable more accurate modelling and smoother
+renewable integration.
+
+1.1	
+Methodology
+This white paper was developed to combine breadth of perspectives with depth of analysis, drawing on
+workshops, surveys and expert interviews to test assumptions, challenge early hypotheses and ground
+recommendations in evidence (see Figure 2).
+
+FIGURE 2
+
+Methodology
+
+Working group workshops
+
+Surveys
+
+Consultant interviews
+
+3 community workshops
+
+7 survey types
+
+10 interviews
+
+Total participants: 100
+
+Total participants: 65
+
+Total interviewees: 15
+
+– Brought together diverse set of
+participants from industry, academia,
+technology companies, government
+and policy organizations
+
+Shaped the direction and content
+of the paper, covering:
+
+Conducted multiple interviews with selected
+executives and experts from industry,
+academia, policy and technology companies
+to obtain insights on current and future vision
+of the technology in energy and utilities
+
+– >65% of attendees executives
+or middle managers
+– ~28% represented energy
+and utilities sector
+– ~90% based in Europe,
+North America, Middle East
+
+– Adoption drivers
+– Application timelines
+– Near-term applications
+– Challenges
+– Actions to overcome challenges
+– Use-case selection
+– Implementation roadmaps
+
+Note: The percentage values in the community insight figures (blue bar graphs) indicate the percentages of participants who have selected a particular option.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+6
+
+1.2	
+What is pushing quantum technology
+adoption in energy and utilities?
+Several market signals are accelerating quantumreadiness efforts in energy and utilities, and they
+are concrete rather than speculative. The US
+Department of Energy has warned that, under
+certain capacity retirement and load growth
+scenarios, blackout risk could rise sharply by
+2030, while outages already cost US businesses
+about $150 billion annually. At the same time,
+cybersecurity threats are intensifying: industry
+threat intelligence reports indicate that 70%
+of 2024 attacks involved critical infrastructure,
+underscoring the need for long-lived protections
+across grid and operational technology systems.
+The most immediate quantum-linked step is the
+transition to post-quantum cryptography, as the
+US National Institute of Standards and Technology
+(NIST) finalizes standards and migration guidance.
+Given long asset lifecycles, the “harvest now,
+decrypt later” risk2 makes early planning essential.
+Rapid digitization also adds complexity, with global
+smart meter deployments projected to exceed 3
+billion by 2030. This expands forecasting and
+
+FIGURE 3
+
+optimization workloads, such as weather-dependent
+renewable load balancing, and motivates tightly
+scoped quantum or hybrid pilots benchmarked
+against classical high-performance computing.3,4
+
+Community insights for drivers
+of technology adoption
+Quantum adoption in energy and utilities is
+primarily driven by resilience and security
+imperatives, with economic and competitive
+pressure as a secondary accelerator.
+Decarbonization and increasing data volumes
+are also recognized as important factors.
+Beyond these key drivers, the community
+highlights sovereignty concerns, safety and risk
+modelling, optimization of resource demand,
+and mastering the complexity of future energy
+systems and quantum simulation for battery
+chemistry as emerging key factors for future
+quantum adoption.
+
+Key factors driving quantum technology adoption
+
+3%
+
+10%
+
+13%
+
+23%
+
+19%
+
+39%
+48%
+55%
+
+74%
+52%
+39%
+26%
+
+Need for resilience and security
+
+Economic & competitive
+pressures
+
+High
+
+Decarbonization mandate
+
+Moderate
+
+Exponential data growth
+
+Low
+
+Source: Community survey, World Economic Forum’s Quantum for Energy and Utilities Working Group, February 2026.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+7
+
+1.3	
+When will quantum applications
+materialize in energy and utilities?
+Quantum applications are expected to emerge
+unevenly and in three waves across the energy
+value chain:
+
+FIGURE 4
+
+–
+
+Near-term decision optimization in operations
+and markets.
+
+–
+
+Mid-term system planning and control, as
+grids and variable generation scale up.
+
+–
+
+Longer-horizon R&D, once fully fault-tolerant
+machines arrive.
+
+Community insights for technology
+application timeline
+Quantum impact is expected within 10 years
+across most energy segments, with grid
+infrastructure leading near-term adoption.
+Phased but uneven deployment maturity is
+expected across all sub-sectors. The power
+and grid sub-sector shows the strongest five
+year outlook, while renewables are expected
+to be longer-term. Moderate acceleration
+is expected in oil and gas and utilities.
+
+Timeline for quantum application across energy and utilities sector
+
+6%
+
+10%
+
+13%
+
+57%
+
+55%
+
+33%
+
+32%
+
+3%
+
+32%
+84%
+
+61%
+13%
+Power & grid infrastructure
+(transmission, distribution, storage)
+
+Oil & gas (upstream,
+midstream, downstream)
+
+5 years
+
+Utilities (electric & gas, water &
+wastewater, heating & cooling)
+
+10 years
+
+Renewable (solar, wind,
+hydro, geo, bioenergy)
+
+More
+
+Source: Community survey, World Economic Forum’s Quantum for Energy and Utilities Working Group, February 2026.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+8
+
+1.4	
+Quantum solutions across the
+energy and utilities value chain
+The energy and utilities industry is undergoing
+multiple transformations, including decarbonization
+of generation and a digital revolution in infrastructure.
+In addition, demand for resilience and security is
+increasing across the whole value chain.
+Chapters 2, 3 and 4 of this white paper analyse
+quantum solutions – in the form of quantum
+computing, quantum sensing and quantum
+
+TA B L E 1
+Energy (generation
+and supply)
+Fossil fuels
+Oil and gas
+
+security and communication – across the following
+three sectors (see Table 1):
+–
+
+Energy (generation and supply)
+
+–
+
+Power and grid infrastructure
+
+–
+
+Utilities (public services and
+critical infrastructure)
+
+Quantum opportunities by subsector
+Quantum computing
+
+Quantum sensing
+
+ ptimize refinery processes to
+O
+reduce energy intensity
+
+ ubsurface mapping for
+S
+hydrocarbon reservoirs
+
+ eservoir modelling and seismic
+R
+imaging with higher accuracy
+
+ eak detection in pipelines
+L
+and methane monitoring
+
+ aterials discovery for more
+M
+efficient solar PV and wind
+turbine composites
+
+ ind resource measurement
+W
+with ultra-precise sensors
+
+Quantum security
+and communication
+ ecure SCADA* systems and
+S
+pipelines from cyberattacks
+
+Coal
+
+Renewable
+Solar
+
+ rid optimization for variable
+G
+renewable integration
+
+Wind
+
+Geothermal subsurface
+heat-flow mapping
+
+ ecure decentralized solar
+S
+and wind farms connected
+via smart grids
+
+Hydro
+
+Nuclear
+Fission
+
+Reactor design simulations
+ aterials discovery for
+M
+radiation-resistant components
+
+ adiation detection with
+R
+extreme precision
+
+ uantum-safe encryption of
+Q
+nuclear facility operations
+and data
+
+Future tech
+
+Power and grid
+infrastructure
+Transmission
+High-voltage network
+
+Quantum computing
+
+Quantum sensing
+
+Large-scale optimization
+of high-voltage grid flows
+
+ etect faults and line
+D
+stress in real time
+
+ uantum key distribution
+Q
+(QKD) for ultra-secure grid
+communication
+
+ etect anomalies in local
+D
+distribution networks
+
+Secure smart meters
+and IoT nodes
+
+ onitor degradation of
+M
+large-scale battery farms
+
+ ecure storage facilities that
+S
+connect to national grids
+
+Cross-border power
+trading optimization
+
+Quantum security
+and communication
+
+Cross-border
+interconnectors
+
+Distribution
+Local grid
+
+ ocal optimization of distributed
+L
+energy resources (DERs)
+ V charging scheduling
+E
+at grid scale
+
+Smart grid
+
+Storage
+Battery
+
+ imulate new battery chemistries
+S
+beyond lithium-ion
+ atalyst design for hydrogen
+C
+electrolysis and storage
+
+Mechanical storage
+*SCADA (supervisory control and data acquisition) is a software and hardware system designed to
+monitor, manage and control industrial processes, machines and infrastructure from a centralized location.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+9
+
+TA B L E 1
+Utilities
+(public services and
+critical infrastructure)
+Electricity
+
+Quantum opportunities by subsector (continued)
+Quantum computing
+
+Quantum sensing
+
+Quantum security
+and communication
+
+Long-term planning of
+generation and retail mix
+
+Asset health monitoring
+(transformers, substations)
+
+Harden customer data
+and billing platforms
+
+Optimize gas network flows
+under dynamic demand
+
+Detect leaks in urban
+gas distribution
+
+Secure gas SCADA and
+distribution networks
+
+Optimize desalination and water
+treatment processes
+
+Detect contaminants and
+micro-leaks in pipelines
+
+Protect critical water
+infrastructure from cyberattacks
+
+Generation,
+transmission and
+retail electricity
+providers
+
+Natural gas
+ atural gas delivery
+N
+for heating, cooking
+and industrial use
+
+Water and
+wastewater
+Potable water
+supply, treatment
+plants and sewerage
+systems
+
+Smart water distribution
+under drought conditions
+
+Notes: This table is representative and non-exhaustive.
+Source: World Economic Forum’s Quantum for Energy and Utilities Working Group.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+10
+
+2
+
+Energy (generation
+and supply)
+From seismic imaging and methane sensing to
+wind optimization and smart charging, quantum
+is advancing energy generation and supply.
+Energy generation and supply includes the extraction, production and processing of primary
+energy sources. This sector is characterized by intensive capital expenditure, global logistics
+networks and molecular-level engineering challenges that push classical simulation to its limits.
+
+2.1	
+Fossil fuels
+Quantum
+technologies are
+a potential source
+of competitive
+advantage
+across the entire
+hydrocarbon
+value chain.
+
+The oil and gas industry has long relied on HPC to
+address computationally intensive challenges, from
+upstream seismic data inversion to downstream
+molecular design. However, as the complexity of
+these problems grows, the industry is exploring new
+computational paradigms. Quantum technologies
+are a potential source of competitive advantage
+across the entire hydrocarbon value chain.
+
+Upstream (exploration
+and production)
+The upstream segment remains the most capitalintensive phase of the hydrocarbon value chain.
+It has to balance two competing priorities:
+extracting as much value as possible from
+existing oil fields while keeping the environmental
+impact of exploration as low as possible.
+The biggest computational constraints are in
+subsurface imaging and reservoir simulation.
+Subsurface imaging and seismic inversion
+Seismic imaging requires processing petabytes of
+data to rebuild detailed pictures of underground
+geology. The central maths problem is an inverse
+one: using recorded seismic waves to infer the
+subsurface properties that produced them, which
+means effectively working backwards from the wave
+equation. Seismic data-processing techniques
+such as traditional full waveform inversion (FWI)
+often struggle because the optimization landscape
+is highly non-convex, so it can get stuck in local
+minima and produce misleading subsurface models.
+Quantum computing approaches such as quantum
+annealing are expected to yield improved solutions
+over classical computing approaches.
+
+Quantum sensing for gravimetry
+Beyond advances in computing, quantum sensing is
+starting to reshape exploration workflows, allowing
+for precise, non-invasive imaging of oil and gas
+reservoirs. Quantum gravimeters that use cold-atom
+interferometry can measure absolute gravity with
+exceptionally high stability and essentially no drift.
+That is a major advantage over traditional springbased gravimeters, which tend to drift mechanically
+and need frequent recalibration. By leveraging
+the wave-like behaviour of atoms, these quantum
+sensors can estimate gravitational acceleration with
+extremely high precision.
+Reservoir simulation
+Modelling fluid flow in porous rock means solving
+non-linear partial differential equations (PDEs) on
+grids with millions of cells. Most of the runtime
+comes from the large linear systems that have to be
+solved at every time step, and the cost grows mainly
+with the size of those systems. Quantum solutions
+for solving difficult PDEs are being developed in
+anticipation of hardware availability.
+
+Midstream (transportation
+and pipelines)
+Midstream operations are essentially about
+logistics and network optimization. Moving
+hydrocarbons requires coordinating pipelines,
+ships and terminals through intricate schedules,
+and these challenges are often framed as NPhard combinatorial optimization problems.
+Hybrid quantum-classical solvers (for example
+variational approaches such as QAOA or quantum
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+11
+
+Even small
+percentage
+improvements
+can translate
+into meaningful
+fuel savings and
+higher asset
+utilization at scale.
+
+annealing) target these NP-hard search spaces
+by exploring many candidate configurations
+efficiently, with the practical goal of finding better
+solutions under tight time limits, not perfect
+global optima. If validated, even small percentage
+improvements can translate into meaningful fuel
+savings and higher asset utilization at scale.
+Pipeline flow optimization
+Moving gas or oil through transcontinental pipelines
+means continuously tuning compressor stations
+and valve settings to cut fuel use while still satisfying
+pressure limits and meeting contract delivery
+requirements. Hybrid classical-quantum computing
+solutions are expected to provide improved real-time
+decision making to better optimize pipeline flow.
+LNG shipping and maritime logistics
+Optimizing liquefied natural gas (LNG) tanker
+routes is among the most computationally difficult
+challenges in the industry. It requires coordinating
+a global fleet while accounting for changing boiloff rates, port and berth constraints, contract
+delivery windows and opportunities to capture
+value through spot-market arbitrage. In addition,
+sudden geopolitical and maritime disruptions can
+rapidly alter trade flows and heighten transit risk.
+Even when the routing problem is simplified to just
+a few dozen ships, the number of possible decisions
+becomes exponentially large. That is far beyond
+what anyone could search exhaustively. Because
+of that, traditional heuristic methods often land on
+“good enough” solutions that are not truly optimal,
+which means real opportunities for efficiency gains
+are still possible.
+
+Downstream (refining and retail)
+Downstream operations combine complex
+chemical processing with high-volume, lowmargin retail logistics. The priority is improving
+
+FIGURE 5
+
+process efficiency, designing and optimizing
+molecules and formulations, and using customer
+analytics to sharpen pricing, demand forecasting
+and sales performance.
+Refinery optimization (blending and scheduling)
+Refineries have to coordinate crude unloading,
+tank storage and blending so they can hit tight
+product specs, such as octane and sulphur limits,
+while protecting margins. It is essentially a resourceconstrained scheduling problem.
+Retail and trading
+On the retail side, the business focuses on
+keeping customers from leaving and refining
+trading strategies to perform well in volatile
+markets. Downstream benefits most from quantum
+simulation of chemistry and materials. Accurate
+quantum models of catalysts, adsorption and
+reaction pathways could reduce costly trial and
+error in catalyst selection and process tuning, while
+supporting the design of cleaner fuels and additives
+that meet increasingly tight specifications. In parallel,
+quantum optimization can be applied to refinery
+blending and scheduling, and emerging quantum
+machine-learning techniques may complement
+classical models for demand forecasting and
+trading analytics where uncertainty and non-linear
+interactions dominate.
+Community insights for quantum
+solutions in fossil fuels
+In fossil fuels, securing SCADA systems and
+pipelines was seen as the most promising
+near-term quantum application, highlighting
+a strong emphasis on cyber resilience. Other
+promising areas include surface mapping,
+pipeline leak detection and methane monitoring,
+demonstrating quantum’s potential to boost
+efficiency and performance.
+
+Top near-term quantum solutions in fossil fuels
+
+Fossil fuels (oil, gas and coal)
+Quantum communication – secure SCADA
+systems and pipelines from cyberattacks
+
+77%
+
+Quantum sensing – subsurface
+mapping for hydrocarbon reservoirs
+
+73%
+
+Quantum sensing – leak detection in
+pipelines and methane monitoring
+
+62%
+
+Quantum computing – reservoir modelling
+& seismic imaging with higher accuracy
+
+58%
+
+Quantum computing – optimize refinery
+processes to reduce energy intensity
+
+50%
+
+Source: Community survey, World Economic Forum’s Quantum for Energy and Utilities Working Group, February 2026.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+12
+
+CASE STUDY 1
+
+Quantum computing
+Optimizing seismic imaging using hybrid quantum to
+build subsurface maps from large 3D seismic volumes
+Aramco researchers have made progress in creating clearer
+images of the Earth’s subsurface using a new combination of
+quantum and classical computing technologies. This earlystage work focused on improving a key process in seismic
+imaging, the technique used to create detailed pictures
+of geological subsurface layers that help guide energy
+exploration and development.
+The team used D-Wave’s hybrid quantum-classical systems
+to enhance a step that sharpens seismic images by identifying
+key geological features from noisy data. Unlike traditional
+
+computers, which struggle to efficiently enforce the right level
+of simplicity and clarity in these images, the quantum-assisted
+method was able to achieve better results by focusing on the
+most relevant data points.
+Because of current hardware limits, the test was run on
+2D seismic data, simpler than the full 3D datasets typically
+used in industry, yet it still showed promising improvements
+in speed and image quality. This early success suggests
+that quantum-based methods could one day help solve
+more complex imaging challenges, such as building highly
+accurate models of subsurface geological properties, which
+are critical for finding and developing energy resources.5
+
+CASE STUDY 2
+
+Quantum sensing
+Monitoring methane at oil terminals with quantum lidar
+Oil terminals are hard to monitor because leaks can be
+small, intermittent and spread across dense equipment,
+so periodic manual inspections can miss short-lived events.
+Quantum gas light detection and ranging (lidar) is suited to
+this because it can scan large areas from fixed positions and
+quantify emissions remotely.
+In a 2023 case study, Repsol Sinopec Resources UK tested
+the methane lidar from QLM Technology at the Flotta Oil
+
+Terminal in Scotland. Over a week-long trial, two systems
+were mounted on platforms up to 20 metres high to detect
+and quantify methane across the site, including minor
+and intermittent emissions that are difficult to capture with
+walkover surveys.
+Reported benefits for this field-validated pilot were better
+detection of small leaks, site-wide source localization and
+quantification, and evidence that fixed-placement monitoring
+could support longer-duration terminal surveillance.6
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+13
+
+CASE STUDY 3
+
+Quantum sensing
+Mapping subsurface structures and tracking
+mass changes in reservoirs/storage sites using
+quantum gravimeters
+Tracking subsurface mass movement is central to
+underground mapping and to time-lapse monitoring of
+reservoirs and storage sites, because gravity responds
+directly to changes in mass distribution, for example when
+fluids migrate through rock or when storage inventories
+change. The practical barrier has traditionally been
+instrumentation: field gravimetry is often expensive, difficult
+to deploy at scale, and prone to drift and operational
+constraints that make long-duration monitoring and
+repeatable surveys challenging.
+
+To make gravity-based monitoring more operational, Exail
+commercialized the absolute quantum gravimeter (AQG),
+a cold-atom interferometry instrument designed to deliver
+continuous absolute gravity measurements over long periods
+while remaining transportable for survey and time-lapse
+use. Exail positions AQG explicitly for applications including
+reservoir monitoring and subsurface imaging, emphasizing
+stability, repeatability and multi-year continuous acquisition
+as differentiators versus conventional approaches.
+Key reported benefits included drift-free absolute gravity
+measurements suitable for long-duration monitoring and
+repeatable time-lapse surveys, an architecture for scalingup from single-station sensing to gravity imaging using an
+anchored sensor array, and clear evidence of increasing
+operational maturity.7
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+14
+
+CASE STUDY 4
+
+Quantum computing
+Optimizing maritime inventory routing (VRP or vehicle
+routing problem, with time windows) for LNG shipping
+using hybrid quantum-classical optimization to reduce
+routing cost and improve delivery reliability
+LNG shipping and other bulk maritime supply chains face
+tightly constrained routing and scheduling: vessels must
+satisfy port time windows, capacity and safety constraints,
+and inventory balance across multiple terminals over a
+planning horizon. Because routing decisions and inventory
+feasibility are coupled (the classic maritime inventory routing
+structure), the problem scales up quickly beyond what
+“plain exact solving” can handle without decomposition and
+heuristics, making it a natural target for experimentation with
+new optimization paradigms.
+ExxonMobil and IBM Research have publicly documented
+a collaboration focused on casting maritime inventory
+
+routing as vehicle routing with time windows and then
+analysing which mathematical formulations are most
+suitable for execution in quantum or hybrid workflows.
+Their published work discusses quadratic unconstrained
+binary optimization or QUBO-style encodings and references
+quantum optimization methods commonly explored for
+near-term devices. IBM’s case-study framing describes
+this as laying a foundation for “practical solutions” rather
+than reporting a deployed production optimizer.
+Key benefits would include lower fuel and demurrage
+costs, improved fleet utilization and more reliable “righttime” deliveries; however, the public record supports R&D/
+prototype formulation and benchmarking, While not yet at
+operational scale, these efforts provide the mathematical
+foundation for future quantum-advantaged logistics.8
+
+CASE STUDY 5
+
+Quantum computing
+Advancing quantum computational materials design of
+metalorganic frameworks for carbon capture applications
+Adsorbents largely determine carbon-capture performance.
+Metal-organic frameworks (MOFs) – recognized by the 2025
+Nobel Prize in Chemistry – are promising because their
+porous, tuneable lattices enable strong, selective CO2 uptake.
+Electrochemical CO2 capture can cut regeneration energy,
+yet predicting MOF adsorption at scale remains difficult:
+subtle, many-body interactions force a speed-accuracy
+trade-off in classical simulations.
+TotalEnergies and Quantinuum publicly described a
+workflow that studies CO2 binding in an Al fumarate MOF
+
+by breaking the problem into smaller building block models
+and inserting a quantum step where the hardest chemistry
+appears. Rather than attempting to simulate an entire
+porous crystal, the approach focuses on the active site that
+captures CO2 and treats the surrounding framework with
+established classical methods, then compares results against
+high level classical benchmarks to understand where the
+quantum component helps and where it still falls short.
+Key benefits reported so far are a repeatable research,
+clearer visibility into what must improve before it can
+scale up, and a practical path toward more predictive
+sorbent modelling as devices and software become
+more dependable.9
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+15
+
+2.2	
+Renewable and nuclear energy
+
+In renewables,
+optimization for
+variable renewable
+integration
+emerges as the
+top near-term
+use case.
+
+As the global energy mix shifts toward renewables,
+the operational challenge moves from resource
+extraction to forecasting variable generation,
+integrating distributed assets and improving
+material efficiency.
+
+Solar
+Solar generation is driven by advances in
+photovoltaic materials, manufacturing and real-time
+forecasting to manage intermittency. The highestimpact computational bottlenecks are in materials
+discovery and in modelling micro-weather dynamics
+that determine near-term output.
+Material discovery (perovskites and organic
+photovoltaics)
+The efficiency of solar PV is fundamentally
+constrained by the bandgap properties of the
+absorber material. Discovering new candidates,
+such as perovskites, is slowed by the difficulty
+of accurately simulating electronic structure and
+charge-transport behaviour at scale. Quantum
+simulation can accelerate this discovery cycle by
+modelling exciton dynamics and charge-transfer
+pathways with higher fidelity, enabling faster
+screening of high-efficiency materials and reducing
+years of trial-and-error synthesis.
+Irradiance forecasting
+Accurate short-term forecasts of solar output are
+critical for grid stability, but performance is often
+limited by micro-weather variability that is difficult to
+capture with classical models. Quantum machine
+learning approaches (for example, quantum support
+vector machines and quantum neural networks)
+are being evaluated to process high-dimensional
+meteorological features more efficiently and improve
+short-horizon predictions of cloud cover and
+irradiance, supporting better reserve management
+and dispatch decisions.
+
+Wind
+Wind power performance depends on complex
+aerodynamics at the wind-farm scale and on highavailability operations in harsh environments. Key
+challenges include wake-aware layout optimization
+and condition monitoring to reduce downtime and
+improve yield.
+Wind farm layout optimization
+Within a wind farm, turbines create wake. Optimizing
+turbine placement to minimize wake losses is a
+high-dimensional, non-convex optimization problem.
+A near term approach is through quantum-inspired
+optimization to model wake interactions as a
+complex graph and search for layouts that increase
+energy yield without additional hardware.
+Predictive maintenance
+Wind turbines generate continuous streams of
+sensor data. Detecting subtle anomalies in vibration
+signatures before they progress into gearbox or
+blade failures is a core reliability challenge. Hybrid
+quantum classical machine learning approaches are
+being explored to improve early anomaly detection
+in vibration data, helping operators schedule
+maintenance during low-wind periods and reduce
+costly unplanned downtime.
+
+Hydro
+Hydropower sits at the intersection of physicsbased constraints and market operations, requiring
+coordinated scheduling across cascaded assets.
+Operators must optimize water-value tradeoffs while meeting environmental flow limits and
+safety requirements.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+16
+
+Generation scheduling and unit commitment
+Optimizing water releases through cascades
+of dams involves hydraulic coupling, non-linear
+turbine efficiency curves, environmental flow
+constraints and market-price uncertainty. The
+resulting unit commitment and scheduling problems
+are computationally intensive. Quantum and
+quantum-inspired optimization algorithms are being
+benchmarked to navigate these complex solution
+spaces and improve water-value trade-offs.
+Structural simulation
+Current developments aim to explore photonic
+quantum computing for faster and more accurate
+finite-element analysis of hydroelectric dam
+structures, supporting safety assessments and lifeextension planning for aging assets.
+Nuclear fission and future technologies
+
+and stronger cybersecurity. Quantum computing
+and quantum simulation can help accelerate parts
+of reactor-physics and thermo-hydraulic modelling
+workflows and speed materials discovery for
+longer-life, radiation-tolerant components. Quantum
+sensing can improve the precision and stability
+of radiation and environmental monitoring, while
+quantum-safe communication protects operational
+data against future cryptographic threats.
+Community insights for quantum
+solutions in renewable energy
+In renewables, optimization for variable
+renewable integration emerges as the top nearterm use case, far exceeding other options such
+as securing decentralized grids and materials
+discovery. In nuclear energy, quantum computing
+for advanced materials and high-precision
+radiation detection is viewed as a priority.
+
+In nuclear fission, quantum technologies mainly add
+value through better modelling, better monitoring
+
+FIGURE 6
+
+Top near-term quantum solutions in renewable energy and nuclear
+
+Renewable (solar, wind and hydro)
+Quantum computing – grid optimization
+for variable renewable integration
+
+85%
+
+Quantum communication – securing decentralized
+solar and wind farms connected via smart grids
+
+45%
+
+Quantum computing – materials discovery for more
+efficient solar PV and wind turbine composites
+
+35%
+
+Quantum sensing – geothermal
+subsurface heat flow mapping
+
+30%
+
+Quantum sensing – wind resource
+measurement with ultra-precise sensors
+
+30%
+
+Nuclear (fission future tech)
+Quantum computing – materials
+for radiation-resistant components
+
+77%
+
+Quantum sensing – radiation
+detection with extreme precision
+
+62%
+
+Quantum communication – quantum-safe
+encryption of nuclear facility operations and data
+
+62%
+
+Quantum computing – reactor design simulations
+
+58%
+
+Source: Community survey, World Economic Forum’s Quantum for Energy and Utilities Working Group, February 2026.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+17
+
+CASE STUDY 6
+
+Quantum computing
+Optimizing EV smart charging by forecasting demand
+and scheduling charging to align with renewable energy
+The rapid growth of electric vehicle charging is adding a
+large, flexible load to power systems that are already coping
+with intermittent renewables. That makes two tasks harder
+at the same time: forecasting demand with enough fidelity
+to plan operations and optimizing charging schedules
+so consumption shifts towards lower carbon generation
+windows without violating grid constraints.
+EDF and Pasqal experimentally implemented an EV smartcharging use case on Pasqal’s neutral-atom platform,
+reporting an experimental realization that executed a
+quantum annealing-based schedule optimizer component on
+
+up to 100 qubits, therefore positioning the work as a hybrid
+quantum classical coupled forecasting-and-optimization
+challenge for future energy-system orchestration.
+Key reported benefits included successfully running the
+EV smart-charging scheduling use case on a physical
+neutral-atom system at the 100+ qubit level, and providing
+a documented, reproducible reference implementation
+through the joint EDF-Pasqal publication, with the additional
+practical advantage that the supporting hardware is now
+part of an inaugurated HPC-quantum hybrid infrastructure
+intended to enable scaling-up and broader experimentation
+within the French Atomic Agency. The public reporting
+frames this as an R&D proof of concept milestone.10
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+18
+
+CASE STUDY 7
+
+Quantum sensing
+Improving wind resource management with more
+sensitive quantum-interference lidar for long-range,
+low-signal wind measurements
+For wind energy, being able to measure wind accurately
+from farther away, even when the signal is faint, helps at
+every stage. It supports choosing sites, producing lenderready energy estimates, understanding turbine wakes and
+running the plant day to day through better forecasting and
+control. This is especially useful when you need dependable
+wind data across the full rotor sweep and several kilometres
+upwind or across a large onshore or offshore site.
+Higher sensitivity means the lidar stays useful in more realworld conditions. It can reach farther and cope better with
+haze, low aerosol levels and bright background light. When
+the measurements stay reliable more often, you cut down the
+
+uncertainty in energy forecasts and make smarter decisions
+about turbine layout and operating settings.
+A research team at the University of Science and Technology
+of China, part of the Chinese Academy of Sciences, built an
+early prototype of a new kind of atmospheric lidar system
+that uses quantum interference ideas to pick out very weak
+signals. It combines up-conversion detection with a Hong
+Ou Mandel-style interference approach to make wind
+measurements easier to detect when the return signal is faint.
+In field tests, they reported measuring wind fields out to
+16 kilometres using 70 microjoules per pulse. They also
+reported about seven times higher detection sensitivity than
+conventional methods, with wind-field results that closely
+matched their reference comparison.11
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+19
+
+CASE STUDY 8
+
+Quantum computing
+Optimizing wind farm layout with VQE hybrid quantumcomputing algorithms
+Turbine performance is affected by changing environmental
+conditions, such as humidity, temperature, salinity, airflow,
+turbulence and geographic location, which influence energy
+density and can cause wear or corrosion over time. Carefully
+adjusting turbine configurations and layout can reduce wake
+effects between turbines, maximize power output and extend
+equipment lifespan by up to 25%, as analysed in a study
+published in the European Academy of Wind Energy.12
+However, evaluating the vast number of possible positioning
+combinations makes wind farm layout optimization a
+
+computationally challenging combinatorial problem.
+Quantum computing offers a way to accelerate this
+optimization process, helping balance aerodynamics,
+structural weight, efficiency and durability more effectively.
+A test is conducted by formulating the wind farm layout
+optimization into a QUBO model and applying a hybrid
+quantum-classical variational quantum eigensolver (VQE)
+algorithm. Implemented using IBM’s Qiskit gate-based
+quantum circuit simulator, the approach serves as a proof
+of concept, demonstrating the viability of the quantum
+algorithm to find optimal or near-optimal wind layout for
+small instances.13
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+20
+
+CASE STUDY 9
+
+Quantum communication
+Securing energy grid environment using
+quantum key distribution (QKD)
+In 2024, Verbund, Austria’s leading electricity provider,
+carried out a field trial of quantum-safe communication
+technologies, using hardware from Hitachi Energy together
+with ID Quantique’s QKD systems. The objective was to
+demonstrate that quantum-secure communication can
+operate reliably within a live energy grid environment,
+beyond laboratory conditions.
+
+The project secured communications between a power
+plant and a substation via a fibre-optic link deployed on an
+aerial (overhead) fibre line. Conducted under real operating
+conditions, the trial confirmed that QKD can be integrated
+into existing utility infrastructure without disrupting normal
+grid operations. By leveraging overhead line fibre assets, the
+implementation further demonstrated that quantum-safe key
+exchange can be embedded into conventional transmission
+and distribution network architectures.14
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+21
+
+3
+
+Power and grid
+infrastructure
+
+As power systems become more decentralized
+and volatile, quantum technologies could improve
+grid control, security and energy storage.
+The power grid is evolving from a centralized, unidirectional system into a “system of
+systems”, requiring real-time orchestration of millions of active endpoints. The integration
+of renewable energy and distributed energy resources (DERs) introduces stochasticity
+that challenges traditional grid management paradigms.
+
+3.1	
+Transmission
+Transmission system operators (TSOs) manage
+the high-voltage backbone of the grid. Their core
+challenge is maintaining stability and flow control
+in a network increasingly dominated by inverterbased resources.
+Optimal power flow (OPF)
+OPF is the mathematical problem of determining the
+most efficient generator dispatch settings to meet
+demand while respecting physical grid constraints
+(such as thermal limits and voltage stability).
+
+Grid partitioning and contingency analysis
+To manage resilience, grids can be partitioned into
+self-sustaining islands (microgrids) during faults to
+prevent cascading blackouts. Quantum-classical
+hybrid solvers can optimize how a decentralized
+grid is split into local clusters that can “island” as
+microgrids. This can help absorb local surplus
+power and reduce the risk of cascading outages,
+and it fits well because the task is essentially a
+network-splitting problem.
+Real-time fault detection
+
+Optimizing power flows across a large grid is
+computationally hard, so real operations often
+use simplified models. Quantum methods,
+typically paired with classical computers, aim
+to explore more options faster and surface
+better operating points; pilots such as E.ON
+working with D-Wave have tested this method
+on renewable-heavy grid scenarios.
+
+Transmission operators increasingly depend on
+high-frequency measurement streams to identify
+abnormal conditions before they propagate
+into outages. As inverter-based resources and
+weather-driven generation increase volatility,
+the value of low-latency detection and control
+grows. Quantum-enhanced signal processing and
+anomaly detection sensors are being explored to
+accelerate pattern recognition in high-frequency
+phasor measurement streams, with the goal of
+flagging line stress or incipient faults early enough
+for preventive re-dispatch, protection adjustments
+or operator intervention.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+22
+
+3.2 Distribution
+Distribution
+networks are
+moving towards
+local energy
+markets that
+balance supply
+and demand within
+a constrained
+feeder or microgrid.
+
+Distribution system operators (DSOs) face the “last
+mile” complexity of bidirectional power flows from
+prosumers, EVs and residential solar.
+Distributed energy resources (DERs)
+optimization and EV charging
+Coordinating the charging of thousands of EVs to
+avoid transformer overloads while accommodating
+user preferences is a massive scheduling problem.
+Neutral-atom quantum processors have been
+tested for EV smart-charging: forecast demand
+and renewable output, then schedule charging to
+use cleaner power while avoiding local bottlenecks
+and transformer overloads. The approach fits
+distribution grids because the hardware can
+represent network constraints efficiently.
+Local energy markets and peer-to-peer trading
+As prosumers and behind-the-meter storage grow,
+distribution networks are moving towards local
+energy markets that balance supply and demand
+within a constrained feeder or microgrid. These
+markets require fast clearing and constraint-aware
+
+matching between buyers and sellers. Quantum
+optimization methods are being investigated to
+accelerate market clearing and matching under
+network constraints, enabling near-real-time
+peer-to-peer trading while maintaining voltage
+and thermal limits. In principle, better clearing can
+increase the economic viability of DERs and provide
+more transparent price signals to consumers.
+Fault detection and network reconfiguration
+Fault isolation in distribution is a last-mile problem:
+there are many switching options, limited
+observability and strong pressure to restore service
+quickly. Improvements in measurement fidelity
+and automated reconfiguration can reduce outage
+duration and limit equipment damage. Quantum
+sensors could provide more precise current and
+voltage measurements, improving the detection of
+subtle anomalies. In parallel, quantum-inspired and
+quantum optimization routines can be applied to
+feeder reconfiguration (switching) to isolate faults
+and restore power to the maximum number of
+customers within operational constraints.
+
+3.3 Storage
+Energy storage is the critical buffer required to
+smooth out renewable intermittency. Quantum
+technologies are being applied to both the design
+of better batteries and the optimal deployment of
+storage assets.
+Battery materials discovery
+Improving the energy density, safety and charging
+speed of batteries depends on discovering new
+electrolyte and electrode materials. Quantum
+simulation is being pursued for battery chemistry,
+including lithium-air and solid-state systems, aiming
+to narrow the search space for higher-capacity,
+safer and faster-charging materials.
+Hydrogen storage catalysts
+Long-duration storage options extend beyond
+batteries; hydrogen is a leading candidate
+where energy must be stored for long periods or
+transported. Improving electrolysers and storage
+media depends heavily on catalyst and materials
+performance. Quantum computing is being
+explored to model hydrogen interactions with
+different durable and sustainable catalysts and
+storage materials (including porous frameworks),
+
+with the goal of identifying combinations that
+reduce energy losses and improve safety.
+Community insights for quantum
+solutions in power and grid infrastructure
+In the near-term, quantum application
+concentrates on strengthening grid reliability
+and optimizing system performance.
+In transmission, large-scale gridflow optimization and ultra-secure
+communication lead, underscoring
+resilience and complexity management.
+In distribution, focus shifts to local DERs
+optimization and EV charging orchestration,
+indicating decentralized grid control requirements.
+In storage, emphasis centres on nextgeneration battery chemistries and hydrogen
+catalysts, alongside asset degradation
+monitoring, signalling expectations that
+quantum computing will accelerate
+materials innovation while enhancing
+lifecycle management of energy assets.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+23
+
+FIGURE 7
+
+Top near-term quantum solutions in power and grid infrastructure
+
+Transmission
+Quantum computing – large-scale
+optimization of high-voltage grid flows
+
+76%
+
+Quantum communication – quantum key
+distribution for ultra-secure grid communication
+
+72%
+
+Quantum computing – cross-border
+power trading optimization
+
+64%
+
+Quantum sensing – detect faults
+and line stress in real time
+
+56%
+
+Distribution
+Quantum computing – local optimization
+of distributed energy resources
+
+75%
+
+Quantum computing – EV charging
+scheduling at grid scale
+
+67%
+
+Quantum communication – smart
+meters and IoT nodes secure
+
+58%
+
+Quantum sensing – detect anomalies
+in local distribution networks
+
+54%
+
+Storage
+Quantum computing – simulate new
+battery chemistries beyond lithium-ion
+
+77%
+
+Quantum communication – monitor
+degradation of large-scale battery farms
+
+54%
+
+Quantum computing – catalysts for
+hydrogen electrolysis and storage
+
+54%
+
+Quantum sensing – monitor degradation
+of large-scale battery farms
+
+50%
+
+Source: Community survey, World Economic Forum’s Quantum for Energy and Utilities Working Group, February 2026.
+
+CASE STUDY 10
+
+Quantum computing
+Modelling battery cathode materials with quantum
+computing to design better lithium-ion batteries
+Cathode materials largely determine how well a lithiumion battery performs and how it degrades over time. Many
+cathodes are metal-oxide materials where the chemistry
+shifts as the battery charges and discharges, which makes
+them hard to predict accurately with today’s computer
+models. Conventional simulations often have to choose
+between being fast but less reliable or more accurate but
+too slow and costly to use broadly, so these cathode
+materials are a promising place to try quantum computing
+as the technology becomes more capable.
+Ford and Quantinuum publicly described a workflow to study
+a representative cathode material (LiCoO2) by breaking the
+problem into smaller “building-block” models that capture
+key parts of the chemistry during charging and discharging.
+
+The goal was not to fully simulate an entire battery particle,
+but to show a practical way quantum computing could
+be used inside a materials research process, running the
+quantum step where the hardest chemistry shows up, and
+comparing the results against established classical methods
+to see where it helps and where it falls short.
+Key benefits reported so far are that the work shows a
+repeatable research approach (not just a one-time demo),
+makes it clear what still needs to improve before it can
+scale up (today’s quantum computers are still limited), and
+outlines a practical path toward more accurate batterymaterial predictions as the technology gets more reliable.
+Quantinuum’s newer results on more dependable quantum
+calculations are relevant because they aim to solve the
+biggest hurdle, getting answers stable and accurate enough
+to be useful, but the overall state is still early-stage R&D.15
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+24
+
+CASE STUDY 11
+
+Quantum communication
+Securing distribution-grid communications using
+photonic QKD over utility fibre to harden smart-grid
+control traffic
+Electric grid control systems manage generation,
+transmission and distribution of energy. They must provide
+secure communications of multiple energy devices over
+a single encrypted channel. DSO networks depend on
+machine-to-machine communications (e.g. SCADA/control
+messaging) and long-lived grid assets that must remain
+secure over multi-decade lifecycles, exactly the time horizon
+in which cryptographic assumptions can be disrupted by
+advances in computing. QKD addresses key exchange by
+using quantum-physics effects to detect interception and
+to generate/distribute secret keys, and utility “dark fibre”
+between substations is often a practical substrate for
+metro-scale QKD deployments.
+
+The EPB (electric power board) in Chattanooga, together
+with Oak Ridge National Laboratory (ORNL), Los Alamos
+National Laboratory (LANL) and industry partner Qubitekk,
+now part of IonQ, ran a field pilot of entangled photons
+discrete-variable QKD on an isolated segment of EPB’s
+utility fibre network, including a dedicated 21-kilometre
+fibre test bed separate from operational infrastructure.
+The demonstration work is commonly framed as “QKDsecured” smart-grid fibre communications using trustednode concepts and substation-to-substation fibre links.
+Key reported benefits included establishing a real-world
+utility-fibre test environment (the 21-kilometre EPB test
+bed) and demonstrating trusted-node QKD techniques
+intended to extend effective reach using realistic grid fibre
+infrastructure, with multiple QKD implementations used in
+the field context.16
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+25
+
+CASE STUDY 12
+
+Quantum computing
+Enhancing power grid anomaly detection through
+sensor placement
+Sensor placement in power grids refers to strategically
+deciding where to install sensors (such as PMUs – phasor
+measurement units or other monitoring devices) across the
+grid network to monitor electrical parameters such as voltage,
+current, frequency and phase angles. These sensors help
+detect anomalies such as equipment malfunctions, cyberattacks, line overloads, faults or unexpected power flows
+that can threaten the reliability and stability of the grid.
+Proper sensor placement using optimization techniques
+ensures that power grids are monitored efficiently,
+economically and securely, preventing faults or attacks
+from causing widespread damage or blackouts. Without
+optimization, placement may be suboptimal, leading to
+unnecessary costs, vulnerability gaps and reduced reliability.
+
+Pasqal, alongside European energy and utility actors, has
+been experimenting on a quantum-enhanced solution to this
+problem by leveraging the inherent connections between
+a power grid and its graph-based representation, and the
+underlying minimum vertex cover combinatorial optimization
+problem. Pasqal’s neutral-atom quantum processors are
+physically engineered for independent set-related problems:
+the physical system itself embodies the independency
+constraints without artificial encoding.
+With appropriate hybridization and decomposition
+methods, the 80-qubit instances can be coupled to be
+able to experiment on grid sizes reaching 1,000 nodes
+as well. The physical experiments on the currently
+available device reach beyond a proof of concepttype investigation and pave the way to a progressive
+industrial adoption of such hybrid solution workflows.17
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+26
+
+CASE STUDY 13
+
+Quantum computing
+Enhancing unit commitment in grid operations
+with quantum optimization
+Modern power systems face rising complexity in unit
+commitment (UC): scheduling generators at minimum
+cost while meeting demand and operational constraints.
+The growth of intermittent renewable generation expands
+the combinatorial search space, challenging classical
+optimization approaches used by grid operators.
+IonQ and Oak Ridge National Laboratory (ORNL),
+under the US Department of Energy GRID-Q effort,
+
+reported a hybrid quantum-classical UC formulation
+executed on IonQ’s 36-qubit Forte Enterprise system.
+In a demonstration instance (26 generators, 24-hour
+horizon), they used a layered variational method (MALVQA) to explore feasible schedules and introduced
+a cost-function design aimed at handling inequality
+constraints without qubit-intensive slack variables.
+At scale, such methods could enable faster exploration
+of feasible schedules, supporting lower operating costs
+and improved grid flexibility under renewable variability.18
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+27
+
+CASE STUDY 14
+
+Quantum computing
+Scheduling vehicle-to-grid fleets using hybrid
+learning and quantum kernels
+
+comparable to those obtained by approximate dynamic
+programming with CPLEX on a classical computer, but with
+lower runtimes, enabling more frequent re-optimization.
+
+Modern power systems are increasingly treating electric
+vehicles as distributed storage that can provide grid services,
+but turning a large, heterogeneous EV fleet into a reliable
+vehicle-to-grid “virtual battery” requires real-time scheduling
+under tight operational constraints (availability windows,
+state-of-charge targets, site limits, user requirements
+and volatile prices). As fleet size and variability grow, the
+scheduling and control problem becomes high-dimensional
+and time-sensitive, which pushes classical optimization and
+forecasting stacks toward higher complexity and shorter
+decision cycles.
+
+In parallel, they investigated quantum machine learning
+for high-dimensional prediction tasks linked to scheduling
+uncertainty. Because fidelity-based quantum kernels can
+suffer from “exponential concentration”, they introduced an
+error-mitigation method called bit flip tolerance (BFT) in the
+scientific journal npj Quantum Information. They reported
+that BFT significantly improved results on 40+ qubits
+(about 80% accuracy with mitigation versus ~33% without)
+and demonstrated experiments up to 156 qubits with
+performance close to classical baselines.
+
+E.ON and IBM tackled the practicality gap in vehicle-to-grid
+(V2G) scheduling by training a learning-based model to
+quickly predict near-optimal EV charging and discharging
+actions from simulated scenarios. Their approach derives
+policies using approximate dynamic programming and
+then learns them with kernel methods, so decisions can be
+generated fast while still respecting real constraints. They
+report that the learned model achieves objective values
+
+Key reported benefits included faster operational decisionmaking through learning-guided scheduling that reduces
+solver runtimes while retaining competitive solution quality,
+a practical path to frequent re-optimization for large fleets as
+grid conditions vary, and a demonstrated mitigation strategy
+for quantum kernels that improves robustness on real EV
+scheduling-related data and scales up experiments into the
+100+ qubit regime.19,20
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+28
+
+4
+
+Utilities (public services
+and critical infrastructure)
+Quantum tools could make utilities safer, smarter
+and more efficient, from grid security and pricing
+to leak detection and heat-network design.
+Utilities are the interface between the energy system and the end consumer. Their focus
+is on service reliability, efficiency, customer engagement and the management of water
+and thermal networks.
+
+4.1 Electricity and gas
+As smart grids become more digital and
+interconnected, they become vulnerable
+to cyberattacks. The advent of large-scale
+quantum computers poses a specific threat
+to standard RSA encryption used in SCADA
+systems and smart meters (“harvest now,
+decrypt later”). Multiple entities are piloting QKD
+over existing fibre optic lines to secure critical
+data transmission between substations.
+
+Customer churn and dynamic pricing
+Retail energy providers operate in increasingly
+competitive markets. Pricing and retention
+decisions depend on granular consumption
+data, customer segmentation and fast-changing
+wholesale conditions. Quantum machine learning
+is being applied to customer data to predict churn
+with higher accuracy.
+Dynamic pricing
+
+Smart meter security
+QKD is also being explored to secure the
+communication between smart meters and the
+utility, ensuring customer privacy and preventing
+data manipulation.
+
+Quantum algorithms can optimize dynamic pricing
+models in real-time. By analysing market conditions,
+grid load and customer elasticity simultaneously,
+utilities can set prices that incentivize load shifting
+(demand response) while maximizing revenue.
+
+4.2 Water and wastewater
+The water sector is increasingly adopting quantum
+technologies for network management, leak
+detection and treatment efficiency.
+Water distribution network (WDN) optimization
+WDNs are complex graphs where operators must
+optimize pressure and flow to minimize leakage and
+energy use (pumping costs). A hybrid quantumclassical approach was tested for water-network
+optimization: classical simulation estimated
+network states, while quantum solvers searched
+valve settings that improved performance under
+constraints. Although still proof-of-concept, it
+suggests these hybrid workflows could better tackle
+the non-linear hydraulic maths that makes large
+networks hard to optimize.
+
+Leak detection via quantum sensing
+Leaks in underground pipes are a major source
+of water loss and are notoriously hard to locate.
+Quantum gravimeters and sensors can detect the
+micro-changes in density caused by water voids
+or saturated soil around a leak. This non-invasive
+technique allows for precise localization of leaks
+without excavation.
+Wastewater treatment optimization
+Aeration is the most energy-intensive part of
+wastewater treatment, accounting for a significant
+portion of a plant’s energy bill. Optimizing the
+airflow to biological reactors is a complex control
+problem involving biological dynamics and variable
+influent rates. Startups like Quantum Mads are
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+29
+
+developing hybrid quantum-classical algorithms to
+optimize aeration processes. This approach aims to
+reduce energy consumption and operational costs
+
+by dynamically adjusting control parameters based
+on real-time data.
+
+4.3 Heating and cooling
+Quantum
+annealing
+technology has
+been utilized
+to optimize the
+design of HVAC
+networks for
+buildings.
+
+FIGURE 8
+
+District heating network optimization
+District heating involves distributing heat from a
+central source to multiple buildings through a pipe
+network. Optimizing the flow temperature and
+pressure to minimize heat loss while satisfying
+customer demand is a complex hydraulic and
+thermodynamic challenge.
+Quantum annealing technology has been utilized
+to optimize the design of heating, ventilation and
+air-conditioning (HVAC) networks for buildings.
+The problem of “network generation” – connecting
+HVAC elements efficiently while complying
+with safety and sustainability constraints – is
+computationally expensive. The quantum-hybrid
+application successfully generated lower-cost
+and more efficient network designs compared to
+traditional methods, demonstrating the value of
+quantum annealing in infrastructure design.
+
+Community insights for
+quantum solutions in utilities
+In electric and gas, quantum communication for
+hardening customer data and billing platforms
+is rated as the most promising near-term
+application in electricity.
+In natural gas, quantum sensing for leak detection
+dominates as the most immediate value area,
+improving safety and environmental compliance.
+In water and wastewater, quantum computing
+for smart distribution and treatment optimization
+leads as the near-term use case and
+demonstrates growing potential for resource
+efficiency and drought resilience.
+
+Top near-term quantum solutions in utilities
+
+Electricity
+Quantum communication – harden
+customer data and billing platforms
+
+79%
+
+Quantum computing – long-term
+planning of generation and retail mix
+
+58%
+
+Quantum sensing – asset health monitoring
+(transformers, substations)
+
+54%
+
+Natural gas
+Quantum sensing – detect
+leaks in urban gas distribution
+
+73%
+
+Quantum computing – optimize gas
+network flows under dynamic demand
+
+62%
+
+Quantum communication – secure
+gas SCADA and distribution networks
+
+58%
+
+Water & wastewater
+Quantum computing – optimize desalination
+and water treatment processes
+
+65%
+
+Quantum communication – protect critical
+water infrastructure from cyberattacks
+
+61%
+
+Quantum computing – smart water
+distribution under drought conditions
+
+61%
+
+Quantum sensing – detect contaminants
+and micro-leaks in pipelines
+
+61%
+
+Source: Community survey, World Economic Forum’s Quantum for Energy and Utilities Working Group, February 2026.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+30
+
+CASE STUDY 15
+
+Quantum sensing
+Detecting leaks and integrity risks in buried utility
+networks using cold-atom quantum gravity sensing to
+reduce excavation and improve service resilience
+Gas pipelines are commonly buried, underground electric
+cables create serious hazards when damaged and district
+heating networks are largely underground, while leaks in
+buried heating pipelines can accumulate in surrounding soil
+and change local conditions. These are precisely the types
+of anomaly that gravity-based sensing targets.
+Sydney Water, in collaboration with the New South Wales
+Smart Sensing Network (NSSN), the Australian National
+University (ANU) and the University of Canberra (UC),
+undertook a “quantum sensing” initiative aimed at detecting
+
+leaks from buried pipes by measuring density changes in
+surrounding soil as it transitions from dry to wet. Public
+disclosures describe a pathway from successful tests with
+simulated leaks toward operational validation, and outline
+plans for ANU (with Nomad Atomics) to develop a quantumsensing prototype for utility leak detection, including
+expansion from water mains toward sewer mains.
+Key reported benefits included a non-invasive detection
+approach (reducing the need to drill, dig or connect into
+pipes), successful validation activities with simulated leaks
+as a stepping-stone to operational trials, and a documented
+roadmap toward a deployable quantum-sensing prototype
+for live utility networks.21
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+31
+
+CASE STUDY 16
+
+Quantum computing
+Optimizing energy communities and peer-to-peer
+energy exchange
+Energy communities let prosumers, municipalities and
+businesses jointly generate, consume and share renewable
+energy locally, but the hard part is coordination: deciding
+who should participate, aligning objectives such as local
+balancing and cost reduction, and managing flows under real
+operational constraints. Peer-to-peer (P2P) trading adds a
+transactional layer that matches local supply and demand,
+yet turning aggregated supply and demand into a minimal,
+feasible set of simultaneous trades quickly becomes a large
+combinatorial optimization problem.
+To push beyond the scaling-up limits of classical
+solvers, E.ON worked with IBM and D-Wave on hybrid
+quantum-classical optimization approaches within the
+Q-GRID research line, targeting two bottlenecks: energy
+community formation (coalition structure generation) and
+
+P2P trade decomposition (a sparse graph decomposition
+problem related to Birkhoff-style decompositions). In the
+community-formation benchmark, researchers compared
+classical heuristics and exact methods against quantum
+approaches, reporting evidence that quantum annealing on
+D-Wave can reach comparable solution quality with more
+favourable runtime scaling-up for approximate optimization
+in instances exceeding 100 agents, while also benchmarking
+against QAOA-style approaches on IBM hardware.
+For P2P trading, a 2025 preprint introduced a hybrid
+method that plugs a QAOA-based sampling subroutine
+into a classical Fully-Corrective Frank-Wolfe framework, with
+experiments spanning simulators and IBM hardware up to
+111 qubits. The authors report that the quantum-assisted
+sampling yields consistently sparser trade decompositions
+and can improve approximation error on larger graph families,
+which directly translates to cleaner, more implementable
+sets of simultaneous P2P transactions.22,23,24
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+32
+
+5
+
+Strategic roadmap
+for leaders
+
+From pilots to impact, leaders need to prove
+value fast, strengthen security, build capability
+and scale up quantum responsibly across
+energy and utilities.
+Energy and utilities leaders must keep services
+reliable, affordable and secure as operations
+become more digital and complex. This roadmap
+sets out what leaders should do in a staged
+manner, so that quantum moves from interest
+to practical impact:
+Stage 1 (within 2 years): Focus on a small number
+of high-value problems, run low-risk pilots with
+clear success measures, build internal capability
+and trusted partners, and start planning for postquantum cryptography.
+
+Stage 2 (3-5 years): Move from pilots to scale
+up by embedding quantum work into business
+strategy and wider digital and security roadmaps,
+standardizing delivery and integration, and
+beginning broader security upgrades.
+Stage 3 (5+ years): Treat quantum as a normal
+part of the technology stack, supported by a
+steady innovation pipeline and sector alignment
+on standards, procurement and regulation.
+
+5.1	
+What holds quantum technology adoption back?
+Energy and utilities companies see quantum as
+promising for grid optimization and planning, but
+adoption is difficult in practice. Strategically, it is
+hard to fund work when benefits depend on very
+specific problems; and much of today’s progress is
+still in pilots and benchmarking rather than having
+proven operational impact.
+Technically, current systems are limited by noise
+and scale, so results can be fragile and often
+require hybrid quantum and classical workflows
+plus rigorous validation. Data and integration can
+be a bigger barrier than algorithms, because useful
+
+experiments depend on clean network models and
+operational data; they must then connect back
+into long-lived OT and IT platforms used for control
+and planning.
+Security and compliance add urgency, because
+critical infrastructure must plan for post-quantum
+cryptography and manage the risk of data being
+captured now and decrypted later, while meeting
+strict regulatory controls. Finally, progress is
+constrained by scarce talent and a still maturing
+ecosystem, pushing utilities toward partnerships
+with labs, vendors and industry initiatives.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+33
+
+FIGURE 9
+
+Challenges to adopting quantum technologies in energy and utilities
+
+Strategic challenges
+
+Technical challenges
+
+Lack of clear business cases
+Long-term investment
+uncertainty
+
+Immature technology
+Complex implementation
+
+Data and integration
+
+People and ecosystem
+Talent shortage
+Need for partnerships
+
+Data compatibility issues
+Integration with existing systems
+
+Security and compliance
+Harvest now, decrypt later
+Standards and compliance
+evolving
+
+Source: World Economic Forum’s Quantum for Energy and Utilities Working Group.
+
+Community insights for technology adoption challenges
+Quantum adoption in the energy and utilities
+sector is most constrained by scalability, error
+rates and hardware maturity as major technical
+obstacles. Without addressing these challenges,
+commercial readiness remains limited.
+Economic and technical barriers are viewed
+as the secondary adoption challenge, with
+the majority of respondents identifying high
+implementation costs and unclear ROI as the
+main inhibitors to investment.
+
+Finally, talent shortages and weak industry
+collaboration underline that the broader
+quantum ecosystem is still taking shape.
+Together, these findings suggest that
+realizing quantum’s promise will depend on
+reducing costs, increasing ROI, advancing
+hardware performance and strengthening
+cross-sector coordination to translate early
+innovation into sustainable adoption.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+34
+
+FIGURE 10
+
+Top technology adoption challenges
+
+8%
+
+8%
+
+8%
+28%
+
+31%
+
+35%
+
+50%
+52%
+
+52%
+62%
+
+58%
+
+50%
+
+40%
+20%
+
+Technical
+scalability, error rate,
+hardware maturity
+
+People & ecosystem
+talent gap, industry
+readiness, collaboration
+
+Strategic
+high adoption cost,
+unclear ROI etc.
+
+High
+
+Moderate
+
+Data & integration
+model complexity,
+interoperability
+
+Security & compliance
+critical infrastructure,
+regulatory barriers
+
+Low
+
+Source: Community survey, World Economic Forum’s Quantum for Energy and Utilities Working Group, February 2026.
+
+5.2	
+Actions to overcome quantum
+technology adoption challenges
+The priorities
+are clear: targeted
+low-risk pilots,
+incremental
+technical
+integration,
+strong security
+foundations
+and workforce
+readiness.
+
+Organizations’ near-term quantum technology
+adoption should follow a pragmatic, risk-managed
+approach across the following five key areas:
+–
+
+Strategy
+
+–
+
+Technology
+
+–
+
+Data and integration
+
+–
+
+Security and compliance
+
+–
+
+People and culture
+
+foundations and workforce readiness. This approach
+ensures early quantum adoption is incremental and
+responsible rather than a disruptive overhaul.
+Community insights for actions toward
+technology adoption challenges
+Early actions focus on budget allocation,
+feasibility studies, prioritization and piloting.
+Mid-term actions emphasize scaling-up,
+institutional embedding and standard training.
+
+The priorities are clear: targeted low-risk pilots,
+incremental technical integration, strong security
+
+Long-term actions envision quantum as a
+permanent infrastructure capability.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+35
+
+FIGURE 11
+
+Technology adoption actions across five key areas
+
+Adoption action (strategy)
+Pilot on clear pain points
+
+92%
+
+Co-fund with partners or public programmes
+
+69%
+
+Integrate quantum into existing strategy
+
+58%
+
+Pursue quick wins with long-term upside
+
+50%
+
+Set quantitative pilot KPIs
+
+46%
+
+Appoint senior value sponsor
+
+42%
+
+Create reusable ROI and business-case tools
+
+38%
+
+Replace costly or painful analyses first
+
+27%
+
+Adoption action (technology)
+Set technical acceptance criteria
+
+81%
+
+Focus early pilots on hybrid approaches
+
+81%
+
+Document and share lessons from failures as well as successes
+
+69%
+
+Participate in joint benchmark exercises
+
+69%
+
+Use realistic test cases based on actual system models
+
+58%
+
+Work with specialized partners with energy-specific expertise
+
+54%
+
+Re-use existing HPC/AI infrastructure and workflows
+
+50%
+
+Limit operational pilots to non-critical or shadow modes
+
+46%
+
+Adoption action (data and integration)
+Start with use cases needing limited high-quality data
+
+72%
+
+Standardize data formats and interfaces
+
+64%
+
+Allocate a dedicated integration champion for each pilot
+
+52%
+
+Create clean reference models for key systems
+
+52%
+
+Create a shared internal library of models and datasets
+
+48%
+
+Use synthetic or anonymized datasets for early tests
+
+44%
+
+Build APIs and adapters for operational integration
+
+36%
+
+Involve OT/SCADA and IT teams from day one
+
+36%
+
+Adoption action (security and compliance)
+Develop a quantum-safe security roadmap
+
+88%
+
+Work with regulators on acceptable quantum use
+
+71%
+
+Involve cybersecurity and compliance teams from day one
+
+71%
+
+Conduct a crypto and security audit
+
+71%
+
+Establish clear data-handling policies
+
+67%
+
+Start pilot deployments of quantum-safe cryptography
+
+67%
+
+Require security and compliance clauses in vendor contracts
+
+54%
+
+Create incident and fallback procedures
+
+42%
+
+Adoption action (people and culture)
+Provide basic quantum awareness sessions
+
+80%
+
+Encourage safe experimentation with no guaranteed ROI
+
+68%
+
+Create mixed teams of domain and technical specialists
+
+68%
+
+Include quantum topics in existing training programmes
+
+64%
+
+Identify a small group of internal champions
+
+60%
+
+Use storytelling and concrete examples
+
+48%
+
+Recognize pilot and learning time in performance objectives
+
+48%
+
+Rotate staff through pilot projects for hands-on exposure
+
+32%
+
+Source: Community survey, World Economic Forum’s Quantum for Energy and Utilities Working Group, February 2026.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+36
+
+5.3	
+Organization roadmap to adopt quantum
+technologies in energy and utilities
+The roadmap results show a clear progression.
+Early actions focus on budget allocation, feasibility
+studies, prioritization and piloting. Mid-term actions
+emphasize scaling-up and institutional embedding
+and standard training. Long-term actions envision
+quantum as a permanent infrastructure capability.
+
+–
+
+Dedicated scaling-up budgets, permanent
+teams and formal collaboration frameworks
+support expansion of quantum-safe
+cryptography and sensing beyond pilots.
+
+–
+
+The focus shifts to integrating quantum into
+standard workflows, aligning procurement
+and vendor models, and ensuring measurable
+performance against defined KPIs.
+
+Stage 1 (within 2 years)
+–
+
+–
+
+–
+
+Organizations should define dedicated pilot
+budgets, launch a limited number of highimpact use cases tied to organizational pain
+points and secure executive sponsorship.
+Cross-functional governance structures,
+initial crypto-risk mapping, early regulatory
+engagement and joint pilots with ecosystem
+partners create a controlled environment
+for experimentation.
+The objective is to validate technical feasibility
+and operational relevance without exposing to
+critical systems risks.
+
+Stage 2 (in 3-5 years)
+–
+
+Stage 3 (beyond 5 years)
+–
+
+Quantum capabilities become part of
+mainstream infrastructure planning.
+
+–
+
+Achieving full quantum-safe status,
+deploying sensing at scale and adopting
+quantum-accelerated simulations as standard
+tools position quantum alongside AI and HPC
+as a permanent innovation pillar.
+
+–
+
+Long-term capex alignment, regulatory
+coordination, workforce evolution and
+cross-sector collaboration ensure resilient,
+technology-agnostic energy systems capable
+of continuous modernization.
+
+Quantum should be embedded into corporate
+strategy and digital/OT roadmaps.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+37
+
+FIGURE 12
+
+Quantum technologies adoption roadmap, by stages
+
+Stage 1 (within 2 years) adoption action
+Select 2-3 priority use cases for pilots
+
+80%
+
+Define a budget for quantum pilots and feasibility studies
+
+80%
+
+Secure executive sponsorship
+
+76%
+
+Create a cross-functional quantum working group
+
+72%
+
+Run at least one joint pilot with external partners
+
+60%
+
+Map critical systems and crypto dependencies
+
+48%
+
+Launch workforce awareness and training
+
+48%
+
+Engage regulators and policy-makers
+
+44%
+
+Pilot quantum sensing on high-value assets
+
+40%
+
+Pilot quantum-safe cryptography
+
+40%
+
+Stage 2 (in 3-5 years) adoption action
+Embed quantum into corporate strategy
+
+79%
+
+Embed quantum topics into standard training curricula
+
+75%
+
+Include quantum in existing digital/OT/cyber roadmaps
+
+67%
+
+Participate in cross-sector or international initiatives
+
+63%
+
+Roll out quantum-safe cryptography
+
+58%
+
+Scale up quantum sensing beyond pilots
+
+54%
+
+Partner with vendors, universities and national labs
+
+50%
+
+Allocate budget to scale up proven pilots (tied to KPIs)
+
+50%
+
+Build specialized internal teams with permanent roles
+
+46%
+
+Align procurement and vendor criteria
+
+33%
+
+Set up internal performance dashboards
+
+17%
+
+Stage 3 (beyond 5 years) adoption action
+Normalize continuous innovation around quantum
+
+75%
+
+Align long-term capex planning and regulation
+
+58%
+
+Use quantum-accelerated simulations as standard
+
+58%
+
+Deploy quantum sensing at scale
+
+58%
+
+Implement cross-sector quantum coordination
+
+54%
+
+Achieve fully quantum-safe status
+
+54%
+
+Build quantum and advanced optimization skills
+
+46%
+
+Source: Community survey, World Economic Forum’s Quantum for Energy and Utilities Working Group, February 2026.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+38
+
+Conclusion
+Rising operational complexity and cyber risk
+are driving energy leaders to pilot quantum for
+optimization, security and simulation, avoiding
+a widening competitive gap. This turns today’s
+pressure into tomorrow’s competitive advantage.
+Energy and utilities are under growing strain on
+multiple fronts: operations are getting more complex
+and cost pressure is mounting, while reliability and
+cybersecurity risks keep climbing. That combination
+is pushing companies to look past incremental fixes
+and consider quantum as a real tool for improving
+performance today and building an edge over the
+long term. Major players like Aramco, ExxonMobil
+and E.ON are piloting quantum solutions to solve
+specific, high-value problems today.
+
+The immediate value proposition lies in optimization,
+squeezing efficiency out of complex logistics chains
+and power grids using quantum annealers and
+hybrid algorithms. The strategic imperative lies in
+security, hardening critical infrastructure against the
+inevitable quantum decryption threat. The long-term
+transformative potential lies in simulation, unlocking
+the molecular secrets that will power the next
+generation of clean energy technologies.
+For energy leaders, the risk of inaction is
+substantial. As quantum capabilities mature, the
+gap between early adopters and laggards will
+widen into a significant competitive disadvantage.
+The recommendation is clear: begin with
+targeted optimization pilots, secure the network
+with quantum-safe protocols and invest in the
+workforce of the future.
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+39
+
+Contributors
+Lead authors
+
+Project team
+
+Muhammad AlSaiyari
+Senior Technology Consultant, Aramco;
+Project Fellow, World Economic Forum;
+Chairman, Saudi Quantum Computing
+Association (SQCA)
+
+Sophie Xiaoran Tang
+Community Engagement Specialist,
+Frontier Technologies, World Economic Forum
+Camille Georges
+Specialist, Quantum Technology,
+World Economic Forum
+
+Arunima Sarkar
+Head, Initiatives, C4IR India,
+World Economic Forum
+
+Anjali Roy
+Early Career Programme, Quantum Technology,
+World Economic Forum
+
+Acknowledgements
+This report was co-created by many experts
+and diverse stakeholders in the World Economic
+Forum project community on Quantum for Energy
+and Utilities who shared insights, lessons learned
+and use cases, through workshops, community
+survey and consultation sessions. The World
+Economic Forum would like to extend its gratitude
+to the following individuals for their valuable
+contributions to this report. The paper does not
+necessarily reflect the views of these individuals
+and/or their companies. Expert advice is purely
+consultative in nature and does not imply any
+association with the takeaways or conclusions
+presented within this paper.
+
+Felicity Barnfather-Splatt
+Senior Data Scientist, Energy Unit,
+Commonwealth Scientific and Industrial Research
+Organisation (CSIRO)
+
+Javier Gonzalez Conde
+Co-Founder and Chief Executive Officer,
+Quantum Mads
+
+Halah AlAsmari
+Quantum Technology Researcher,
+EXPEC ARC, Aramco
+
+Laura Converso
+Thought Leadership Principal Director, Accenture
+
+Nasher AlBinHassan
+Quantum Technology Researcher,
+EXPEC ARC, Aramco
+
+Omer Coskun
+Digital Transformation Manager, Koç Holding
+
+Bushra AlBlooshi
+Director, Governance and Risk Management,
+Dubai Electronic Security Center (DESC)
+
+Bashir AlDabbousi
+Director, Business Support, Aramco
+
+Laila AlQahatani
+Project Fellow, Centre for the Fourth
+Industrial Revolution Saudi Arabia
+
+Francois Barrault
+Senior Advisor, SandboxAQ
+
+Community members
+
+Basmah AlBuhairan
+Managing Director, Centre for the Fourth
+Industrial Revolution, Saudi Arabia
+
+Saad A. Alowayyed
+Quantum Economy Project Lead,
+Centre for the Fourth Industrial Revolution,
+Saudi Arabia
+
+Stefan Deutscher
+Partner and Director,
+Cybersecurity and IT Infrastructure,
+Boston Consulting Group
+Alberto Di Meglio
+Head, CERN openlab, European Organization
+for Nuclear Research (CERN)
+Gabrijela Dreo Rodosek
+Professor & Founding Director, Research Institute
+CODE, Bundeswehr Universität München
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+40
+
+Carl Dukatz
+Next Gen Compute Lead,
+Managing Director, Accenture
+
+Naveen Kumar Malik
+Chief of Staff,
+Office of the Chief Technology Officer,
+HCLTech
+
+Marc Fassbender
+Co-Founder and Chief Executive Officer, Quminex
+Muhamad Felemban
+Co-Founder and Board Member,
+Saudi Quantum Computing Association (SQCA)
+Alexey Galda
+Associate Scientific Director, Quantum Algorithms
+and Applications, Moderna Therapeutics
+Daniel Gonzalez
+Co-Founder and Chief Operating Officer,
+Quantum Mads
+
+Paul Mee
+Partner, Information Technology and Operations
+Practice, Oliver Wyman (MMC)
+Espen Mehlum
+Head, Energy, Centre for Energy and Materials,
+World Economic Forum
+Matthias Mergenthaler
+Research Staff Member,
+IBM Quantum, IBM Corporation
+Joseph Mikael
+Head of Applications, Quobly
+
+Maria Fernanda González
+Co-Founder, Chief Executive Officer and President,
+PlanetAI Space
+Syamasundar Gopasana
+Technology Innovation Engineering
+Senior Manager, Accenture
+
+David Mitlyng
+Co-Founder, Chief Executive Officer and Director,
+Xairos Systems,
+Margherita Moroni
+Research Analyst, AI and Quantum Computing,
+Digital Innovation Observatories
+
+Beatrice Goretti
+Researcher, Digital Innovation Observatories
+David Hunt
+Vice President, Oliver Wyman
+
+Lene Oddershede
+Chief Scientific Officer, Planetary Science and
+Technology, Novo Nordisk Foundation
+Corey O’Meara
+Chief Quantum Scientist, E.ON
+
+Bruno Huttner
+Director of Strategic Quantum Initiatives,
+ID Quantique
+
+Tom Patterson
+Managing Director, Emerging Technology Security,
+Accenture
+
+Rosa Kariger
+Member, Board of Directors, DeNexus
+Adnan Kashwani
+VP E2E Cloud and Infrastructure Management, e&
+Vügar Kerimoğlu
+Head of New Generation Manufacturing
+Technologies, Beko Corporate, Koç Holding
+David Keyes
+Senior Associate to the President for Strategic
+Partnerships, King Abdullah University of Science
+and Technology (KAUST)
+
+Paulo Pires
+Senior Engineering Technologist, Dell Technologies
+Ana Predojevic
+Associate Professor, Stockholm University
+Somya Rai
+Senior Assistant Vice President – AI Architect,
+ExlService Holdings
+Shreyas Ramesh
+Managing Director - Next Gen Compute, Accenture
+
+Stefan Leichenauer
+Vice-President, Engineering, SandboxAQ
+
+Kelly Richdale
+Senior Advisor, SandboxAQ
+
+Soon Chia Lim
+Chief Digital Officer (CDO), JTC Corporation
+
+Heike Riel
+Head, Science and Technology; Lead,
+IBM Research Quantum Europe and Africa,
+IBM Corporation
+
+Andrew Lord
+Senior Manager, Optical Networks and Quantum
+Research, BT Group
+Mykola Maksymenko
+Co-Founder and Chief Technology Officer, Haiqu
+
+Senaida Hernández Santana
+Associate, Quantum – Area Transformation
+and Performance, BBVA
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+41
+
+Roland Scharrer
+Partner and Managing Director,
+European Data and AI Leader, Kearney
+
+Verena Zimmermann
+Chief of Staff, PlanQC
+We would also like to thank the following
+contributors for participating in the expert interview
+process and providing invaluable insights:
+
+Alex Seidlitz
+Director, Product Marketing, Photonic
+
+Hussain AlSalim
+Lead Geophysicist, Aramco
+
+Volker Sick
+Arthur F. Thurnau Professor, Mechanical
+Engineering, University of Michigan
+
+Abdulrahman Al Shuhail
+Manager Research Team, Aramco
+
+Uzma Siddiqui
+Co-Founder and Chief Executive Officer,
+Quantasphere
+
+Ulrik Andersen
+Professor, Technical University of Denmark
+
+Catherine Simondi
+VP Marketing and Communications, ID Quantique
+Boris Sokolov
+Lead Researcher and Co-Founder, Algorithmiq
+Rafael Sotelo
+Dean of Engineering, Universidad de Montevideo
+Sridhar Tayur
+Professor, Carnegie Mellon University
+Lory Thorpe
+Quantum Safe Industry Lead, IBM Corporation
+Knut Sebastian Tungland
+Senior Advisor, Equinor
+
+Joseph Broz
+Vice President for Quantum Strategy,
+Growth and Market Development, IBM Corporation
+Giacomo Cappellini
+Technology Officer, Eniquantic, Eni
+Andre Carvalho
+Head of Quantum Control Solutions, Q-CTRL
+Giorgio Cortiana
+Head of Data and AI - Energy Intelligence, E.ON
+Laura D’Angelo
+R&D Innovation Ecosystems Manager, Eni
+Ricardo Enriquez
+Head of Quantum Technologies, Repsol
+
+Renée Van Heusden
+Head, Oil & Gas Industry, World Economic Forum
+Jingbo Wang
+Professor; Director, Quantum Information,
+Simulation and Algorithms Research,
+The University of Western Australia
+Christoph Wildfeuer
+Professor for Sensor Technology; Head of the
+Quantum Technologies Working Group,
+University of Applied Sciences and Arts
+Northwestern Switzerland
+
+Ross Grassie
+Global Technical Presales Lead, Jij
+Sébastien Lussier
+Head of Quantum Computing, Hydro Québec
+Pierre-Luc Marcil
+Director General of Research Centre, Hydro Québec
+Bob Parney
+Global Lead, Quantum for Energy,
+Oil and Gas and Sustainability,
+IBM Corporation
+
+Mike Wilkes
+Adjunct Professor, New York University
+
+Elvira Shishenina
+Senior Director of Strategic Initiatives, Quantinuum
+
+John Wise
+Executive Director, Pistoia Alliance
+
+Ian Walmsley
+Provost of ICL, Imperial College London
+
+Reena Dayal Yadav
+Founder and Chief Executive Officer, Quantum
+Ecosystems and Technology Council of India
+
+Production
+
+Elena Yndurain
+Professor at IE University,
+P.I. for Quantum Technologies at the CGC
+Arman Zaribafiyan
+Head of Product,
+AI and Simulation Platforms, SandboxAQ
+
+Laurence Denmark
+Creative Director, Studio Miko
+Oliver Turner
+Designer, Studio Miko
+Jonathan Walter
+Editor
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+42
+
+Endnotes
+1.
+
+World Economic Forum. (2025). Fostering Effective Energy Transition 2025. https://www.weforum.org/publications/
+fostering-effective-energy-transition-2025/
+
+2.
+
+“Harvest now, decrypt later” (HNDL) is a cybersecurity threat where attackers steal and store encrypted data today,
+intending to decrypt it once powerful quantum computers become available. It targets information with long-term
+value, such as state secrets or personal records, rendering current encryption useless against future quantumenabled decryption.
+
+3.
+
+US Department of Energy. (2025). Resource Adequacy Report: Evaluating the Reliability and Security of the United States
+Electric Grid. https://www.energy.gov/sites/default/files/2025-11/DOE%20Final%20EO%20Report%20%28REVISED%20
+OCT%2027%29.pdf
+
+4.
+
+National Institute of Standards and Technology (NIST). (2024). Transition to Post-Quantum Cryptography Standards (NIST
+IR 8547, Initial Public Draft). https://csrc.nist.gov/pubs/ir/8547/ipd
+
+5.
+
+D-Wave Quantum Inc. (2024). D-Wave Extends Agreement with Aramco Europe to Explore Quantum-Powered Optimization
+of Geophysical Problems. https://www.dwavequantum.com/company/newsroom/press-release/d-wave-extendsagreement-with-aramco-europe-to-explore-quantum-powered-optimization-of-geophysical-problems-3/
+
+6.
+
+QLM Technology (2023). Oil and Gas: Repsol Sinopec lidar camera trial advances methane emissions detection.
+https://qlmtec.com/case_studies/652e55927be17ef72ec1e1f2
+
+7.
+
+Exail. (n.d.). Quantum gravimeters. https://www.exail.com/product/quantum-gravimeters
+
+8.
+
+IBM Research. (2021). ExxonMobil and IBM Explore Quantum Algorithms to Solve Routing Formulations.
+https://ibm-research.medium.com/exxonmobil-ibm-scientists-explore-state-of-art-quantum-algorithms-to-solve-routingformulations-e7ce39f8741c
+
+9.
+
+Quantinuum. (2022). On the ArXiv: Modeling Carbon Capture with Quantum Computing.
+https://www.quantinuum.com/blog/on-the-arxiv-modeling-carbon-capture-with-quantum-computing
+
+10.
+
+Pasqal. (2025). Pasqal and EDF pave the way to optimize energy management for EV Smart Charging with neutral atom
+quantum computing. https://www.pasqal.com/newsroom/edf-leverages-pasqal-to-successfully-run-energy-demandforecasts-for-electric-vehicle-smart-charging/
+
+11.
+
+University of Science and Technology of China. (2024). Novel Quantum Lidar Achieves High-Sensitivity Wind Detection.
+https://en.ustc.edu.cn/info/1007/4935.htm
+
+12.
+
+Gebel, J., Daems, P.-J., van Binsbergen, D., Krathe, V. L., Nejad, A. R. & Helsen, J. (2026). Impact of Wake Impingement
+on the Fatigue Loads in the Main Bearings and Blades of Offshore Wind Turbines. European Academy of Wind Energy.
+https://wes.copernicus.org/preprints/wes-2026-13/wes-2026-13.pdf
+
+13.
+
+Hancock, J., Craven, M., McNeile, C., Vadacchino, D. (2025). Investigating Techniques to Optimise the Layout of Turbines
+in a Windfarm Using a Quantum Computer. Journal of Quantum Computing, 7 (2025) 55-79.
+https://arxiv.org/abs/2312.13123
+
+14.
+
+Hitachi Energy. (2024). Transforming mission-critical communications at Austria’s leading energy company.
+https://www.hitachienergy.com/news-and-events/customer-stories/transforming-mission-critical-communications-ataustria-s-leading-energy-company
+
+15.
+
+Lovati, S. (2023). Ford Enlists Quantum Computing in EV Battery Materials Hunt. EE Times.
+https://www.eetimes.com/ford-enlists-quantum-computing-in-ev-battery-materials-hunt/
+
+16.
+
+Evans, P., Alshowkan, M., Earl, D., Mulkey, D., Newell, R., Peterson, G., Safi, C., Tripp, J., Peters, N. (2021). Trusted
+Node QKD at an Electrical Utility. IEEE Access, vol. 9, pp. 105220-105229, 2021. https://arxiv.org/abs/2103.09877
+
+17.
+
+Smith, L., Hicks, I. (2020). Optimal Sensor Placement in Power Grids: Power Domination, Set Covering, and the
+Neighborhoods of Zero Forcing Forts. arXiv:2006.03460 [c.s.D.S]. https://arxiv.org/abs/2006.03460
+
+18.
+
+Sources:
+– Aboumrad, W., Marthi, P., Debnath, S, Roetteler, M., Epifanovsky, E. (2025). A New Hybrid Quantum-Classical
+Algorithm for Solving the Unit Commitment Problem. arXiv: 2505.00145 [quant-ph]. https://arxiv.org/abs/2505.00145
+– IonQ. (2025). IonQ Partners with Oak Ridge National Laboratory, Demonstrating Quantum Power Grid Optimization
+Advancements. https://www.ionq.com/news/ionq-partners-with-oak-ridge-national-laboratory-demonstratingquantum-power
+
+19.
+
+Agliardi, G., Cortiana, G., Dekusar, A., Ghosh, K., Mohseni, N., O’Meara, C., Valls, V., Yogaraj, K., Zhuk, S. (2024).
+A Machine Learning Approach to Boost the Vehicle-2-Grid Scheduling. arXiv:2407.20802 [math.OC].
+https://arxiv.org/abs/2407.20802
+
+20.
+
+Agliardi, G., Cortiana, G., Dekusar, A., Ghosh, K., Mohseni, N., O’Meara, C., Valls, V., Yogaraj, K., Zhuk, S. (2025).
+Mitigating exponential concentration in covariant quantum kernels for subspace and real-world data. npj Quantum
+Information, 12, Article 12. https://www.nature.com/articles/s41534-025-01154-2
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+43
+
+21.
+
+NSW Smart Sensing Network. (n.d.). Advanced Pipe Sensing to Reduce Leaks and Breaks.
+https://www.nssn.org.au/advanced-pipe-sensing-to-reduce-leaks-break
+
+22.
+
+Mohseni, N., Morstyn, T., O’Meara, C., Bucher, C., Nüßlein, J., Cortiana, G. (2026). Evidence of quantum scaling
+advantage in approximate optimization for energy coalition formation with 100+ agents. Quantum Science and
+Technology, 11(1), 015009. https://iopscience.iop.org/article/10.1088/2058-9565/ae1c68
+
+23.
+
+Pennington, G., Mohseni, N., Wallis, O., Schiavello, F., Mensa, S., O’Meara, C., Cortiana, G., Valls, V. (2025). Boosting
+Sparsity in Graph Decompositions with QAOA Sampling. arXiv:2509.10657 [quant-ph]. https://arxiv.org/abs/2509.10657
+
+24.
+
+Blenninger, J., Bucher, D., Cortiana, G. et al. (2024). Q-GRID: Quantum Optimization for the Future Energy Grid.
+Künstliche Intelligenz, 38, 339–349. https://doi.org/10.1007/s13218-024-00866-5
+
+Quantum for Energy and Utilities: Key Opportunities for Energy Transition
+
+44
+
+The World Economic Forum,
+committed to improving
+the state of the world, is the
+International Organization for
+Public-Private Cooperation.
+The Forum engages the
+foremost political, business
+and other leaders of society
+to shape global, regional
+and industry agendas.
+
+World Economic Forum
+91–93 route de la Capite
+CH-1223 Cologny/Geneva
+Switzerland
+Tel.: +41 (0) 22 869 1212
+Fax: +41 (0) 22 786 2744
+contact@weforum.org
+www.weforum.org
+
+

@@ -1,0 +1,235 @@
+                                                                     Constrained Quantum Optimization at Utility Scale:
+                                                                           Application to the Knapsack Problem
+                                                                     Naeimeh Mohseni,1, ∗ Julien-Pierre Houle,2, 3, † Ibrahim Shehzad,4, †
+                                                                      Giorgio Cortiana,1 Corey O’Meara,1 and Adam Bene Watts2, ‡
+                                                                             1
+                                                                                E.ON Digital Technology GmbH, Hannover, Germany
+                                                                      2
+                                                                       University of Calgary, Quantum City, Calgary, AB T2N 1N4, Canada
+                                                                 3
+                                                                   Université de Sherbrooke, Institut Quantique, Sherbrooke, QC J1K 2R1, Canada
+                                                             4
+                                                               IBM Quantum, Thomas J. Watson Research Center, Yorktown Heights, NY 10598, USA
+                                                            Constrained combinatorial optimization problems are challenging for quantum computing, particu-
+                                                         larly at utility-relevant scales and on near-term hardware. At the same time, these problems are
+                                                         of practical significance in industry; for example, the Unit Commitment (UC) problem in energy
+                                                         systems involves complex operational constraints. To address this challenge, we apply copula-QAOA
+                                                         (cop-QAOA), a hardware-efficient approach for constrained optimization to a single-period UC
+arXiv:2603.00260v1 [quant-ph] 27 Feb 2026
+
+
+
+
+                                                         that can be reduced to a one-dimensional knapsack. Cop-QAOA biases the quantum state toward
+                                                         feasible solutions using constant-depth mixers and appropriately biased initial states. We implement
+                                                         our benchmark on problem instances that are confirmed to be hard for classical solvers such as
+                                                         Gurobi. Our results show that cop-QAOA often finds solutions better than a lazy greedy baseline
+                                                         and very close to — and in some instances surpasses — those obtained by Gurobi, with only a few
+                                                         QAOA rounds. This work presents the largest successful demonstration of the knapsack problem on
+                                                         IBM Quantum hardware using up to 150 qubits, and more generally, the largest demonstration of
+                                                         constrained combinatorial optimization where constraints are enforced via shallow mixers.
+
+
+                                                              I.    INTRODUCTION                            is limited by several factors. First, the UC problem is a
+                                                                                                            mixed binary optimization problem, requiring optimiza-
+                                               Unit Commitment (UC) [1] sits at the heart of short-         tion over both binary and continuous variables. There
+                                            term power system operations. The task is to decide             are large time and space overheads associated with ma-
+                                            which generating units should be online, and when, so           nipulating continuous variables on quantum hardware,
+                                            that the system can reliably supply the predicted demand        making it challenging to optimize over these variables us-
+                                            while honoring engineering and operational limits [2]. As       ing QAOA-like techniques on near-term quantum devices.
+                                            modern grids incorporate fluctuating renewable sources          Second, the UC problem is a constrained optimization
+                                            and increasingly complex market structures, the UC prob-        problem, meaning the feasible solution space for the prob-
+                                            lem becomes both larger and more intricate. Improving           lem occupies only a fraction of the full Hilbert space
+                                            the efficiency and robustness of UC solvers is therefore        typically explored by variational algorithms. In this work
+                                            essential for grid operators, since even small advances         we address both of these limitations.
+                                            can reduce operational costs and enhance system stability.         The first limitation has been observed in prior work on
+                                            This broader context motivates exploring new algorith-          quantum approaches to the UC problem. In particular, [3]
+                                            mic techniques, that may offer advantages for tightly           observed this limitation and proposed a hybrid quantum-
+                                            constrained scheduling problems.                                classical workflow, with a classical outer loop optimizing
+                                               UC and related power system optimization problems            over continuous variables and a quantum inner loop solv-
+                                            have also been studied using quantum approaches, includ-        ing a purely binary variable assignment problem. This
+                                            ing variational quantum algorithms [3] and methods based        binary variable assignment problem is equivalent to the
+                                            on quantum kernels [1, 4]. In this work, we focus on a sim-     (1D) knapsack problem; thus, this hybrid workflow has
+                                            plified, single-period version of the UC problem obtained       the potential to outperform purely classical approaches
+                                            by omitting all time-coupling constraints such as ramping       provided quantum computers can offer some advantage
+                                            limits and minimum up/down times [3]. While simplified,         in solving knapsack problems. One downside of the ap-
+                                            this formulation already captures the core combinatorial        proach in [3] is that it requires the classical outer loop
+                                            structure of UC.                                                to optimize over one additional continuous variable for
+                                               Variational quantum algorithms, such as the Quantum          every new unit in the original UC problem, which be-
+                                            Approximate Optimization Algorithm (QAOA), are nat-             comes infeasible at large problem sizes. In this work, we
+                                            ural candidates for tackling combinatorial optimization         modify this approach and show the (single-timestep) UC
+                                            problems. However, their direct application to the UC           problem can be solved using a hybrid workflow with only
+                                                                                                            one continuous parameter. The main innovation is the use
+                                                                                                            of first order optimality conditions to reduce the number
+                                                                                                            of continuous variables in the problem. This approach
+                                            ∗ naeimeh.mohseni@eon.com                                       is discussed in more detail in Section II A, with formal
+                                            † Equal contribution.
+                                                                                                            proofs provided in Section A.
+                                            ‡ adam.benewatts@ucalgary.ca
+                                                                                                               A number of techniques have also been proposed to
+                                                                                                                                             2
+
+modify QAOA for constrained optimization problems.               quadratic production cost.
+Several extensions address constraints by modifying the
+                                                                                            n
+mixing Hamiltonian to limit the search through feasible                                     X
+                                                                                                  Ai · yi + Bi · pi + Ci · p2i ,
+                                                                                                                              
+                                                                            C(⃗y , p⃗) :=                                               (1)
+space [5–7]. While effective in principle, these approaches
+                                                                                            i=1
+often require increased circuit depth or more complex
+initial state preparation, which can be prohibitive on near-     subject to
+term quantum hardware. An alternative strategy is to bias
+the quantum state toward the feasible subspace without                n
+                                                                      X
+strictly enforcing feasibility, using biased initial states                 pi ≥ L,         ∀t    (demand constraint) ,
+and constant-depth mixers [8]. This approach encourages               i=1
+exploration of feasible or near-feasible configurations while     pi,min · yi ≤ pi ≤ pi,max · yi ,           ∀i       (generation limits),
+maintaining a hardware-efficient circuit structure, offering               yi ∈ {0, 1}
+a practical compromise between constraint handling and
+                                                                           pi ∈ R.
+circuit complexity on near-term quantum devices. This is
+                                                                                                                        (2)
+the approach we follow in this paper. To our knowledge,
+                                                                    where Ai , Bi , and Ci ∈ R are constants related to
+this paper gives the first utility-scale investigation of this
+                                                                 the properties of the power system. In this formulation,
+strategy on real quantum hardware.
+                                                                 yi determines whether unit i is committed (on) or not,
+   A central goal of this work is to push constrained quan-
+                                                                 while pi represents the power output of each unit which
+tum optimization to utility-scale problem sizes on real
+                                                                 is turned on. The output bounds ensure that a unit i can
+hardware and to assess its performance in the presence
+                                                                 only output power if it is turned on and, it outputs power
+of noise. We show that cop-QAOA [8] enables successful
+                                                                 in the range [pi,min , pi,max ].
+implementation of constrained optimization problems on
+IBM quantum hardware, producing solutions that are
+competitive with those obtained using classical solvers            A.    Reducing single-period UC to 1D-Knapsack
+such as Gurobi. At the same time, we encounter chal-
+lenges in training the variational parameters, highlighting
+the need for additional heuristics tailored to constrained          In this section we show how single-period UC can be con-
+optimization, or for extending existing techniques—such          verted to optimization problem involving instances of the
+as CVaR-based methods [9] — to settings in which con-            1D knapsack problem and a single additional continuous
+straints are enforced structurally through biased initial        parameter. The 1D knapsack problem considers n items
+states and finite-depth mixers.                                  with integer weights w1 , . . . , wn and values v1 , . . . , vn , to-
+   As a final remark, beyond algorithmic design, bench-          gether with a capacity c ∈ N. The task is to choose a
+marking quantum optimization methods requires careful            subset of items whose total value is maximized without ex-
+consideration of the problem instances themselves. Re-           ceeding the capacity constraint. The problem is expressed
+lying solely on worst-case complexity arguments or on            as finding a binary vector x∗ = (x1 , . . . , xn ) ∈ {0, 1}n that
+instance classes labeled as “hard” does not guarantee            solves
+practical hardness for state-of-the-art classical solvers. In-
+deed, although the single-period UC problem is NP-hard                                                 n
+                                                                                                       X
+                                                                                                                      !
+[10], we find that generating instances that remain chal-                                        max         x i vi                     (3)
+lenging for solvers such as Gurobi (at scales below 150                                                i=1
+units) is nontrivial. This underscores the importance of
+instance-level analysis when evaluating potential quantum          subject to
+advantages particularly at such scale. Here, we bench-
+mark on carefully selected instances that are particularly                           n
+                                                                                     X
+challenging for Gurobi, such that it cannot find a solution                                 xi wi ≤ c,       xi ∈ {0, 1}.               (4)
+with zero optimality gap. For these instances, we show                                i=1
+that cop-QAOA can successfully compete with Gurobi
+and even identify a solution that is slightly better.              We start from the observation that a solution (⃗y , p⃗)
+                                                                 minimizing the UC cost function given in Equation (1)
+                                                                 must satisfy
+          II.   PROBLEM FORMULATION                                                            
+                                                                                  ∂C          ∂C
+                                                                                          =                          (5)
+   A simplified, single-period version of the UC problem                          ∂pi pi      ∂pj pj
+can be written by omitting all time-coupling constraints
+such as ramping and minimum up/down times [3]. In this           for any i, j with pi ∈      / {yi pi,min , yi pi,max } and pj ∈
+                                                                                                                               /
+reduced setting, each generating unit i is characterized by      {yj pj,min , yj pj,max }. This follows directly from calculus,
+a fixed commitment cost, a linear production cost, and a         and can be understood intuitively by noting that, if this
+                                                                 condition is not satisfied, a lower-cost solution outputting
+                                                                                                                                                  3
+
+the same power can be achieved by infinitesimally lowering                               105       Load Factor: 0.05    Load Factor: 0.65
+pi and raising pj , or vice-versa.                                                                 Load Factor: 0.20    Load Factor: 0.80
+                                                                                                   Load Factor: 0.35    Load Factor: 0.95
+   Following the same logic, and observing that (∂C/∂pi )                                          Load Factor: 0.50
+is a monotonically increasing function of pi for all i implies
+that there exists a real number D such that one of the
+equations
+                                                                                         104
+
+
+
+
+                                                                                  Cost
+        
+        ∂C
+   (i) ∂p i
+                =D
+                       pi
+                  
+             ∂C
+ (ii)        ∂pi            > D and pi = pi,min
+                       pi                                                                103
+         
+             ∂C
+                                                                                              0       5           10     15           20   25   30
+ (iii)       ∂pi            < D and pi = pi,max
+                       pi
+
+is satisfied for all pi with yi ̸= 0. A formal derivation of                      Figure 1. Impact of the parameter D on the quality of the
+this fact is given in Appendix A.                                                 solution find when mapping the UC problem to a Knapsack like
+   We can use the conditions above to analytically elimi-                         problem. Figure shows the UC cost function (eq. 1) as a value
+nate most of the continuous variables pi appearing in the                         of D when solving problems withPdifferent values of load factor.
+single timestep UC problem. For any fixed marginal-cost                           The load factor is the ratio L/ i pmax,i . Problem instances
+parameter D, the stationarity condition                                           are generated for 100 units with randomized parameters drawn
+                                                                                  from the following ranges: A ∈ [10, 50], B ∈ [0.5, 1.5], C ∈
+                                                                                  [0.01, 0.2], pmin ∈ [10, 20], and pmax ∈ [50, 100].
+                       
+                    ∂C
+                          = Bi + 2Ci pi = D              (6)
+                    ∂pi
+gives the interior solution                                                       we show numerical observations regarding the optimiza-
+                                            D − Bi                                tion landscape of D. We observe that the cost function
+                                  pi =                                      (7)   exhibits a convex shape with respect to D across all load
+                                             2Ci
+                                                                                  factors. This convexity suggests that optimization over D
+which can then be projected onto the feasible interval                            may be straightforward, with methods such as bisection
+[pi, min , pi, max ]. Once the pi are determined, the prob-                       converging efficiently.
+lem reduces to choosing the subset of units that minimizes
+
+ n
+ X                                                            n
+                                                              X                     C.         Hardness of the Single-Timestep UC Problem
+         Ai + Bi pi + Ci p2i yi
+                            
+                                             subject to             pi yi ≥ L,
+ i=1                                                          i=1                    Mathematically, the single-timestep UC problem is at
+                                                        (8)                       least as hard as the 1D knapsack problem. In particular,
+a purely binary optimization problem parameterized by                             taking an instance of the single timestep UC problem
+D. After rewriting in terms of variables zi = 1 − pi , this                       and setting variables pi,min = pi,max for all i immediately
+problem is equivalent to finding                                                  recovers an instance of the 1D knapsack problem. Thus,
+                    X
+                                                    !                             the single timestep UC problem is NP-hard, and exactly
+        arg max −                              2
+                        Ai zi + Bi pi zi + Ci pi zi     (9)                       solving all instances of that should be infeasible on both
+                                 i                                                quantum and classical computers.
+                                            X                 X                      In practice, however, most natural instances of the
+                                     s.t.       pi zi ≤ L −         pi .   (10)
+                                                                                  single timestep UC problem are easy to solve classically.
+                                                              i
+                                                                                  In our numerical experiments, we found that Gurobi could
+This is exactly an instance of the knapsack problem, with                         quickly solve instances of the single-timestep UC problem
+weights wi = pi and values vi = −(Ai + Bi pi + Ci p2i ).                          with up to 400 units. This work does not aim to find a
+  Solving instances of the knapsack problem for each                              practical quantum advantage for solving single-timestep
+possible value of D and searching over D identifies the                           UC problems. Instead, a central goal of this work is to
+value for which the demand constraint is met and the                              identify useful techniques which may generalize to other,
+marginal-cost balance holds.                                                      more involved versions of the UC problem.
+                                                                                     For the reasons above, in the later half of the paper we
+                                                                                  focus on techniques for solving instances the 1D knapsack
+    B.        Numerical Investigation of the Knapsack                             problem on a quantum computer, without discussing how
+                          Reduction                                               the single-timestep UC problem might reduce to those
+                                                                                  instances.
+  In this section we investigate practical aspects of the
+reduction presented in the previous section. In Figure 1,
+

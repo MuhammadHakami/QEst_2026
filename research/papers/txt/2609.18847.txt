@@ -1,0 +1,216 @@
+                                                   Quantum Computing in Next-Gen Smart Grid
+                                                      Operations: A Comprehensive Review
+                                                                                               Md Habib Ullah, Member, IEEE
+
+
+
+                                              Abstract—The rapid proliferation of grid-edge distributed                   characteristics give rise to highly stochastic, nonlinear, and
+                                           energy resources has significantly increased the operational                   spatially distributed system behaviors, which complicate criti-
+                                           complexity of modern power systems. Consequently, conven-                      cal tasks such as monitoring, control, optimization, and multi-
+                                           tional computational techniques face growing scalability and
+                                           computational-efficiency challenges in addressing large-scale op-              scale decision-making [4]. As DER penetration continues to
+                                                                                                                          grow, the associated computational burden is expected to
+arXiv:2609.18847v1 [eess.SY] 16 Sep 2026
+
+
+
+
+                                           timization and control, uncertainty management, nonlinear dy-
+                                           namics, and combinatorial decision-making in smart grid opera-                 expand substantially. Core functions, including optimal power
+                                           tions. Quantum computing has therefore emerged as a promising                  flow, unit commitment, contingency analysis, state estima-
+                                           computational paradigm that can complement classical methods                   tion, and others, now involve large-scale, high-dimensional,
+                                           in addressing selected computationally intensive problems. In this
+                                           context, this paper presents a comprehensive structured review                 and nonlinear problems that often scale combinatorially with
+                                           of quantum computing applications in smart grid operations.                    system size. In addition, emerging smart grid applications,
+                                           Following a transparent keyword-based literature search, the                   including peer-to-peer energy trading, demand response co-
+                                           paper classifies and assesses existing studies across monitoring               ordination, digital twins, and cyber–physical security, require
+                                           and estimation, system planning, operation and control, security,              fast, reliable, and scalable computational frameworks that
+                                           reliability and resilience, stability assessment, data-driven intel-
+                                           ligence, and digital twin technologies. The paper also describes               operate in real time under uncertainty. However, conventional
+                                           fundamental quantum-computing concepts and key algorithms,                     computational methods are increasingly strained in their ability
+                                           highlighting their relevance for power system applications. Fur-               to scale to meet these growing demands, underscoring the need
+                                           thermore, it reviews the current state of quantum hardware,                    for fundamentally new computational approaches [5]–[7].
+                                           software frameworks, simulators, cloud services, and emerging                     Driven by these growing computational challenges, quantum
+                                           hardware-agnostic ecosystems that support cross-platform ap-
+                                           plication development and deployment. The reviewed studies                     computing has emerged as a promising and fundamentally
+                                           are examined by implementation environment, benchmarking                       distinct paradigm for smart grid operations. By leveraging
+                                           practices, application scale, and evidence of computational advan-             principles of quantum mechanics, most notably superposition,
+                                           tage. Finally, the principal challenges associated with practical              entanglement, and interference, quantum systems can repre-
+                                           implementation are discussed, and future research directions                   sent and process information in ways that are unattainable
+                                           are outlined. This paper provides a consolidated and evidence-
+                                           calibrated perspective on the current state and future potential of            with classical approaches [8]. In particular, qubits enable
+                                           quantum computing for next-generation smart grid operations.                   the encoding of exponentially large state spaces, allowing
+                                                                                                                          quantum algorithms to explore multiple solution pathways
+                                             Index Terms—Power and Energy Systems; Quantum Com-
+                                           puting; Quantum Machine Learning; Quantum Optimization;                        simultaneously [9]. This capability offers substantial com-
+                                           Quantum Simulation; Smart Grid.                                                putational advantages for key problem domains in power
+                                                                                                                          and energy systems. For instance, quantum algorithms such
+                                                                   I. I NTRODUCTION                                       as the Harrow–Hassidim–Lloyd (HHL) method [10] provide
+                                              The modern electric power grid is undergoing a profound                     accelerated solutions for large systems of linear equations
+                                           transformation toward a decentralized, digitized, and intelli-                 arising in applications such as power flow analysis, state
+                                           gent cyber–physical infrastructure, commonly referred to as                    estimation, and contingency analysis. In parallel, algorithms
+                                           the smart grid [1]. This transition is primarily driven by global              tailored for combinatorial optimization, particularly the Quan-
+                                           decarbonization goals, the electrification of transportation and               tum Approximate Optimization Algorithm (QAOA) [11], are
+                                           industry, and the rapid deployment of renewable energy re-                     well-suited for addressing discrete decision-making problems
+                                           sources. As a result, distributed energy resources (DERs),                     in smart grids. These include unit commitment, network
+                                           including photovoltaic systems, wind turbines, battery storage,                reconfiguration, resource placement, demand response, and
+                                           electric vehicles, and demand-side technologies, are being                     generation scheduling, where the solution space grows combi-
+                                           integrated into the grid at an unprecedented scale [2], [3].                   natorially with system size. Moreover, the emergence of hybrid
+                                           While this evolution enhances sustainability, resilience, and                  quantum–classical frameworks has enabled the practical use
+                                           operational flexibility, it simultaneously introduces significant              of quantum techniques on current noisy intermediate-scale
+                                           complexity. Unlike traditional centralized generation, DERs                    quantum (NISQ) devices, facilitating early-stage applications
+                                           are inherently distributed, intermittent, and often coordinated                in smart grid analytics and operations.
+                                           through decentralized control, leading to increased uncertainty,                  The increasing interest in quantum computing is rooted in
+                                           variability, and interdependencies across the network. These                   its rich historical development, which spans several decades
+                                                                                                                          of theoretical and technological progress. The concept of
+                                                 Md Habib Ullah is with the Dept. of Electrical Engineering at Penn       using quantum systems for computation was first proposed by
+                                           State Harrisburg, Middletown, PA 17057, USA. Email: mzu5071@psu.edu.           Feynman in the early 1980s, who suggested that they could
+
+                                                                                                                      1
+                                                                                 of cloud-based quantum computing platforms, such as IBM
+                                                                                 Quantum, AWS Braket, and Azure Quantum, has democratized
+                                                                                 access to quantum resources to a certain extent, enabling
+                                                                                 researchers and practitioners to experiment with quantum algo-
+                                                                                 rithms without requiring direct access to specialized hardware
+                                                                                 [21]. Complementary software frameworks, including Qiskit,
+                                                                                 Cirq, and PennyLane, further support the development and
+                                                                                 deployment of quantum applications across different domains
+                                                                                 [22].
+                                                                                    Despite these promising advancements, it is important to
+                                   (a)                                           recognize that applying quantum computing to smart grids
+                                                                                 remains an emerging field with several unresolved challenges.
+                                                                                 Limitations related to hardware noise, limited qubit counts,
+                                                                                 problem-encoding complexity, and algorithmic maturity con-
+                                                                                 tinue to constrain the scalability and reliability of quantum so-
+                                                                                 lutions. In addition, the practical deployment of these methods
+                                                                                 in real-world power systems will require seamless integration
+                                                                                 with classical computing frameworks, robust error mitigation
+                                                                                 techniques, and standardized benchmarking methodologies to
+                                                                                 accurately evaluate performance gains. Nevertheless, the rapid
+                                                                                 pace of progress in both hardware and algorithm development
+                                   (b)
+                                                                                 suggests that quantum computing could play an increasingly
+Fig. 1: Quantum computing market size projections [16]. (a) Global market.       important role in future power system applications. Real-
+(b) U.S. market.
+                                                                                 izing this potential will require sustained interdisciplinary
+                                                                                 collaboration among power engineers, computer scientists, and
+simulate physical processes more efficiently than classical                      physicists. Against this backdrop, there is a pressing need
+computers [12]. Subsequent theoretical advances, including                       for a comprehensive and structured review that consolidates
+Deutsch’s model of a universal quantum computer, laid the                        existing knowledge, identifies research gaps, and outlines
+groundwork for algorithmic breakthroughs in the 1990s [13].                      future directions in this interdisciplinary domain. Although
+Notably, Shor’s algorithm demonstrated exponential speedup                       several review studies on quantum computing for smart grid
+for integer factorization, and Grover’s algorithm provided                       applications have been reported in the early literature [23]–
+quadratic speedup for unstructured search problems, estab-                       [36], they tend to emphasize specific aspects, such as quantum
+lishing the computational potential of quantum systems [14],                     algorithms, quantum machine learning, or particular power
+[15]. More recently, the transition to the NISQ era has marked                   and energy system applications. Furthermore, many of these
+a significant milestone, characterized by the availability of                    studies capture only a limited portion of the rapidly growing
+programmable quantum processors with tens to thousands                           literature and, therefore, do not fully reflect recent advance-
+of qubits. Although these systems are limited by noise and                       ments across diverse smart grid domains. These limitations
+decoherence, they have catalyzed the development of varia-                       may restrict the development of a unified perspective that
+tional and hybrid algorithms designed to operate under realistic                 seamlessly integrates algorithms, hardware platforms, software
+hardware constraints. Ongoing research efforts in fault-tolerant                 ecosystems, and the full spectrum of modern smart grid
+quantum computing are expected to further unlock large-scale,                    applications, thereby reinforcing the need for a more cohesive
+practical applications.                                                          overview of the field.
+   In parallel with these technological advancements, the                           In this context, this paper presents a comprehensive struc-
+global quantum computing ecosystem has experienced rapid                         tured review of quantum computing applications in smart grid
+growth and strategic investment. Governments, academic in-                       operations. The primary contributions of this work are as
+stitutions, and industry leaders are heavily investing in quan-                  follows. First, it provides a detailed overview of quantum
+tum technologies, recognizing their potential impact across                      computing fundamentals and algorithms relevant to power
+multiple sectors, including energy, finance, healthcare, and                     system applications. Second, it provides a structured survey
+national security [17]–[19]. Market projections, as shown                        of the application of quantum techniques across a wide range
+in Fig. 1, indicate a substantial expansion of the quantum                       of smart grid problems, including system monitoring and
+computing industry over the next decade, with both global and                    planning, operation and control, security, reliability and re-
+U.S. markets expected to grow significantly due to increasing                    silience, stability assessment, data-driven intelligence, and dig-
+commercialization and adoption. Major quantum technology                         ital twin technologies. Third, it analyzes the current state of the
+companies, such as IBM, Google, Microsoft, Rigetti, D-                           quantum ecosystem, including global market trends, hardware
+Wave, IonQ, and others, are actively developing a range                          development, simulators, software frameworks, and hardware-
+of quantum hardware platforms, including superconducting                         agnostic platforms. Fourth, it identifies key challenges and lim-
+circuits, trapped-ion systems, photonic devices, and neutral-                    itations that must be addressed to enable practical deployment.
+atom architectures [20]. At the same time, the emergence                         Finally, it outlines future research directions and a roadmap for
+
+                                                                             2
+                                                                                                         TABLE I: List of acronyms and abbreviations.
+                                   Section I: Introduction
+            Establishes the motivation, problem landscape, and role of quantum                Acronym     Full Name
+                            computing in smart grid operations
+                                                                                              ADMM        Alternating Direction Method of Multipliers
+                                                                                              ANN         Artificial Neural Network
+                             Section II: Review Methodology                                   AQC         Adiabatic Quantum Computing
+                Describes the literature search, study selection, application                 BiLSTM      Bidirectional Long Short-Term Memory
+                   classification, and evidence-assessment procedures                         BMS         Battery Management System
+                                                                                              BQM         Binary Quadratic Model
+                             Section III: Quantum Computing
+                                                                                              CNN         Convolutional Neural Network
+             Provides the theoretical foundations and key quantum algorithms
+                                                                                              DA          Digital Annealer
+                            relevant to smart grid applications                               DAE         Differential-Algebraic Equation
+                                                                                              DER         Distributed Energy Resource
+                                                                                              DR          Demand Response
+                       Section IV: Quantum Computing Platforms
+                                                                                              DT          Digital Twin
+            Reviews hardware platforms, software tools, simulators, and cloud-
+                                                                                              EMS         Energy Management System
+                                   based ecosystems
+                                                                                              EMT         Electromagnetic Transient
+                                                                                              EMTP        Electromagnetic Transients Program
+                       Section V: QC for Smart Grid Applications                              EV          Electric Vehicle
+         Provides a structured survey of quantum computing applications across                EVCSP       Electric Vehicle Charging Station Placement
+                            smart grid planning and operation
+                                                                                              FDIA        False Data Injection Attack
+                                                                                              GRU         Gated Recurrent Unit
+                          Section VI: Challenges and Limitations                              GSA         Grover’s Search Algorithm
+         Identifies the technical, algorithmic, integration, and practical barriers to        HHL         Harrow–Hassidim–Lloyd
+                                 real-world implementation                                    LSTM        Long Short-Term Memory
+                                                                                              MILP        Mixed-Integer Linear Programming
+                      Section VII: Future Directions and Roadmaps
+                                                                                              MINLP       Mixed-Integer Nonlinear Programming
+                                                                                              MIQP        Mixed-Integer Quadratic Programming
+         Highlights future research opportunities and pathways toward practical
+                                      deployment                                              MPC         Model Predictive Control
+                                                                                              NISQ        Noisy Intermediate-Scale Quantum
+                                                                                              NR          Newton–Raphson
+                                 Section VIII: Conclusions                                    OPF         Optimal Power Flow
+                   Summarizes the principal findings, key insights, and                       P2P         Peer-to-Peer
+                                  concluding remarks
+                                                                                              PF          Power Flow
+                                                                                              PMU         Phasor Measurement Unit
+         Fig. 2: Paper organization. QC: Quantum Computing.                                   PQC         Parameterized Quantum Circuit
+                                                                                              QA          Quantum Annealing
+integrating quantum technologies into next-generation (next-                                  QAE         Quantum Amplitude Estimation
+gen) smart grid operations. By bridging the gap between                                       QAOA        Quantum Approximate Optimization Algorithm
+                                                                                              QCNN        Quantum Convolutional Neural Network
+quantum computing theory and power system applications, this
+                                                                                              QDC         Quantum Distributed Control
+paper aims to serve as a foundational reference for researchers                               QEC         Quantum Error Correction
+and practitioners working at the forefront of this rapidly                                    QFT         Quantum Fourier Transform
+evolving field.                                                                               QKD         Quantum Key Distribution
+   The remainder of the paper is organized as follows: Sec-                                   QML         Quantum Machine Learning
+                                                                                              QNN         Quantum Neural Network
+tion II describes the review methodology, including the lit-                                  QPCA        Quantum Principal Component Analysis
+erature search, study selection, data extraction, application                                 QPE         Quantum Phase Estimation
+classification, and evidence-assessment procedures. Section                                   QRAO        Quantum Random Access Optimization
+III presents the fundamentals of quantum computing and                                        QRL         Quantum Reinforcement Learning
+the associated algorithms for smart grid operations. Section                                  Q-SAVLR     Quantum Surrogate Absolute-Value Lagrangian Relaxation
+                                                                                              QSVT        Quantum Singular Value Transformation
+IV reviews quantum computing platforms, including hard-                                       QUBO        Quadratic Unconstrained Binary Optimization
+ware technologies, software tools, simulators, and cloud-based                                RQBN        Restricted Quantum Bayesian Network
+ecosystems. Section V provides a comprehensive survey of                                      RL          Reinforcement Learning
+quantum computing applications in smart grid planning and                                     RNN         Recurrent Neural Network
+                                                                                              RTDS        Real-Time Digital Simulator
+operation. Section VI discusses the challenges and limitations
+                                                                                              SA          Simulated Annealing
+associated with current quantum technologies, and Section VII                                 SDK         Software Development Kit
+outlines future research directions and development roadmaps.                                 SoH         State of Health
+Finally, Section VIII concludes the paper with key insights and                               SVM         Support Vector Machine
+findings. The overall organization of the paper is illustrated in                             VQC         Variational Quantum Circuit
+                                                                                              VQE         Variational Quantum Eigensolver
+Fig. 2. The frequently used acronyms in this paper and their                                  VQNN        Variational Quantum Neural Network
+abbreviations are presented in Table I.                                                       VQLS        Variational Quantum Linear Solver
+
+                     II. R EVIEW M ETHODOLOGY                                                eration. Because this is a new and rapidly evolving research
+  This paper employs a comprehensive structured-review                                       area, the search was keyword-based, with no predefined lower
+methodology to identify, classify, and assess studies on quan-                               publication-year limit. The search was updated through July
+tum computing applications in smart grid planning and op-                                    2026, and the earliest eligible application-oriented study iden-
+
+                                                                                         3
+

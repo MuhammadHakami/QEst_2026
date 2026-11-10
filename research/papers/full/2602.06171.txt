@@ -1,0 +1,2812 @@
+Quantum-enhanced Markov Chain Monte Carlo for Combinatorial Optimization
+Kate V. Marshall,1, ∗ Daniel J. Egger,2 Michael Garn,3 Francesca
+Schiavello,3, 4 Sebastian Brandhofer,5 Christa Zoufal,2 and Stefan Woerner2
+1
+
+IBM Quantum, IBM Research Europe – Hursley, United Kingdom.
+2
+
+3
+
+IBM Quantum, IBM Research Europe – Zurich, Switzerland
+
+The Hartree Centre, STFC, Sci-Tech Daresbury, United Kingdom
+4
+5
+
+The Open Quantum Institute, Geneva, Switzerland
+
+IBM Quantum, IBM Research Europe – Böblingen, Germany
+
+arXiv:2602.06171v2 [quant-ph] 27 Mar 2026
+
+(Dated: March 30, 2026)
+Quantum computing offers an alternative paradigm for addressing combinatorial optimization
+problems compared to classical computing. Despite recent hardware improvements, the execution
+of empirical quantum optimization experiments at scales known to be hard for state-of-the-art
+classical solvers is not yet in reach. In this work, we offer a different way to approach combinatorial
+optimization with near-term quantum computing. Motivated by the promising results observed
+in using quantum-enhanced Markov chain Monte Carlo (QeMCMC) for approximating complicated
+probability distributions, we combine ideas of sampling from the device with QeMCMC together with
+warm-starting and parallel tempering, in the context of combinatorial optimization. We demonstrate
+empirically that our algorithm recovers the global optima for instances of the Maximum Independent
+Set problem (MIS) up to 117 decision variables using 117 qubits on IBM quantum hardware. We
+show early evidence of a scaling advantage of our algorithm compared to similar classical methods
+for the chosen instances of MIS. MIS is practically relevant across domains like financial services
+and molecular biology, and, in some cases, already difficult to solve to optimality classically with
+only a few hundred decision variables.
+
+I.
+
+INTRODUCTION
+
+Combinatorial optimization is an important application
+for quantum computing, inspired by the natural formulation of such problems to finding the ground state of Ising
+Hamiltonians [1]. This mapping has motivated the exploration of quantum optimization algorithms that could offer super-polynomial speedups over classical approaches
+[2–7]. There exist various approaches to the study of
+quantum optimization, ranging from provably exact to
+heuristic algorithms. Heuristic approaches usually lack
+provable convergence guarantees, runtime guarantees, or
+both [1]. Nevertheless, these algorithms could outperform classical solvers for select problem instances. In the
+field of classical optimization, most practically used optimization algorithms are heuristic. One such quantum
+heuristic is the Quantum Approximate Optimization Algorithm (QAOA) [8], which benefits from bounded worstcase performance guarantees, e.g., for MAXCUT on 3regular graphs [9]. However, the search for evidence of
+a quantum advantage has proved extremely challenging,
+largely due to noise that continues to limit the width and
+depth of circuits executable on available hardware.
+Whilst we navigate these challenges, heuristic quantumclassical frameworks offer a practically motivated direction for near-term quantum computing research [10, 11].
+
+∗ kate.marshall@ibm.com
+
+For quantum optimization, hybrid quantum-classical algorithms and techniques such as warm-starting leave
+much to be hopeful about, even before fault-tolerance
+[1, 11, 12]. Today’s quantum devices–despite inherent
+noise–have achieved a scale, speed, and fidelity that enable computations beyond the reach of exact classical
+simulation [13]. Hence, we can now benchmark the capabilities of quantum-enhanced solvers on non-trivial optimization problem instances, such as the ones provided
+in the Quantum Optimization Benchmarking Library
+(QOBLIB) [14]. This resource provides combinatorial
+optimization problem instances, benchmarking metrics,
+baseline results to assist the community in exploring the
+path to quantum advantage in optimization, as well as
+a foundation to better understand the potential practical usefulness of quantum optimization algorithms in
+addressing industry-relevant applications.
+As quantum hardware becomes increasingly capable, we
+can begin to investigate theoretical results with nontrivial problem instances. One set of interesting theoretical and early numerical results include those from the
+quantum-enhanced Markov chain Monte Carlo (QeMCMC) algorithm, originally developed for approximating
+challenging probability distributions [15, 16]. The authors in Ref. [16] showed that with a quantum proposal
+distribution, QeMCMC demonstrated up to a quartic
+advantage in reaching the target distribution more efficiently compared to classical Markov chain Monte Carlo
+(MCMC). Subsequent work has further investigated behavior, limitations, and variants of QeMCMC [17–22].
+
+2
+While asymptotic speedups for quantum optimization algorithms are only expected with fault-tolerant quantum
+devices [23], heuristic quantum optimization algorithms
+may demonstrate promising results in the near-term for
+select problem instances. In this work, we introduce
+and explore an optimization workflow that combines concepts from QeMCMC, warm-starting, and parallel tempering to solve combinatorial optimization problems. We
+show the first realization of a practical QeMCMC algorithm on non-trivial system sizes. Using our method,
+we approach instances of Maximum Independent Sets
+(MIS) of increasing size up to 117 decision variables using
+IBM Quantum superconducting hardware. Particular instances of this problem class are already challenging to
+solve with state-of-the-art classical solvers with only a
+few hundred variables, in some cases [14]. Interestingly,
+we observe an empirical scaling advantage of our method
+in terms of increasing problem size, compared to classical
+MCMC implementations on the selected MIS instances,
+for the three problem instances studied. Furthermore, for
+the largest problem instance with 117 decision variables,
+we observe the quantum hardware experiments converging faster in terms of number of iterations compared to
+classical simulations of the algorithm, which suggests the
+truncation error associated with the tensor network simulations becomes more detrimental than hardware noise
+in our simulations. Hence, our algorithm provides an
+alternative way to approach combinatorial optimization
+with quantum computing.
+We structure this work as follows. In Section II, we provide background material before presenting key methods
+used herein in Section III, including QeMCMC, warmstarting quantum optimization and parallel tempering.
+We explain how these methods work together to form
+the basis of our workflow in Section III F, accompanied
+by Figure 1. In Section IV C, we test the applicability of
+applying the QeMCMC-inspired optimization algorithm
+to MIS. We provide comparisons to known classical methods in Section ??, discuss anticipated scaling, or feasibility with increasing problem size, of our algorithm in
+Section ?? and conclude in Section V.
+
+II.
+A.
+
+Markov chain Monte Carlo methods for
+sampling Boltzmann distributions
+
+Consider a discrete optimization problem defined by an
+energy or cost function E(s) for configurations s ∈
+{−1, +1}n , where the objective is to minimize this energy. Once an energy function is defined, we may associate to it the Gibbs distribution, or equivalently the
+Boltzmann distribution of a classical Ising model,
+e−E(s)/(kB T )
+,
+Z
+
+E(s) = E0 (s) + λ C(s),
+
+(2)
+
+where E0 (s) denotes the objective, C(s) tracks constraint
+violations, and λ is a sufficiently large penalty factor,
+or Lagrange multiplier. In the limit T → 0, the Gibbs
+distribution concentrates probability mass on low-energy
+configurations, biasing sampling toward high-quality solutions.
+In general, constructing a low-temperature Gibbs state
+from which to sample is computationally hard. Therefore, in practice, MCMC methods are widely used to sample from Boltzmann distributions [24]. MCMC avoids
+explicitly evaluating the target distribution µ and its associated partition function, Z, since this requires summing over an exponentially large configuration space, and
+thus, exact computation would require Ω(2n ) time. Instead, MCMC constructs a Markov chain that evolves
+through the space of spin configurations by proposing
+transitions from a current configuration s to a candidate
+configuration s′ , according to a fixed transition probability, P (s′ | s). A common approach is a two-step proposal
+and acceptance procedure
+P (s′ | s) = Q(s′ | s) A(s′ | s).
+
+(3)
+
+Here, Q(s′ | s) denotes the conditional probability of
+proposing candidate transitions from s to s′ , and A(s′ | s)
+is an acceptance ratio. A can be defined in numerous
+ways, with a popular example being the Metropolis Hastings (MH) acceptance probability
+µ(s′ ) Q(s | s′ )
+A(s | s) = min 1,
+µ(s) Q(s′ | s)
+′
+
+
+
+
+.
+
+(4)
+
+To ensure this procedure yields meaningful samples, the
+transition probabilities P must be designed such that
+the chain converges to our target distribution, µ, from
+Eq. (1). This convergence is guaranteed under standard
+conditions—namely irreducibility and aperiodicity—and
+by enforcing the detailed balance condition,
+
+BACKGROUND
+
+µ(s) =
+
+P
+where Z = s e−E(s)/(kB T ) is the partition function ensuring normalization, and kB is the Boltzmann constant.
+At low temperatures, i.e., T → 0, the distribution in
+Eq. (1) concentrates its probability mass on configurations that minimize E(s), which provides a connection
+between probabilistic sampling and optimization. Constraints may be incorporated into the energy landscape,
+e.g., by adding penalty terms of the form
+
+(1)
+
+P (s′ | s) µ(s) = P (s | s′ ) µ(s′ ),
+
+(5)
+
+for all s ̸= s′ [16]. This detailed balance constrains P
+such that the Markov chain converges to µ as its stationary distribution. In this regime, samples are statistically
+correct, meaning that they are drawn from the target, µ,
+and computed averages converge to the true expectation
+values without systematic bias [16].
+
+3
+
+Replica exchange
+
+𝑇𝑚𝑒𝑑𝑖𝑢𝑚
+
+𝑇𝑙𝑜𝑤
+
+Objective value / energy
+
+Replicas (circuits)
+
+𝑇ℎ𝑖𝑔ℎ
+
+Target objective
+Iterations
+Cost layers
+which
+evolve as
+
+Mixer layers
+which evolve
+as
+
+𝑒 −𝑖𝛾𝐻𝑐𝑜𝑠𝑡
+
+𝑒 −𝑖𝛽𝐻𝑚𝑖𝑥
+
+1. Sample from QPU
+At each
+iteration… 2. Apply filter to avoid noisy samples and
+subsample from “best” solution pool
+3. MH evaluation
+4. Replica exchange
+5. Warm start next iteration of circuits
+
+FIG. 1: The algorithm workflow. We see a hot, medium and cold replica working together such that the coldest
+replica eventually converges to the target objective. Objective values of proposed solutions to the MIS problem are
+plotted against iterations. Each iteration requires drawing samples from the QPU and then classically processing
+these counts, necessitating a close exchange of information between quantum and classical hardware.
+
+In the worst case, computation time required to obtain
+independent samples for the MH variant of MCMC, described above, scales exponentially with system size. Yet,
+in practice, it is often possible to choose good proposal
+distributions that exhibit good convergence. This forms
+the basis of widely-used classical optimization heuristics
+such as simulated annealing and parallel tempering [25–
+27]. An end-to-end example of sampling from the Boltzmann distribution with our implementation of QeMCMC
+is provided in Appendix A.
+
+is connected via an edge in E. A maximum independent
+set is an independent set of maximal size. Now, suppose
+a binary decision variable xi ∈ {0, 1} for each vertex vi ,
+where xi = 1 if vi is included in the selected subset of
+vertices, and xi = 0 otherwise. Then, the MIS problem
+can be formulated as
+|V |−1
+
+max
+x
+
+X
+
+xi ,
+
+(6)
+
+∀ (vi , vj ) ∈ E,
+
+(7)
+
+i=0
+
+subject to the constraints
+B.
+
+xi xj = 0
+
+Maximum Independent Sets
+
+In this manuscript, we study MIS problems, which we
+will now formulate as a Quadratic Unconstrained Binary
+Optimization (QUBO) problem that can be mapped to a
+classical Ising model. This mapping enables us to interpret the problem in terms of an energy landscape and to
+sample from the corresponding Boltzmann distribution,
+where low-temperature sampling concentrates on configurations with a minimized energy.
+Let G = (V, E) be a graph with vertices V = {v1 , . . . , vn }
+and edges E ⊂ V ×V . An independent set of vertices of G
+is a subset of V such that no pair of vertices in the subset
+
+which enforce the selected subset of vertices to be an
+independent set. Further, we can formulate this as the
+following QUBO:
+
+
+X
+X
+max 
+xi − λ
+xi xj  ,
+(8)
+x
+
+vi ∈V
+
+(vi ,vj )∈E
+
+where the first term is the objective and the second term
+enforces the constraints as long as λ is sufficiently large,
+e.g., λ ≥ 2, i.e., the maximum in Eq. (8), indeed gives an
+optimal MIS solution.
+
+4
+We convert this QUBO to the Hamiltonian
+Hcost = Hobjective + λHconstraint ,
+
+(9)
+
+where Hobjective and Hconstraint are derived and explained
+using the standard mapping in Appendix B.
+In this form, each spin configuration corresponds to a
+candidate solution and has an associated energy E(s),
+obtained by evaluating the Ising Hamiltonian on that
+configuration. This energy function defines the Ising
+model and induces a Boltzmann distribution over configurations, as introduced previously in Eq. (1). Sampling from this distribution at temperatures, T , allows
+exploration of the solution space.
+In the limit as T → 0, the distribution concentrates on
+configurations that minimize E(s), which corresponds to
+optimal solutions of MIS. Here, we choose values of the
+Lagrange multiplier, λ, that do not directly enforce a
+feasible subspace of configurations, but instead penalize
+solutions with constraint violations. The choice of this
+term involves balancing the objective and constraints of
+our problem, trading feasibility with cost of solutions.
+The process used to optimize for both objective and constraints is described in Appendix C.
+
+We then measure the state U |s⟩ to sample the configuration proposal s′ . Crucially, a key insight made by the
+authors in Ref. [16] included that we can avoid explicitly
+computing the ratio of transition probabilities, Q, making the computation of A in Eq. (4) tractable. This finding enabled much of the authors’ novel experiments and
+results. This is achieved by constructing circuits from
+Eq. (10), where U satisfies the symmetry constraint
+|⟨s′ |U |s⟩| = |⟨s|U |s′ ⟩|.
+
+The ratio of distributions in Eq. (4) then cancels out
+by setting Q(s′ | s) = Q(s | s′ ) for all configurations
+s, s′ ∈ {−1, 1}n . The symmetry condition in Eq. (12) ensures reversibility of transitions between configurations,
+or detailed balance, which is required to guarantee convergence to the target distribution, µ, as defined in
+Eq. (1). Each qubit is measured in the computational
+basis, denoting the outcome s′ , before choosing whether
+to accept or reject the proposed configuration using the
+acceptance probability defined in Eq. (4). If s′ is rejected,
+the chain remains at the current state s.
+
+B.
+III.
+A.
+
+METHODS
+
+Quantum-enhanced Markov chain Monte Carlo
+
+In Ref. [16], the authors propose a quantum-enhanced
+MCMC scheme in which a quantum circuit is used to generate the proposal distribution. This work was motivated
+by the fact that classical MCMC approaches struggle to
+explore rugged energy landscapes at low T , which are
+typical when studying spin glass behavior. The quantumenhanced MCMC algorithm generates proposed configurations by sampling from a quantum circuit, drawn from
+a discretized annealing Hamiltonian [16]:
+
+(12)
+
+Warm-starting QAOA
+
+Using a first-order Trotter decomposition of the Hamiltonian in Eq. (10), the evolution operator U defined in
+Eq. (11) can be constructed much like QAOA. Thus,
+when we apply the unitary to the basis state |s⟩, like
+U |s⟩, this resembles warm-starting QAOA, which we now
+review.
+
+There is evidence that this sampling procedure can accelerate MCMC convergence in spin glasses at low T with
+up to a quartic speedup. Here, Hcost encodes the classical model, Hmix is a mixing Hamiltonian, κ ∈ [0, 1]
+controls the relative weights of both operator terms and
+α is a normalization factor that rescales the objective
+term such that its magnitude is comparable to that of the
+mixer Hamiltonian. More details are found in Ref. [16].
+We can view the penalized energy function introduced in
+Eq. (2) as the classical counterpart of this Hamiltonian.
+
+Warm-starting QAOA has proved a popular technique
+in the recent quantum optimization literature [28–35].
+The original idea comes from leveraging good solutions
+determined by a (usually classical) algorithm to initialize
+another (usually quantum) algorithm, to further improve
+the results. In Ref. [28], the authors initialize a QAOA
+circuit from bitstring s ∈ {0, 1}n , either obtained classically, or in our case, from a previously accepted quantum
+sample. Since the QAOA cost operator has no impact on
+a state made of a single computational basis state, the
+authors introduce a regularization parameter ε, which
+instead prepares a superposition of states in a neighborhood of s. We control the spread of the quantum state
+around s by setting ε ∈ (0, 1/2) and defining a softened
+version of s, where for each bit i of configuration s, we
+define
+(
+ε,
+si = 0,
+s̃i =
+1 − ε, si = 1.
+
+It is then possible to obtain a new configuration s′ by
+preparing the computational basis state |s⟩ on the quantum device, and applying unitary U , given by
+
+The softened solution s̃ is then used to define single-qubit
+rotation angles,
+
+H = (1 − κ) α Hcost + κ Hmix .
+
+U (t) = e−iH(κ) t .
+
+(10)
+
+(11)
+
+θi = 2 arcsin
+
+p 
+s̃i ,
+
+5
+producing the state
+|ψ(θ)⟩ =
+
+n
+O
+
+Ry (θi ) |0⟩ =
+
+i=1
+
+n 
+O
+i=1
+
+
+θi
+θi
+|0⟩ + sin
+|1⟩ ,
+cos
+2
+2
+(13)
+
+or, equivalently,
+|ψ(s̃)⟩ =
+
+n p
+O
+
+1 − s̃i |0⟩ +
+
+
+p
+s̃i |1⟩ .
+
+(14)
+
+i=1
+
+The same θi -dependent Ry rotations are used in both
+the warm-started initial state and the associated mixer.
+The mixer is adjusted such that its ground state is |ψ(s̃)⟩.
+This results in solutions to MIS with a bias towards some
+known good starting point [28].
+C.
+
+This allows a high temperature Markov chain to discover
+a “good” candidate solution and transfer it to a low temperature chain, or replica, which will accurately sample
+around it. These two steps are repeated until the stopping criterion has been satisfied, i.e., we converge to the
+target objective.
+
+Parallel tempering
+
+When sampling from the Boltzmann distribution of Ising
+models at low temperatures, the energy landscape typically becomes rugged, characterized by numerous local
+minima separated by high energy barriers. At low temperatures, classical MCMC methods generally suffer from
+slow convergence because of long mixing times, i.e., the
+number of steps a Markov chain must run before its distribution is close enough to the stationary distribution
+such that samples can be considered representative. In
+addition, classical MCMC methods may become trapped
+in local energy minima at low temperatures. To mitigate
+this behavior, parallel tempering or replica exchange is
+employed in MCMC procedures [36–38]. This approach
+introduces multiple replicas of the system, each at a different temperature, where the high-temperature replicas explore the energy landscape aggressively, while lowtemperature replicas ensure accurate sampling of the target distribution, by closely tracking local minima. Parallel tempering is described in more detail in Refs. [39, 40].
+To begin, we consider N replicas of the same system,
+where each replica i ∈ {1, . . . , N } represents the same
+Ising model but at a different temperature Ti . Temperatures are typically ordered T1 < T2 < · · · < TN . Each
+replica i evolves independently using its own Markov
+chain, targeting the Boltzmann distribution, µ, defined
+in Eq. (1). A single iteration of the parallel tempering
+algorithm then consists of two steps:
+1. Local MCMC updates: Each replica i perform standard MCMC updates at its own temperature.
+2. Replica exchange stage: Exchange proposed configurations between selected pairs of replicas i and
+j (for more details, see Appendix D), which can
+help low energy replicas escape local minima, with
+probability
+Aexchange (si , sj ) =
+
+
+
+(15)
+1
+1
+min 1, exp ( − ) (E(sj ) − E(si )) .
+Ti
+Tj
+
+D.
+
+Mitigating noisy samples
+
+For sampling experiments running on noisy quantum
+computers, there are fewer known techniques for mitigating the impact of noise than for computing expectation values, see Refs. [41–44]. Recently, the authors of
+Ref.
+√ [45] propose to increase the number of samples by
+1/ υ, where υ measures the noise strength in the circuit, and prove bounds on noise free expectation values
+[45, 46]. The noise strength υ can be measured explicitly
+or estimated using gate errors provided, e.g., by the IBM
+Quantum Platform API
+√ following compilation of the circuit [47]. By taking 1/ υ number of samples, the theory
+explains that we expect at least one sample from the
+noise-free distribution corresponding to the target quantum circuit, i.e., in an optimization setting, the additional shots guarantee that we have at least the same
+performance as in the corresponding noise-free experiment. Where possible, we take the total number of shots
+or samples suggested via this method in our experiments.
+Where the requested number of samples is unfeasible,
+such as when circuits are very deep, we choose to use
+10, 000 shots, such that the runtime remains practical.
+This makes sense for an optimization setting, since not
+all errors affect the final solution, and noise can help to
+move closer to the target objective in some cases. Thus,
+using fewer shots than this theoretical quoted bound can
+still be successful.
+We evaluate and rank the objective values of all samples and choose to keep the lowest-energy, i.e., the best,
+samples. This introduces a bias towards good solutions,
+which is desirable in the context of our optimization task.
+We test both taking the best single low-energy sample
+from the distribution of results, as well as subsampling
+from a portion of, say 10, of the lowest-energy bitstrings,
+to maintain some balance of exploration of the cost landscape, i.e., escaping local minima, and exploitation of
+good solutions. Duplicate solutions at the cutoff point
+are retained, such that we still favor resampled solutions
+from the circuit.
+
+E.
+
+Circuit construction
+
+We construct circuits from Eq. (10) that resemble QAOA,
+using a first-order Trotter decomposition, since Trotter
+error is not relevant. Since [Hcost , Hmix ] ̸= 0, Eq. (10).
+cannot be implemented exactly as a single exponential.
+
+6
+
+Parameter
+Symbol
+Optimization method
+Cost Hamiltonian evolution angle (QAOA)
+γ
+Classical optimization pipeline [48]
+Mixer Hamiltonian evolution angle (QAOA)
+β
+Classical optimization pipeline [48]
+MIS constraint term (Lagrange multiplier)
+λ
+Classical optimization pipeline [49]
+Regularization parameter for warm-starting
+ε
+Experimentally informed, see Appendix C
+Temperature range used for parallel tempering setup [Tlow , Thigh ] Determined via formulae, see Appendix D
+Number of replicas used for parallel tempering setup Nreplicas
+Design choice, see Appendix D
+Replica exchange regularity
+∆tswap
+Experimentally informed, see Appendix D
+TABLE I: Summary of parameters, their roles and optimization method for each problem instance.
+
+The Lie–Trotter decomposition,
+e−itH ≈ e−it(1−κ)αHcost e−itκHmix + O(t2 ),
+
+(16)
+
+divided into two identical Trotter steps yields
+e−itH ≈ e−iγHcost e−iβHmix
+
+2
+
+,
+
+(17)
+
+Finally, as MIS problem instance sizes grow, the width
+and depth of our QAOA ansaetz representing the full
+graph become too large to run on quantum hardware.
+Therefore, we construct ansaetz from a simplified cost
+Hamiltonian obtained by dropping Pauli terms that require too many SWAP gates to implement. For further
+details, see Appendix E.
+
+with fixed angles
+F.
+
+γ = 2t (1 − κ)α,
+
+β = 2t κ.
+
+Experimental Workflow
+
+(18)
+
+UQAOA = e−iβ2 Hmix e−iγ2 Hcost e−iβ1 Hmix e−iγ1 Hcost . (19)
+
+We combine these methods to build the algorithm visualized in Figure 1 and summarized herein. Firstly, we
+define a number of identical replica circuits and tune the
+temperature ladder for these circuits to operate, as described in Section III C and Appendix D. For each circuit,
+we sample an initial configuration uniformly at random,
+i.e., s0 ∼ U({−1, +1}n ), and then proceed as follows:
+
+Throughout this work, we use a warm-startedPvariant
+n
+of the standard transverse-field mixer, Hmix = i=1 Xi .
+Hcost is defined in Eq. (9).
+
+1. We sample from our parametrized replica circuits
+derived from Eq. (10). Parameters are classically
+pre-trained, as described in Appendix C.
+
+Since our circuits structurally resemble QAOA, in order
+to run QeMCMC-like experiments, we cannot simply initialize UQAOA in the computational basis state |s⟩, as
+per Ref. [16]. When using this initialization with the
+form of the standard transverse-field mixer, we see no
+exploration of the solution space, as noted in Ref. [31].
+Instead, we adapt the warm-starting QAOA procedure
+from Section III B, restricting the sample space used for
+our quantum proposal distribution, Q, to the best, lowenergy portion. This, in combination with the bias introduced from Section III D, distinguishes us from the
+original goals of QeMCMC, developed in the context
+of sampling from Boltzmann distributions. Instead, we
+seek the ground state of an Ising Hamiltonian framing
+our optimization problem. We propose candidate updates sk → sk+1 , according to our proposal distribution Q(sk+1 | sk ). This is done by applying the unitary, UQAOA , in Eq. (19) to |sk ⟩, and defining transition
+probabilities from the resulting measurement statistics.
+Crucially, since we introduce these asymmetric proposal
+distributions in our sampling procedure, the convergence
+guarantees of QeMCMC originally positioned by the authors in Ref. [16] no longer hold. Our approach is, therefore, purely a heuristic one.
+
+2. We take many samples, in order to mitigate the
+impact of noise on the quantum device, as per the
+theory described in Section III D. Then, we evaluate the energy E(s) for each sample, filter for a certain number of low energy samples, and randomly
+subsample one configuration from these.
+
+This construction has the form of a p = 2 QAOA circuit
+with parameters, γ1 = γ2 ≡ γ and β1 = β2 ≡ β. Details on how γ and β parameters are trained are found in
+Appendix C. Our unitary in Eq. (11) has the form
+
+3. Next, we classically evaluate the proposed solution
+using the MH criteria defined in Eq. (4).
+4. At regular intervals, replicas are allowed to exchange accepted solutions according to the probability defined in Eq. (15), which helps low temperature replicas escape local minima.
+5. The accepted solution sk is used to generate subsequent candidate updates sk → sk+1 , according to
+the proposal distribution Q(sk+1 | sk ), as described
+in Section II A. This is done using the warm-start
+QAOA procedure explained in Section III B.
+We repeat for a maximum of 200, 000 iterations, or until
+convergence. Tuning algorithm parameters for each problem instance strongly influences mixing efficiency and
+convergence [39, 50–52]. We use analytical guidelines
+drawn from the literature, as well as heuristic tuning.
+
+7
+A summary of these parameters is presented in Table I,
+and further details regarding their optimization can be
+found in Appendices C and D.
+
+IV.
+
+RESULTS
+
+We study five different problem instances sourced from
+the Network Repository, a large public collection of graph
+datasets used in machine learning, network science, and
+graph algorithm benchmarking [53]. These graphs are derived from real-world animal social interaction networks,
+with qubit or node counts n ∈ {17, 39, 52, 80, 117} and
+corresponding edge counts m ∈ {91, 245, 454, 714, 1028}.
+The graphs share a common provenance and representation as simple, undirected interaction networks. As social networks, they exhibit heterogeneous degree distributions and nontrivial interaction structure, while varying
+in size and density. Together, these instances provide a
+natural progression in problem size for probing the scalability of our algorithm. Many of these problem instances
+are also included in the QOBLIB [14].
+We focus our analysis primarily on the 117-node problem
+instance, which consists of a fully connected component
+of 110 nodes and 7 isolated nodes. While the isolated
+nodes could be removed, we keep the full graph without
+any pre-processing. We explore these problem instances
+using classical replica-exchange MCMC, classical matrix
+product state (MPS) simulation of the QeMCMC algorithm, and executions on real IBM quantum hardware.
+We first present classical baseline results using a classical proposal distribution, which then serve as a benchmark for our quantum-enhanced approach. Then, we
+run our algorithm using both classical MPS simulation
+and real quantum hardware. Experimental details such
+as number of replicas, tuning of the temperature ladder
+(described in Appendix D) and regularity of replica exchanges are kept consistent across setups. For classical
+MCMC and MPS simulations, we compare both singleshot and multi-shot settings per iteration. In contrast,
+for real quantum hardware, we only consider multiple
+shots per iteration to account for noise, as motivated in
+Section III D. The globally optimal objective values for
+all problem instances were computed via CPLEX, an advanced classical optimization suite capable of solving the
+described problem instances to optimality [54].
+
+A.
+
+Classical baseline results
+
+The most natural comparison for our heuristic QeMCMC
+algorithm, is to first understand the capabilities of classical replica exchange MCMC. In this setting, the proposal
+distribution is constructed via classical bitflips. Various
+proposal strategies for the classical MCMC setup were explored in this work, including uniformly sampled bitflip
+proposals of up to 25 bitflips per sample for each replica.
+
+The most competitive classical configuration was uniform
+sampling with up to 5 bitflips per iteration, for which results are presented here. We test the classical setup with
+both 1 shot and 10, 000 shots per iteration. In the case
+where 10, 000 shots are taken per iteration, we randomly
+subsample from the best ranked ten proposals.
+Just as is done for the quantum-enhanced algorithm setting, samples for the first iteration for each experiment
+are taken from the non-warm started p = 2 QAOA circuit. This experiment is repeated 10 times, with 200, 000
+iterations per run.
+Replica Temperature
+1
+2
+3
+4
+5
+
+0.01
+0.11
+0.21
+0.51
+1.01
+
+Median num. iterations Median num. iterations
+until convergence
+until convergence
+(1 shot per iteration)
+(10k shots per iteration)
+6293
+5101
+7554
+5051
+8191
+6447
+8576
+9196
+—
+—
+
+TABLE II: Replica convergence statistics for 5 replicas
+across 10 independent repeats of the classical replica
+exchange MCMC experiment for 117 node graph
+instance, where either 1 shot or 10, 000 shots are taken
+per iteration of the algorithm, with random
+subsampling from the best ten proposals.
+The lowest number of samples required to converge to
+the global optimum in the 1-shot per iteration setting is
+6, 293 samples or iterations. With 10, 000 shots per iteration, the lowest number of iterations required to converge
+to the global optimum is 5, 101 iterations. The overall results for both settings and all temperatures are shown in
+Table II. While these numbers are close in terms of iterations, the total number of shots is significantly larger in
+the multi-shot setting. Thus, the additional shots seem
+to create little additional value in this noise-free setting.
+
+B.
+
+Simulation of quantum hardware
+
+Simulations of the quantum-enhanced algorithm, with
+quantum circuits composing the proposal distribution,
+were performed using the Qiskit Aer MPS simulator.
+MPS simulations are subjected to a truncation threshold, which specifies the tolerance for discarding Schmidt
+coefficients: coefficients are truncated when the sum of
+the squares of the discarded values falls below the specified threshold [55]. Truncation thresholds ranged from
+10−6 to 10−10 across all problem instances studied, with a
+threshold of 10−6 applied to simulations of the 117 node
+problem, for which results are presented below. This
+threshold was chosen to balance minimizing truncation
+error against feasible runtimes for the simulations. The
+quantum circuits implemented via MPS are the same
+ansatz circuits constructed for the hardware experiments,
+for which the process is described in Appendix E. Again,
+we test both 1-shot setting and 10,000-shot setting with
+subsampling from the best ten proposals.
+
+8
+Circuits are initialized in the same way, with initial samples drawn from the non-warm started p = 2 QAOA
+circuit. These experiments are repeated 10 times, with
+up to 200, 000 iterations.
+Replica Temperature
+1
+2
+3
+4
+5
+
+0.01
+0.11
+0.21
+0.51
+1.01
+
+Median num. iterations Median num. iterations
+until convergence
+until convergence
+(1 shot per iteration)
+(10k shots per iteration)
+91668
+863
+—
+796
+—
+706
+—
+619
+—
+—
+
+TABLE III: Replica convergence statistics for 5 replicas
+across 10 independent repeats of the simulated quantum
+experiment for 117 node graph instance, where either 1
+shot or 10, 000 shots are taken per iteration of the
+algorithm, with random subsampling from the best ten
+proposals.
+In Table III, we see the number of iterations needed to
+converge to the global optimum for both 1 shot per iteration and 10, 000 shots per iteration. For 1 shot per
+iteration, only the coldest replica managed to converge
+to the optimal solution after 91, 668 samples or iterations.
+For 10, 000 shots per iteration, we see that colder replicas
+have a higher rate of success in converging to their target values, but that a warmer replica, Replica 4, was able
+to converge in the fewest number of iterations in total,
+likely due to its broader search behavior. These results
+are also visualized in Appendix D. It is interesting that
+taking multiple samples per iteration with subsampling
+now strongly affects the number of required iterations to
+converge, unlike in Section IV A. We expect this stems
+from the fact that QAOA-based proposal distributions,
+while introducing a bias towards good solutions, also produce a tail of much worse ones. Subsampling effectively
+isolates the high-quality tail of the proposal distribution,
+making it beneficial beyond merely mitigating noise.
+
+C.
+
+Quantum hardware results
+
+Finally, we present the results of our heuristic QeMCMC
+optimization algorithm using IBM quantum hardware.
+In this setting, we do not explore the 1-shot regime due
+to the presence of noise and because it would lead to
+prohibitively long runtimes. Including circuit preparation overheads on the quantum hardware, taking 1 shot
+per circuit takes almost as long as taking 10, 000 shots
+per circuit. Thus, we execute experiments taking 10, 000
+shots per iteration followed by the subsampling procedure described in Sec. III D.
+Results for the different problem instances are shown in
+Table IV. These include the maximum number of SWAP
+layers allowed for the simplified ansaetz for these problems, alongside the associated 2-qubit gate counts and
+depths of the circuits. We report the total shots taken
+alongside the number of samples kept for subsampling for
+
+different instances and quantum devices, together with
+their convergence analysis. In both sets of experiments
+using the 117 node graph, 10, 000 shots were taken on the
+device, with the experiments converging to the global
+optimum on average in 151 and 83 iterations respectively. The number of shots taken is significantly less
+than the estimated number required to compensate for
+noise. However, since these estimations are upper bounds
+(see Section III D), in practice, we choose 10, 000 shots
+such that we can expect a reasonable runtime on the device.
+Results for the 117-node problem instance on ibm boston
+are visualized in Figure 2. The winning replica that found
+the optimal solution first is represented in orange. For
+this replica, the Hamming distance between accepted solutions at each iteration is also displayed. From the data
+shown in Table IV, we see that the quantum hardware
+exceeds expectations in terms of algorithm performance
+indicated from our classical MPS simulations reported
+in Table III, since convergence was achieved in 151 iterations, which is far fewer iterations on hardware than
+796 iterations predicted for the same replica via simulation. Presumably, this is because truncation error in this
+regime becomes more detrimental than hardware noise,
+since we also observed worsening performance with increased truncation error introduced to the MPS experiments via controlled testing.
+
+D.
+
+Comparison and scaling analysis
+
+In this Section, we compare results of the different algorithms. There exist various possible metrics to compare
+these experiments, including total number of samples, iterations, or wall-clock time, as well as the corresponding
+scaling behavior across problem sizes.
+First, we compare the performance of the algorithms for
+the 117-node problem. In Figure 3, the top panel demonstrates our quantum algorithm using a MPS simulation
+with 1 shot per iteration. The experiment converges in
+a median of ∼ 90, 000 samples (or iterations) across ten
+trials, as can be seen in Table III. This is easily outperformed in ∼ 6, 000 samples (or iterations) required by the
+standard 1-shot MCMC shown in the middle panel of Figure 3 and summarized in Table II. Finally, we take 10, 000
+samples per iteration and subsample from the best ten.
+In the bottom panel of Figure 3, we see the classical
+MCMC implementation of this setting. Although convergence is comparable to the standard 1-shot setup, the
+best reported result of ∼ 5, 000 iterations to converge is
+an order of magnitude larger than the quantum results,
+both simulated (see Table III) and on device (see Table IV). We see the classical approach performs well with
+1-shot per iteration, whereas the quantum algorithm performs better if we take many shots. To understand how
+the algorithms scale in terms of both iterations and samples, we probe the performance of five problem instances.
+
+9
+Problem Num.
+2q gate
+instance SWAP
+count
+(nodes) layers
+ibm aachen
+17
+14*
+740
+ibm aachen
+17
+14*
+740
+ibm boston
+39
+32
+3616
+ibm boston
+52
+13
+1964
+ibm boston
+52
+37
+5532
+ibm boston
+80
+13
+3250
+ibm boston
+117
+6
+1574
+ibm pittsburgh
+117
+6
+1574
+Device
+
+2q gate
+depth
+
+Median num. iterations
+Est. shots
+Shots used
+until convergence
+per iteration per iteration
+
+96
+96
+198
+84
+228
+84
+42
+42
+
+32
+2
+12
+22
+37
+106
+151
+114
+
+5
+5
+2, 065
+24, 503
+4, 280, 674
+20, 504
+30, 426
+1, 034, 484
+
+5
+10, 000
+10, 000
+10, 000
+100, 000
+10, 000
+10, 000
+10, 000
+
+Post-processing
+comments
+Best sample taken
+Sample from best ten
+Sample from best ten
+Sample from best ten
+Sample from best ten
+Sample from best ten
+Sample from best ten
+Best sample taken
+
+TABLE IV: Summary of notable experimental results. All experiments used 5 replicas. Three repeats were run for
+each experiment on the hardware devices. Estimated number of shots per iteration are derived from the logic
+explained in Section III D, where differences in how devices experience noise lead to different values for estimated
+numbers of shots required per iteration. At the time of writing, error rates were lowest for the Heron r1 ibm boston
+device, followed by Heron r1 ibm pittsburgh and Heron r2 ibm aachen.
+* This is the maximum number of SWAP layers for this graph i.e. the full graph is implemented for this instance.
+
+0
+
+6 SWAP layer ansatz T=0.01
+6 SWAP layer ansatz T=0.11 25
+6 SWAP layer ansatz T=0.21
+6 SWAP layer ansatz T=0.51 20
+6 SWAP layer ansatz T=1.01
+Target: -49
+Hamming distance
+15
+
+20
+
+10
+
+Hamming distance
+
+Objective value
+
+20
+
+5
+40
+0
+0
+
+20
+
+40
+
+60
+
+80
+
+Iterations
+
+100
+
+120
+
+140
+
+160
+
+FIG. 2: Parallel tempering experiment run on ibm boston for the 117-node MIS problem. The left axis indicates the
+progress of objective values per iteration. We see the global optimum is found after 151 iterations, with 10, 000 shots
+per iteration and a random sample taken from a smaller portion of these. The Hamming distance between accepted
+solutions is also plotted for each iteration for the winning replica in orange, corresponding to the right axis.
+
+For the classical and simulated quantum algorithms, ten
+independent trials were run and various statistics were
+computed for each of the problem instances, as shown
+Figure 4. Median values, equations of the fitted lines,
+and the quality of these fits are plotted for both number
+of samples and/or iterations as an indication of exponential growth rates for the five problem instances studied.
+
+On the left of Figure 4, in the 1-shot setting, we observe
+the classical algorithm outperforms the simulated quantum experiment for each problem instance. However, the
+fitted line representing the exponential growth rate for
+the MPS simulations is ∼ 83% of the classical results,
+suggesting an early indication of a scaling advantage of
+the quantum algorithm for the studied problems.
+
+10
+T=0.01 | med: 91668 | conv: 100.0%
+T=0.11 | med: n/a | conv: 0.0%
+T=0.21 | med: n/a | conv: 0.0%
+T=0.51 | med: n/a | conv: 0.0%
+T=1.01 | med: n/a | conv: 0.0%
+Target: -49
+
+250
+
+Objective Value
+
+200
+15
+20
+25
+30
+35
+40
+45
+50
+40000
+
+150
+100
+50
+
+50000
+
+60000
+
+70000
+
+80000
+
+90000
+
+100000
+
+0
+50
+0
+
+20000
+
+40000
+
+60000
+
+Iterations
+
+80000
+
+100000
+
+T=0.01 | med: 6293 | conv: 80.0%
+T=0.11 | med: 7554 | conv: 80.0%
+T=0.21 | med: 8191 | conv: 70.0%
+T=0.51 | med: 8576 | conv: 20.0%
+T=1.01 | med: n/a | conv: 0.0%
+Target: -49
+
+300
+250
+15
+20
+25
+30
+35
+40
+45
+50
+
+Objective Value
+
+200
+150
+100
+50
+
+120000
+
+0
+
+2000
+
+4000
+
+6000
+
+8000
+
+10000
+
+0
+50
+0
+
+2000
+
+4000
+
+Iterations
+
+6000
+
+8000
+
+60
+
+10000
+
+T=0.01 | med: 5101 | conv: 70.0%
+T=0.11 | med: 5051 | conv: 50.0%
+T=0.21 | med: 6447 | conv: 30.0%
+T=0.51 | med: 7006 | conv: 10.0%
+
+40
+
+T=1.01 | med: 9196 | conv: 10.0%
+Target: -49
+
+Objective Value
+
+30.0
+32.5
+
+20
+
+35.0
+37.5
+40.0
+
+0
+
+42.5
+45.0
+47.5
+
+20
+
+50.0
+0
+
+2000
+
+4000
+
+6000
+
+8000
+
+10000
+
+40
+
+0
+
+2000
+
+4000
+
+6000
+
+8000
+
+10000
+
+Iterations
+
+FIG. 3: Comparison of experimental setups for 117 node problem instance experiments. Simulations of the
+quantum-enhanced algorithm are compared to classical MCMC methods used to find the target objective. In the
+top panel, we present an MPS simulation of the quantum-enhanced algorithm. Across ten repeats, the target
+objective is found after a median of ∼ 90, 000 iterations for the coldest replica, with 1 shot per iteration. The middle
+panel shows a comparison to a classical MCMC simulation, which also uses 1 shot per iteration. Across ten repeats,
+the target objective is found in 4, 000 − 8, 000 iterations for the coldest replica, with a median of ∼ 6, 000 shots, or
+iterations. Finally, in the bottom panel, we display another classical MCMC simulation, where across ten repeats,
+the target objective is found in 4, 000 − 8, 000 iterations for the coldest replica, with a median of ∼ 5, 000 iterations,
+in this case using 10, 000 shots per iteration and a random sample taken from the best ten proposals.
+
+11
+Comparing shots for convergence for increasing problem instance size
+
+Comparing median iterations for convergence for increasing problem instance size
+
+Quantum algorithm (simulated)
+Classical algorithm
+
+Quantum algorithm (simulated)
+Classical algorithm
+Quantum algorithm (Heron r1 hardware)
+Quantum algorithm (Heron r2 hardware)
+Quantum algorithm (Heron r3 hardware)
+
+105
+
+105
+
+104
+
+103
+
+logy
+= 0.0511 x + 3.4360
+R 2 = 0.903
+logy
+= 0.0426 x + 6.3883
+R 2 = 0.938
+
+102
+
+0
+
+20
+
+40
+
+60
+
+80
+
+100
+
+Problem size (nodes)
+
+120
+
+140
+
+Iterations (log scale)
+
+Shots (log scale)
+
+104
+
+103
+
+102
+
+101
+
+log(y) = 0.0456 x + 0.3288
+R 2 = 0.853
+
+100
+
+0
+
+20
+
+40
+
+60
+
+80
+
+100
+
+Problem size (nodes)
+
+120
+
+140
+
+FIG. 4: A summary of anticipated performance scaling in terms of shots and iterations of the classical vs.
+quantum-enhanced algorithm. Median iterations to converge are reported for the 17, 39, 52, 80 and 117 node graphs
+after ten repeats of the classical and quantum-enhanced algorithms, and three repeats on hardware. A line of best
+fit provides us with a naı̈ve indication of scaling behavior as to how we anticipate each method to perform with
+increasing problem instance size. On the left, we present anticipated performance scaling in terms of shots for the
+classical vs. simulated quantum-enhanced algorithm, using the Qiskit Aer MPS simulator. On the right, we see
+anticipated performance scaling in terms of iterations of the classical vs. quantum-enhanced algorithm, both
+simulated and run on real Heron r1, Heron r2 and Heron r3 IBM quantum hardware.
+
+In the right panel of Figure 4, 10, 000 shots are taken
+for each iteration of the various experiments. In addition
+to the classical MCMC experiments with multiple samples and the MPS simulation of the quantum algorithm,
+which are each repeated ten times, we also run three repeats of the quantum experiments on three generations of
+the IBM quantum Heron devices for each of the problem
+instances. Specifically, we use Heron r1 (ibm torino),
+Heron r2 (ibm fez) and Heron r3 (ibm boston), which
+has the lowest error rates of these devices. The relevant
+error data is available via the IBM Quantum platform.
+Most slopes of the fitted lines in the right panel of Figure 4 are worse than those on the left panel. Yet, the
+gradient of the red line on the right panel of Figure 4,
+representing the Heron r3 results from ibm boston, has
+a comparable gradient to the fitted lines on the left panel.
+These Heron r3 hardware results outperform both the
+equivalent classical MCMC test, and the simulated quantum results in this multi-shot setting. Again, this suggests a promising scaling property for the quantum algorithm for the largest problem instances, both in comparison to its predecessor hardware, and with regards to both
+the classical and simulations of the quantum approach.
+Interestingly, MPS simulations perform best for the 52
+node problem on the right-hand panel of Figure 4. However, for the 80 and 117 node instances, the MPS simulations are outperformed by the real Heron r3 hardware.
+These results provide initial evidence that our quantum
+algorithms scales favorably with problem size compared
+to similar classical algorithms. Additional experiments
+are needed to further support this conclusion.
+
+V.
+
+DISCUSSION & CONCLUSIONS
+
+In this manuscript, we explored a quantum optimization algorithm based on a QeMCMC sampling routine
+to solve non-trivial combinatorial optimization problem
+instances. We have adapted the QeMCMC workflow to
+include a warm-started quantum optimization circuit and
+an intentional bias of our proposal distribution towards
+high-quality solutions. We further combined this with a
+parallel tempering approach, which is commonly used to
+find ground states of many-body systems, to explore the
+available cost landscape more efficiently.
+This heuristic quantum-classical algorithm has been
+tested against problem instances with up to 117 decision variables, corresponding to 117 qubits on real quantum hardware. While our method does not offer provable
+convergence guarantees, we recover the global optimum
+for all considered problem instances with 17, 39, 52, 80
+and 117 variables. The results provide early evidence
+of a scaling advantage over comparable classical MCMC
+approaches for the chosen problem instances. Notably,
+the quantum hardware also outperforms MPS simulations under the considered settings.
+While these results provide a promising start, several
+open questions remain. More experiments across larger
+sets of instances and additional problem classes are
+needed to further strengthen our conclusions. Alternative circuit constructions may further improve the performance, and approaches for scaling beyond hardware
+limitations, such as problem decomposition or block sampling, should be investigated.
+
+12
+To conclude, heuristic quantum-enhanced sampling approaches such as using the one explored here highlight
+growing optimism that practical utility, and even advantage, in quantum optimization may be achievable before
+full fault tolerance.
+
+Here, the Ising-like energies are computed by enumerating all 2n bitstrings {si } and evaluating their energies
+Ei = E(si ) under the MIS Hamiltonian. The corresponding probabilities are then obtained from the Boltzmann
+distribution defined in Eq. (1), yielding the exact classical
+distribution at temperature T .
+
+Note added regarding concurrent work
+
+In Figure 6a, we demonstrate the iterative process of
+converging to the desired Boltzmann distributions at
+T = 0.1, where kB = 1 on IBM Quantum superconducting hardware. When Ref. [16] was originally published,
+the authors were limited from running these experiments
+end-to-end, within one execution window. This was due
+to limitations of running iterative experiments on the
+available quantum hardware, which is explained fully in
+the associated work [16]. However, this execution style is
+now well-supported with Qiskit Runtime Session mode.
+In the work presented here, we use Session mode alongside parameter streaming capabilities, which provide a
+tight classical feedback loop for determining circuit parameters based on quantum experimental results, within
+the Session window. The results shown in Figure 6a and
+Figure 6b were obtained in this way, which allows for
+efficient job batching and reduced queuing latency.
+
+During the final preparation of this manuscript, a closely
+related preprint appeared that proposes a similar overall
+idea including small-scale classical simulation [56]. Our
+contribution differs in that we demonstrate the method
+experimentally on quantum hardware using over 100
+qubits. We also introduce practical details and evaluate the concrete circuit designs and implementation-level
+improvements required to achieve scalable execution.
+
+ACKNOWLEDGMENTS
+
+Acknowledgements - The authors thank David Layden,
+Mario Motta, Lewis W. Anderson, Benjamin Jaderberg,
+Lev S. Bishop, Stephan Eidenbenz, Reuben Tate, Antonio Mezzacapo, Max Rossmannek, Stefano Mensa and
+Jason Crain for helpful discussions and insight.
+This work was supported by the Hartree National Centre for Digital Innovation, a collaboration between the
+Science and Technology Facilities Council and IBM.
+
+Appendix A: Boltzmann sampling
+
+In the present manuscript, we implement circuits that
+resemble a first-order Trotter approximation of the discretized annealing Hamiltonian presented in Eq. (10).
+This is as opposed to the second-order Trotter formulation used for circuits constructed in Ref. [16]. Using
+the first-order approximation is possible since we are not
+so concerned with Trotter error in the scope of this work.
+Additionally, the first-order Trotter approximation resembles QAOA, which is useful in our setup when scaling
+to > 100 variable system sizes, as we can leverage advanced QAOA tools for optimizing parameters at these
+scales, such as MPS-based energy evaluators for classically tuning γ and β parameters. We demonstrate that
+with circuits resembling Eq. (19), our first-order Trotter
+decomposition of QeMCMC is still effective for sampling.
+In preparation for using QeMCMC in the heuristic setting implemented in this paper, we conduct small-scale
+Boltzmann sampling experiments for various temperatures, as were performed in Ref. [16]. We do this using
+a small, five-node MIS problem instance. Owing to the
+modest dimensionality of this system, the complete distribution over computational basis states can be readily
+visualized. In Figure 5, we see the theoretical Boltzmann
+distribution for this problem instance.
+
+These results are produced by first formulating the MIS
+problem for the five node problem using a Hamiltonian
+defined by the graph, to produce QAOA circuits of the
+form in Eq. (19), and then proceeding as per the logic
+described in Section III A. The QAOA circuits are used
+to construct a proposal, Q, explained in Section III F. We
+build Q in the form of a dense matrix where each column
+is updated according to the starting state, s, and sampled solutions, s′ , drawn from the quantum circuit. For
+a small problem like this, we can extract all components
+of this matrix exactly using brute force to build the full
+statevector, then enumerate until we have the full analytical matrix for Q. For larger problems, we would need
+to sample from quantum circuits to build up this matrix progressively, since the approach described here is
+resource intensive. We can also utilize sparse matrix approaches to approximate the matrix. Via both methods,
+we derive empirical probabilities of possible end states,
+s′ , from the start state, s.
+Next, we apply the MH acceptance probability as defined
+in Eq. (4), to construct a transition matrix, P , from the
+proposal matrix, Q, equivalent to P in Eq. (3). The resulting transition matrix is stochastic, and fully describes
+our Markov chain, incorporating both the proposal distribution and the MH acceptance rule. Our transition
+matrix, P , is then used to generate moves in the Markov
+chain, and over many iterations, or steps, we can construct plots like that shown in Figure 6a and in Figure 6b.
+From this, we can check that our stationary distribution
+is an eigenstate of the transition matrix, Q.
+We note that there is a general assumption within the
+community that HPC resources are required for implementing QeMCMC at non-trivial scales. In our work,
+
+13
+Boltzmann Distributions at Different Temperatures (bitstrings ordered by objective value)
+T = 0.1
+
+0.00
+
+Bitstrings (sorted by energy)
+
+0.01
+
+Bitstrings (sorted by energy)
+
+0.03
+0.02
+0.01
+00000
+10000
+00001
+00100
+11111
+01100
+00110
+10001
+00010
+01000
+01111
+11011
+11110
+01110
+11101
+10111
+11100
+00111
+01011
+11010
+11001
+10011
+01010
+00011
+11000
+10101
+10110
+01101
+01001
+10010
+10100
+00101
+
+0.00
+
+Bitstrings (sorted by energy)
+
+T = 10.0
+0.03
+0.02
+0.01
+0.00
+
+00000
+10000
+00001
+00100
+11111
+01100
+00110
+10001
+00010
+01000
+01111
+11011
+11110
+01110
+11101
+10111
+11100
+00111
+01011
+11010
+11001
+10011
+01010
+00011
+11000
+10101
+10110
+01101
+01001
+10010
+10100
+00101
+
+0.00
+
+T = 8.0
+
+Bitstrings (sorted by energy)
+
+Boltzmann P(E)
+
+0.01
+00000
+10000
+00001
+00100
+11111
+01100
+00110
+10001
+00010
+01000
+01111
+11011
+11110
+01110
+11101
+10111
+11100
+00111
+01011
+11010
+11001
+10011
+01010
+00011
+11000
+10101
+10110
+01101
+01001
+10010
+10100
+00101
+
+Boltzmann P(E)
+
+0.02
+
+Bitstrings (sorted by energy)
+
+Boltzmann P(E)
+
+Boltzmann P(E)
+
+0.01
+0.00
+
+00000
+10000
+00001
+00100
+11111
+01100
+00110
+10001
+00010
+01000
+01111
+11011
+11110
+01110
+11101
+10111
+11100
+00111
+01011
+11010
+11001
+10011
+01010
+00011
+11000
+10101
+10110
+01101
+01001
+10010
+10100
+00101
+
+Boltzmann P(E)
+
+0.02
+
+T = 9.0
+
+0.03
+
+0.01
+
+0.04
+
+0.03
+
+Bitstrings (sorted by energy)
+
+0.04
+
+0.02
+0.00
+
+T = 7.0
+
+0.04
+
+0.04
+
+0.00
+
+0.03
+
+00000
+10000
+00001
+00100
+11111
+01100
+00110
+10001
+00010
+01000
+01111
+11011
+11110
+01110
+11101
+10111
+11100
+00111
+01011
+11010
+11001
+10011
+01010
+00011
+11000
+10101
+10110
+01101
+01001
+10010
+10100
+00101
+
+0.02
+
+0.04
+
+Bitstrings (sorted by energy)
+
+T = 6.0
+
+0.01
+
+Boltzmann P(E)
+
+Boltzmann P(E)
+
+0.03
+
+Bitstrings (sorted by energy)
+
+0.02
+
+T = 5.0
+
+0.04
+
+0.00
+
+Bitstrings (sorted by energy)
+
+T = 4.0
+
+0.05
+
+00000
+10000
+00001
+00100
+11111
+01100
+00110
+10001
+00010
+01000
+01111
+11011
+11110
+01110
+11101
+10111
+11100
+00111
+01011
+11010
+11001
+10011
+01010
+00011
+11000
+10101
+10110
+01101
+01001
+10010
+10100
+00101
+
+Boltzmann P(E)
+
+T = 3.0
+
+0.03
+
+0.02
+0.00
+
+00000
+10000
+00001
+00100
+11111
+01100
+00110
+10001
+00010
+01000
+01111
+11011
+11110
+01110
+11101
+10111
+11100
+00111
+01011
+11010
+11001
+10011
+01010
+00011
+11000
+10101
+10110
+01101
+01001
+10010
+10100
+00101
+
+0.02
+
+0.04
+
+00000
+10000
+00001
+00100
+11111
+01100
+00110
+10001
+00010
+01000
+01111
+11011
+11110
+01110
+11101
+10111
+11100
+00111
+01011
+11010
+11001
+10011
+01010
+00011
+11000
+10101
+10110
+01101
+01001
+10010
+10100
+00101
+
+0.04
+
+Bitstrings (sorted by energy)
+
+0.05
+0.04
+0.03
+0.02
+0.01
+0.00
+
+Boltzmann P(E)
+
+0.06
+
+00000
+10000
+00001
+00100
+11111
+01100
+00110
+10001
+00010
+01000
+01111
+11011
+11110
+01110
+11101
+10111
+11100
+00111
+01011
+11010
+11001
+10011
+01010
+00011
+11000
+10101
+10110
+01101
+01001
+10010
+10100
+00101
+
+0.05
+
+T = 2.0
+0.06
+
+0.08
+
+00000
+10000
+00001
+00100
+11111
+01100
+00110
+10001
+00010
+01000
+01111
+11011
+11110
+01110
+11101
+10111
+11100
+00111
+01011
+11010
+11001
+10011
+01010
+00011
+11000
+10101
+10110
+01101
+01001
+10010
+10100
+00101
+
+0.10
+
+0.00
+
+T = 1.0
+Boltzmann P(E)
+
+0.15
+
+00000
+10000
+00001
+00100
+11111
+01100
+00110
+10001
+00010
+01000
+01111
+11011
+11110
+01110
+11101
+10111
+11100
+00111
+01011
+11010
+11001
+10011
+01010
+00011
+11000
+10101
+10110
+01101
+01001
+10010
+10100
+00101
+
+Boltzmann P(E)
+
+0.20
+
+Bitstrings (sorted by energy)
+
+FIG. 5: Theoretical distribution for a five node MIS problem instance, for a range of (dimensionless) temperatures T .
+
+HPC resources were used for a number of tasks both in
+experiment preparation and post-processing results, such
+as with parameter optimization and classical simulations
+of our largest implemented quantum circuits.
+
+up to a constant energy shift. We use a mapping with
+the relevant Paulis xi = (1 − Zi )/2, such that the MIS
+objective can be written as
+X
+
+However, generally, we avoided excessive use of HPC resources during the algorithm execution window by preemptively compiling circuits and using known QAOA
+best practices to scale our experiments. We also acknowledge that QeMCMC algorithms generally rely on
+a fast exchange of information between sampling from
+the quantum computer and a classical evaluation procedure to accept or reject a proposal. For the scales of
+problems investigated here, up to 117 qubits, the use of
+remote APIs, such as the Qiskit Runtime Session mode
+mentioned previously, were sufficient for our use case.
+However, we anticipate the classical computational demand of this algorithm to increase as we look to solve
+larger problem instances.
+
+Appendix B: Maximum independent set mapping
+
+We briefly explain the mapping from the QUBO defined
+in Eq. (8), to a Hamiltonian of the form
+Hcost = Hobjective + λHconstraint ,
+
+xi =
+
+i
+
+|V | 1 X
+|V |
+−
+Zi =
++ Hobjective ,
+2
+2 i
+2
+
+where Hobjective = − 21
+
+(B1)
+
+P
+
+i Zi , up to an additive constant.
+
+Similarly, the constraint penalty becomes
+X
+
+−λ
+
+xi xj = −
+
+(vi ,vj )∈E
+
+=−
+
+λ
+4
+
+X
+
+(1 − Zi − Zj + Zi Zj )
+
+(vi ,vj )∈E
+
+λ|E|
++ λHconstraint ,
+4
+
+(B2)
+
+where
+Hconstraint =
+
+1
+4
+
+X
+
+(Zi Zj − Zi − Zj ) ,
+
+(vi ,vj )∈E
+
+again up to an additive constant. Here, the first term
+is a constant energy offset, while the remaining terms
+define the Hamiltonian encoding the constraints of the
+maximum independent set problem. These terms consist of single-qubit contributions proportional to Zi and
+pairwise interaction terms of the form Zi Zj . Upon promoting the classical spin variables to Pauli-Z operators,
+
+14
+After k = 0 MCMC steps
+
+After k = 10 MCMC steps
+
+After k = 500 MCMC steps
+
+After k = 1000 MCMC steps
+
+Boltzmann distribution
+
+0.15
+
+Probability
+
+Estimated probability
+
+0.20
+
+0.10
+0.05
+0.00
+
+0
+
+10
+20
+Spin configuration
+
+30
+
+0
+
+10
+20
+Spin configuration
+
+30
+
+0
+
+10
+20
+Spin configuration
+
+30
+
+0
+
+10
+20
+Spin configuration
+
+30
+
+0
+
+10
+20
+Spin configuration
+
+30
+
+(a) T = 0.1.
+After k = 0 MCMC steps
+
+0.05
+
+After k = 10 MCMC steps
+
+After k = 20 MCMC steps
+
+After k = 50 MCMC steps
+
+Boltzmann distribution
+
+0.03
+
+Probability
+
+Estimated probability
+
+0.04
+
+0.02
+0.01
+0.00
+
+0
+
+10
+20
+Spin configuration
+
+30
+
+0
+
+10
+20
+Spin configuration
+
+30
+
+0
+
+10
+20
+Spin configuration
+
+30
+
+0
+
+10
+20
+Spin configuration
+
+30
+
+0
+
+10
+20
+Spin configuration
+
+30
+
+(b) T 10.
+
+FIG. 6: Convergence to the stationary distribution for QeMCMC experiment at a high and low temperature.
+
+the independent set objective and constraints take the
+form of a classical Ising Hamiltonian,
+X
+X
+HIsing = −
+hi Zi −
+Jij Zi Zj ,
+(B3)
+i
+
+(vi ,vj )∈E
+
+where the coefficients hi and Jij arise directly from the
+linear and quadratic operator terms in Eqs. (B1) and
+(B2), up to a similar additive constant. Finally, while
+the MIS problem
+P is naturally posed as a maximization of
+the objective i xi , we adopt the standard physics convention of defining an energy function as the negative of
+this objective (with additional penalty terms), thereby
+converting the problem into an equivalent energy minimization task whose ground states correspond to optimal
+solutions.
+Appendix C: Circuit optimization
+
+In this Section, we discuss the tuning of parameters
+for individual QeMCMC replica circuits, which resemble
+p = 2 QAOA. The MIS problem is mapped to a QUBO,
+described by an Ising Hamiltonian Hcost , by adding the
+constraints as penalty terms. The optimization landscape of our encoded problem changes with the value
+of this penalty term. As such, we tune this term in
+such a way that smoothens this landscape, generally with
+smaller penalty values. The state ψ(β, γ; λ) constructed
+on the hardware thus depends on the QAOA angles (β, γ)
+and the Lagrange multiplier λ. The latter is set by an
+optimization procedure that tries to equate the expectation value of the objective terms in Hobjective and the
+constraint terms of Hconstraint when sampling from |ψ⟩,
+
+see details in Ref. [14]. This can result in good quality
+samples s drawn from |ψ⟩ when executed on quantum
+hardware, even though the ground state of Hcost is not
+necessarily the same as the solution of the MIS problem
+when λ < 2.
+For each explored value of λ, the QAOA angles are optimized classically with the QAOA Training Pipeline [48].
+This open-source package allows one to design a chain of
+parameter trainers to find β and γ in |ψ⟩ along with the
+methods to evaluate the energy ⟨ψ|Hcost |ψ⟩. To train
+parameters for our p = 2 QAOA we first find optimal
+depth p = 1 parameters with SciPy running COBYLA
+from the initial point β1 = 0 and γ1 = 0. Next, the resulting optimal β1⋆ and γ1⋆ are used as the initial point for
+a transition state trainer to find the parameters at depth
+p = 2. A constraint is applied such that γ1 = γ2 ≡ γ
+and β1 = β2 ≡ β, as is discussed at the beginning of
+Section III F. Here, since we use p = 2 QAOA, three
+transition states are explored and the QAOA angles with
+the best energy are used [57]. The energy is evaluated
+approximately with an MPS operating at various thresholds of 10−6 to 10−10 , largely to ensure energies have
+converged with respect to truncation threshold.
+Finally, to further enable our QAOA circuits which
+are used to generate the proposal distribution in our
+quantum-enhanced solver, we bias our circuits with
+a warm-starting implementation, as discussed in Section III B. First, a relaxed version of the original problem is solved with a quantum circuit, and the resulting
+solution is used to warm-start the next iteration of our
+algorithm. This process is visualized in Figure 1. To do
+this, we extend the work documented in Ref. [28].
+
+15
+Accordingly, we use several standard design considerations from the parallel tempering literature [36–40, 50,
+51, 60, 61] to guide our experiments. Firstly, determining
+the number of replicas and their corresponding temperatures is key in ensuring algorithmic performance [39].
+In parallel tempering, the maximum temperature Thigh
+should be chosen so that replicas can escape local energy minima. The number of replicas must be sufficient
+to allow swaps to occur reliably between adjacent temperatures. In our setup, we determined the temperature
+range by first computing the maximum temperature using an inverted Boltzmann factor,
+
+1
+
+𝜀𝜇
+Less warm start
+More mixing
+
+1
+
+2
+
+Standard QAOA
+
+3
+
+More warm start
+Less mixing
+
+0
+
+Thigh = −
+𝜀𝑖𝑛𝑖𝑡
+
+1
+
+FIG. 7: Visualization of different combinations of
+parameters εinit and εµ . Regions labeled 1, 3 and 2,
+which indicate more or less warm starting and mixing
+respectively, were all tested in this work.
+
+The process involves defining a regularization parameter,
+ε, which determines the rotation angles used in the initial state and mixer layer of subsequent QAOA circuits,
+as described in Section III B. In this work, when tuning
+ε, we began testing with the same values originally used
+by authors in Ref. [28]. We also scanned nearby values to
+this starting point and tested for optimal performance.
+Finally, we also tried explicitly separating ε for defining the Ry (θ) rotations applied to the initial state, εinit ,
+and for the mixer, εµ , such that we could explore the
+continuum of options between partially and fully warm
+starting our circuits, or not at all. The different regimes
+we explored in the work documented in this paper are visualized in Figure 7. However, we observed that the area
+of alignment between εinit and εµ , i.e. on the diagonal
+of the plot, leads to the most performant results. This
+result agrees with conclusions made in Ref. [58]. With
+an aligned mixer constructed such that |sθ ⟩ is its ground
+state, we can also expect to preserve the convergence
+guarantee in the limit p → ∞ [30].
+
+Appendix D: Tuning the parallel tempering
+experimental setup
+
+In this Appendix, we explain how the parameters used
+in the parallel tempering setup were selected. As a reminder, parallel tempering was initially developed to improve MCMC sampling of Gibbs distributions [36–38],
+but it is also commonly adapted as an optimization tool
+to find low-energy or ground-state solutions, where we expect the target ground state energy to coincide with the
+expected value of the Gibbs free energy of a low temperature replica of the parallel tempering experiment [39, 59].
+
+xmax
+,
+kB ln Phigh
+
+(D1)
+
+where xmax is the largest eigenvalue of Hcost , which is precomputed for our smaller problem instance of 17 qubits
+using exact diagonalization. Since studying the spectrum
+of the Hamiltonian in this way is only possible for our
+smallest problems, we must rely on the fact that our
+problem instances are closely related in exhibiting heterogeneous degree distributions and nontrivial interaction structure. As such, we can appropriately extrapolate these values for the larger related problem instances
+as a starting point, before tuning these values experimentally. Phigh is the target acceptance probability for
+high temperature moves, in our examples we choose a
+sensible value guided by the literature Phigh ≥ 0.5. The
+minimum temperature should be a small-fixed value to
+allow adequate sampling of low-energy states. We further
+tune temperatures experimentally to gauge a setting that
+leverages optimal performance on the hardware. Based
+on heuristic MCMC test runs, we clip Tlow = 0.01, i.e.
+to just above zero, in our experiments. This is necessary
+to ensure that there is always a non-zero probability of a
+transition even in cases where proposed moves result in
+higher energy solutions.
+With the temperature range fixed, the number of replicas
+N was similarly chosen heuristically to achieve adequate
+swap acceptance between adjacent temperatures. For a
+fixed range [Tlow , Thigh ], we increased the number of replicas until adjacent temperatures yield satisfactory swap
+acceptance probabilities, typically in the range 20-40%
+[50, 60]. We then constructed a geometric temperature
+ladder
+
+ i−1
+Thigh N −1
+Ti = Tlow
+,
+(D2)
+Tlow
+for i = 1, 2, . . . , N .
+This spacing concentrates replicas at lower temperatures
+(where energy barriers are more pronounced) while still
+permitting replicas with higher temperatures [51].
+Next, we consider the replica-exchange regularity, defined
+by the parameter ∆tswap = 1/k. Let k denote the number of local MCMC updates performed between consecutive exchange attempts (so an exchange is attempted
+
+16
+
+60
+
+T=0.01
+T=0.11
+T=0.21
+T=0.51
+T=1.01
+Target: -49
+
+Objective Value
+
+40
+26
+
+20
+
+28
+30
+
+0
+
+32
+34
+36
+
+20
+
+15
+
+20
+
+25
+
+30
+
+35
+
+40
+
+45
+
+50
+
+55
+
+60
+
+40
+0
+
+200
+
+400
+
+Iterations
+
+600
+
+800
+
+1000
+
+FIG. 8: 117 node graph MIS problem results, using an MPS-based sampling simulation of the quantum circuits.
+Iterations of the algorithm are plotted against the computed objective values, or energy, at each iteration. Each
+iteration involves taking 10, 000 samples, and randomly subsampling from a smaller subset of these samples. The
+results plotted are mean values with error bars computed from standard deviations, using ten repeats of the
+simulated tests. The inset shows faster mixing of individual replicas via replica exchange at regular intervals,
+towards the converged solution with an energy of −49.
+
+after every k local updates). We selected k experimentally to yield satisfactory swap acceptance probabilities.
+In our setup, k was chosen in the range 1 ≤ k ≤ 5. Furthermore, in the replica exchange stage of the algorithm,
+there exist several ways to implement the exchange step
+[61]. In this work, we used a stochastic even-odd algorithm. Let N = {(i, i + 1) | i = 1, . . . , N − 1} be
+the set of neighboring replica pairs in the temperature
+ladder. Furthermore, define the even and odd subsets:
+E = {(2j, 2j + 1)}, O = {(2j − 1, 2j)}. At each iteration, we alternate between even and odd replica pairs,
+and swap attempts are performed for all pairs within
+the selected subset. This allows exchanges that propagate information down the temperature ladder toward
+the coldest chains. The algorithm then proceeds until termination, which in our setup occurs either when a target
+objective value is reached or when 200, 000 iterations are
+exhausted.
+
+An example MPS simulation of the parallel tempering
+experiment run on hardware in Figure 2 is presented in
+Figure 8, where the zoomed in panel allows us to visualize
+the replica exchange process at work.
+
+Appendix E: QAOA ansatz construction
+
+QAOA composes an ansatz circuit following Eq. (19).
+Of course, the graph topologies of the problem instances
+used do not match the qubit connectivity graphs of the
+quantum hardware. Therefore, implementing the full
+cost operator requires deep networks of SWAP gates,
+even when advanced compilation and transpilation tools
+are employed, which themselves introduce various SAT
+mappings and SWAP strategies to try to reduce circuit
+depth [48]. For example, the 117 node problem would
+require a two-qubit gate depth of 696 to fully implement e−iγHcost . These deep circuits are problematic for
+noisy quantum hardware. Indeed, beyond a certain circuit depth, the gains of capturing more of the structure
+of the problem through additional SWAP gates is eroded
+by device noise. This tradeoff was explored in Ref. [62]
+on random 3−regular graphs, where best samples were
+obtained by a p = 2 QAOA. Ths simplified ansatz Hcost
+was chosen by allowing 2 or 3 layers of SWAP gates.
+We construct simplifications of the problem that we can
+execute, by applying a SWAP network to the graph
+[62, 63]. The simplest instances are effectively hardware
+native graphs. We generate subgraphs of the problem
+that are overlapping, and become incrementally more
+
+17
+complex (in terms of density of edges in the graph) with
+more SWAP layers allowed, resulting in a higher overlap with the full graph. From these subgraphs, we can
+select an ansatz circuit that sensibly balances quality of
+samples with feasibility to run on hardware. The QAOA
+ansatz that we implement is given by
+′
+
+′
+
+UQAOA = e−iβ2 Hmix e−iγ2 Hcost e−iβ1 Hmix e−iβ2 Hcost (E1)
+′
+where Hcost
+implements only the subset of the Zi Zj terms
+that can be implemented with two layers of SWAP gates
+on a line of qubits.
+
+In choosing the ansatz for each of the problem instances,
+we study the behavior seen when increasing the number of SWAP layers to see whether this also increases the
+quality of the samples. We tune the quality of the QAOA
+circuit ansatz, to understand where sample quality no
+longer increase with the number of SWAP layers allowed,
+and after what point we see noise degrading the results.
+We observe how the quality of the ansatz performs for a
+p = 2 QAOA given a maximum number of SWAP layers,
+k. We optimize angles for the QAOA for the chosen (p, k)
+as per the process described in Appendix C. Finally, we
+draw samples from the hardware and compute the average approximation ratio of the resulting objectives, for
+each of four possible ansaetz to be studied, in this example for the 52 node graph problem. Since we are working
+with constrained optimization, we filter for valid samples
+
+[1] A. Abbas, A. Ambainis, B. Augustino, A. Bärtschi,
+H. Buhrman, C. Coffrin, G. Cortiana, V. Dunjko, D. J.
+Egger, B. G. Elmegreen, N. Franco, F. Fratini, B. Fuller,
+J. Gacon, C. Gonciulea, S. Gribling, S. Gupta, S. Hadfield, R. Heese, G. Kircher, T. Kleinert, T. Koch, G. Korpas, S. Lenk, J. Marecek, V. Markov, G. Mazzola,
+S. Mensa, N. Mohseni, G. Nannicini, C. O’Meara, E. P.
+Tapia, S. Pokutta, M. Proissl, P. Rebentrost, E. Sahin,
+B. C. B. Symons, S. Tornow, V. Valls, S. Woerner, M. L.
+Wolf-Bauwens, J. Yard, S. Yarkoni, D. Zechiel, S. Zhuk,
+and C. Zoufal, Challenges and opportunities in quantum
+optimization, Nature Reviews Physics 6, 718–735 (2024).
+[2] E. Farhi, J. Goldstone, S. Gutmann, J. Lapan, A. Lundgren, and D. Preda, A quantum adiabatic evolution algorithm applied to random instances of an np-complete
+problem, Science 292, 472–475 (2001).
+[3] E. Farhi, J. Goldstone, and S. Gutmann, A quantum approximate optimization algorithm applied to a bounded
+occurrence constraint problem (2015), arXiv:1412.6062
+[quant-ph].
+[4] M. B. Hastings, A short path quantum algorithm for exact optimization (2018), arXiv:1802.10124 [quant-ph].
+[5] J. Basso, E. Farhi, K. Marwaha, B. Villalonga, and
+L. Zhou, The quantum approximate optimization algorithm at high depth for maxcut on large-girth regular graphs and the sherrington–kirkpatrick model, in
+Proceedings of the 17th Conference on the Theory of
+Quantum Computation, Communication and Cryptogra-
+
+before computing their objective values and taking an
+average for the approximation ratio. We also test with
+and without a classical correction step for the proposed
+solutions to the MIS. This is a classical post-processing
+step that aggressively removes nodes across the proposals that violate the constraints for the MIS problem. The
+solution is then improved upon where possible. We apply this classical correction step in this analysis, since the
+full iterative algorithm proposed in this paper is not used
+and we are only testing the quality of samples from the
+ansaetz. It is noted that even classically corrected samples from the ansatz circuits tested without the iterative
+algorithm approach presented in this paper are not able
+to reach the true solution to this 52 node problem.
+
+Using the results in Table V, we see how number of
+SWAP layers, k, affects quality of the ansatz, informing
+our choice of ansatz for our algorithm. When we consider
+only feasible solutions to the raw circuit samples, we see
+quality of the samples (measured by the value of the approximation ratio between [0, 1]) steadily increase up to
+37 SWAP layers, and then degrade. For those solutions
+that have been classically corrected, the approximation
+ratios are higher. The 37 and 49 SWAP layer ansaetz are
+most successful, since they have the highest overlap with
+the full graph. With this, we justify our decision to use
+the 37 SWAP layer ansatz for this 52 node problem.
+
+Nodes/qubits No. SWAP layers
+52
+52
+52
+52
+52
+52
+52
+52
+
+13
+25
+37
+49
+13
+25
+37
+49
+
+Classical
+Approx. ratio
+post-processing
+False
+0.0172
+False
+0.0241
+False
+0.0403
+False
+0.0394
+True
+0.9074
+True
+0.9002
+True
+0.9109
+True
+0.9111
+
+TABLE V: Approximation ratios taken for various
+ansaetz to the full 52 node graph, given a number of
+allowed SWAP layers.
+
+phy (TQC 2022), Vol. 232 (Schloss Dagstuhl – LeibnizZentrum für Informatik, 2022) pp. 7:1–7:21.
+[6] A. M. Dalzell, N. Pancotti, E. T. Campbell, and F. G.
+Brandão, Mind the gap: Achieving a super-grover quantum speedup by jumping to the end, in Proceedings of the
+55th Annual ACM Symposium on Theory of Computing,
+STOC ’23 (ACM, 2023) p. 1131–1144.
+[7] R. Shaydulin, C. Li, S. Chakrabarti, M. DeCross, D. Herman, N. Kumar, J. Larson, D. Lykov, P. Minssen, Y. Sun,
+Y. Alexeev, J. M. Dreiling, J. P. Gaebler, T. M. Gatterman, J. A. Gerber, K. Gilmore, D. Gresh, N. Hewitt,
+C. V. Horst, S. Hu, J. Johansen, M. Matheny, T. Mengle, M. Mills, S. A. Moses, B. Neyenhuis, P. Siegfried,
+R. Yalovetzky, and M. Pistoia, Evidence of scaling ad-
+
+18
+vantage for the quantum approximate optimization algorithm on a classically intractable problem, Science Advances 10, 10.1126/sciadv.adm6761 (2024).
+[8] E. Farhi, J. Goldstone, and S. Gutmann, A quantum approximate optimization algorithm (2014),
+arXiv:1411.4028 [quant-ph].
+[9] J. Wurtz and P. Love, Maxcut quantum approximate
+optimization algorithm performance guarantees for p ¿
+1, Physical Review A 103, 10.1103/physreva.103.042612
+(2021).
+[10] P. Chandarana, A. G. Cadavid, S. V. Romero, A. Simen,
+E. Solano, and N. N. Hegade, Runtime quantum
+advantage with digital quantum optimization (2025),
+arXiv:2505.08663 [quant-ph].
+[11] J. Eisert and J. Preskill, Mind the gaps: The fraught road
+to quantum advantage (2025), arXiv:2510.19928 [quantph].
+[12] M. J. A. Schuetz, R. Yalovetzky, R. S. Andrist,
+G. Salton, Y. Sun, R. Raymond, S. Chakrabarti,
+A. Acharya, R. Shaydulin, M. Pistoia, and H. G. Katzgraber, qredumis: A quantum-informed reduction algorithm for the maximum independent set problem (2025),
+arXiv:2503.12551 [quant-ph].
+[13] Y. Kim, A. Eddins, S. Anand, et al., Evidence for the
+utility of quantum computing before fault tolerance, Nature 618, 500 (2023).
+[14] T. Koch, D. E. B. Neira, Y. Chen, G. Cortiana, D. J. Egger, R. Heese, N. N. Hegade, A. G. Cadavid, R. Huang,
+T. Itoko, T. Kleinert, P. M. Xavier, N. Mohseni,
+J. A. Montanez-Barrera, K. Nakano, G. Nannicini,
+C. O’Meara, J. Pauckert, M. Proissl, A. Ramesh,
+M. Schicker, N. Shimada, M. Takeori, V. Valls, D. V.
+Bulck, S. Woerner, and C. Zoufal, Quantum optimization
+benchmarking library - the intractable decathlon (2025),
+arXiv:2504.03832 [quant-ph].
+[15] G. Mazzola, Sampling, rates, and reaction currents
+through reverse stochastic quantization on quantum computers, Phys. Rev. A 104, 022431 (2021).
+[16] D. Layden, G. Mazzola, R. V. Mishmash, M. Motta,
+P. Wocjan, J.-S. Kim, and S. Sheldon, Quantumenhanced markov chain monte carlo, Nature 619,
+282–287 (2023).
+[17] A. Orfi and D. Sels, Barriers to efficient mixing of
+quantum-enhanced markov chains, Physical Review A
+110, 052434 (2024).
+[18] A. Orfi and D. Sels, Bounding the speedup of the
+quantum-enhanced markov-chain monte carlo algorithm,
+Physical Review A 110, 052414 (2024).
+[19] S. Ferguson and P. Wallden, Quantum-enhanced markov
+chain monte carlo for systems larger than a quantum
+computer, Physical Review Research 7, 013231 (2025).
+[20] J. Christmann, P. Ivashkov, M. Chiurco, and G. Mazzola,
+From quantum-enhanced to quantum-inspired monte
+carlo, Physical Review A 111, 042615 (2025).
+[21] L. Chang, Z. Li, and W.-H. Fang, Quantum-assisted variational monte carlo, Precision Chemistry (2025).
+[22] N. N. Hegade, N. L. Kortikar, B. A. Bhargava, J. F. R.
+Hernández, A. G. Cadavid, P. Chandarana, S. V.
+Romero, S. Kumar, A. Simen, A.-M. Visuri, E. Solano,
+and P. A. Erdman, Digitized counterdiabatic quantum
+sampling (2025), arXiv:2510.26735 [quant-ph].
+[23] S. Bravyi, O. Dial, J. M. Gambetta, D. Gil, and
+Z. Nazario, The future of quantum computing with superconducting qubits, Journal of Applied Physics 132,
+
+10.1063/5.0082975 (2022).
+[24] S. Geman and D. Geman, Stochastic relaxation, gibbs
+distributions, and the bayesian restoration of images,
+IEEE Transactions on Pattern Analysis and Machine Intelligence PAMI-6, 721 (1984).
+[25] N. Metropolis, A. W. Rosenbluth, M. N. Rosenbluth,
+A. H. Teller, and E. Teller, Equation of state calculations
+by fast computing machines, The Journal of Chemical
+Physics 21, 1087 (1953).
+[26] W. K. Hastings, Monte carlo sampling methods using
+markov chains and their applications, Biometrika 57, 97
+(1970).
+[27] M. Mezard and A. Montanari, Information, Physics, and
+Computation (Oxford University Press, Inc., USA, 2009).
+[28] D. J. Egger, J. Mareček, and S. Woerner, Warm-starting
+quantum optimization, Quantum 5, 479 (2021).
+[29] R. Tate, M. Farhadi, C. Herold, G. Mohler, and S. Gupta,
+Bridging classical and quantum with sdp initialized
+warm-starts for qaoa (2022), arXiv:2010.14021 [quantph].
+[30] R. Tate, J. Moondra, B. Gard, G. Mohler, and S. Gupta,
+Warm-started qaoa with custom mixers provably converges and computationally beats goemans–williamson’s
+max-cut at low circuit depths, Quantum 7, 1121 (2023).
+[31] M. Cain, E. Farhi, S. Gutmann, D. Ranard, and E. Tang,
+The qaoa gets stuck starting from a good classical string
+(2023), arXiv:2207.05089 [quant-ph].
+[32] S. Feeney, R. Tate, and S. Eidenbenz, The better solution
+probability metric: Optimizing qaoa to outperform its
+warm-start solution (2024), arXiv:2409.09012 [quant-ph].
+[33] R. Tate and S. Eidenbenz, Theoretical approximation
+ratios for warm-started qaoa on 3-regular max-cut instances at depth p = 1 (2024), arXiv:2402.12631 [quantph].
+[34] R. Tate and S. Eidenbenz, Warm-started qaoa with
+aligned mixers converges slowly near the poles of the
+bloch sphere (2024), arXiv:2410.00027 [quant-ph].
+[35] B. Bhattacharyya, M. Capriotti, and R. Tate, Solving
+general qubos with warm-start qaoa via a reduction to
+max-cut (2025), arXiv:2504.06253 [quant-ph].
+[36] R. H. Swendsen and J.-S. Wang, Replica monte carlo simulation of spin-glasses, Physical review letters 57, 2607
+(1986).
+[37] C. J. Geyer, Markov chain monte carlo maximum likelihood, in Computing Science and Statistics: Proceedings
+of the 23rd Symposium on the Interface (American Statistical Association, New York, 1991) p. 156.
+[38] K. Hukushima and K. Nemoto, Exchange monte carlo
+method and application to spin glass simulations, Journal
+of the Physical Society of Japan 65, 1604 (1996).
+[39] D. J. Earl and M. W. Deem, Parallel tempering: Theory,
+applications, and new perspectives, Physical Chemistry
+Chemical Physics 7, 3910 (2005).
+[40] S. Brooks, A. Gelman, G. Jones, and X.-L. Meng, Handbook of markov chain monte carlo (CRC press, 2011).
+[41] K. Temme, S. Bravyi, and J. M. Gambetta, Error mitigation for short-depth quantum circuits, Physical Review
+Letters 119, 10.1103/physrevlett.119.180509 (2017).
+[42] S. Endo, S. C. Benjamin, and Y. Li, Practical quantum error mitigation for near-future applications, Physical Review X 8, 10.1103/physrevx.8.031027 (2018).
+[43] A. Kandala, K. Temme, A. D. Córcoles, A. Mezzacapo,
+J. M. Chow, and J. M. Gambetta, Error mitigation extends the computational reach of a noisy quantum pro-
+
+19
+cessor, Nature 567, 491–495 (2019).
+[44] S. Endo, Z. Cai, S. C. Benjamin, and X. Yuan, Hybrid
+quantum-classical algorithms and quantum error mitigation, Journal of the Physical Society of Japan 90, 032001
+(2021).
+[45] S. V. Barron, D. J. Egger, E. Pelofske, A. Bärtschi,
+S. Eidenbenz, M. Lehmkuehler, and S. Woerner, Provable
+bounds for noise-free expectation values computed from
+noisy samples, Nature Computational Science 4, 865–875
+(2024).
+[46] P. K. Barkoutsos, G. Nannicini, A. Robert, I. Tavernelli,
+and S. Woerner, Improving Variational Quantum Optimization using CVaR, Quantum 4, 256 (2020).
+[47] D. C. McKay, I. Hincks, E. J. Pritchett, M. Carroll, L. C. G. Govia, and S. T. Merkel, Benchmarking quantum processor performance at scale (2023),
+arXiv:2311.05933 [quant-ph].
+[48] Q. Community, Qaoa training pipeline, https://github.
+com/qiskit-community/qaoa_training_pipeline
+(2025).
+[49] D. J. Egger, Independent set benchmarking, https://
+github.com/eggerdj/independent_set_benchmarking
+(2025).
+[50] A. Kone and D. A. Kofke, Selection of temperature intervals for parallel-tempering simulations, The Journal of
+chemical physics 122 (2005).
+[51] W. Nadler and U. H. Hansmann, Optimized explicitsolvent replica exchange molecular dynamics from
+scratch, The Journal of Physical Chemistry B 112, 10386
+(2008).
+[52] J. D. Chodera and M. R. Shirts, Replica exchange and
+expanded ensemble simulations as gibbs sampling: Simple improvements for enhanced mixing, The Journal of
+chemical physics 135 (2011).
+[53] R. A. Rossi and N. K. Ahmed, The network data repository with interactive graph analytics and visualization,
+in Proceedings of the AAAI Conference on Artificial Intelligence (2015).
+[54] IBM, IBM ILOG CPLEX Optimization Studio, IBM
+
+Corporation (2023).
+[55] A. Javadi-Abhari, M. Treinish, K. Krsulich, C. J.
+Wood, J. Lishman, J. Gacon, S. Martiel, P. D. Nation,
+L. S. Bishop, A. W. Cross, B. R. Johnson, and J. M.
+Gambetta, Quantum computing with Qiskit (2024),
+arXiv:2405.08810 [quant-ph].
+[56] S. Ferguson and P. Wallden, Methods for non-variational
+heuristic quantum optimisation (2026), arXiv:2602.01353
+[quant-ph].
+[57] S. H. Sack, R. A. Medina, R. Kueng, and M. Serbyn,
+Recursive greedy initialization of the quantum approximate optimization algorithm with guaranteed improvement, Phys. Rev. A 107, 062404 (2023).
+[58] Z. He, R. Shaydulin, S. Chakrabarti, D. Herman, C. Li,
+Y. Sun, and M. Pistoia, Alignment between initial state
+and mixer improves qaoa performance for constrained optimization, npj Quantum Information 9, 10.1038/s41534023-00787-5 (2023).
+[59] W. Wang, J. Machta, and H. G. Katzgraber, Comparing
+monte carlo methods for finding ground states of ising
+spin glasses: Population annealing, simulated annealing,
+and parallel tempering, Physical Review E 92, 013303
+(2015).
+[60] U. H. Hansmann, Parallel tempering algorithm for conformational studies of biological molecules, Chemical
+Physics Letters 281, 140 (1997).
+[61] M. Lingenheil, R. Denschlag, G. Mathias, and P. Tavan, Efficiency of exchange schemes in replica exchange,
+Chemical Physics Letters 478, 80 (2009).
+[62] S. Drăgoi, A. Baiardi, and D. J. Egger, Approximate
+quadratization of high-order hamiltonians for combinatorial quantum optimization (2025), arXiv:2505.04700
+[quant-ph].
+[63] J. Weidenfeller, L. C. Valor, J. Gacon, C. Tornow,
+L. Bello, S. Woerner, and D. J. Egger, Scaling of the
+quantum approximate optimization algorithm on superconducting qubit based hardware, Quantum 6, 870
+(2022).
+
+

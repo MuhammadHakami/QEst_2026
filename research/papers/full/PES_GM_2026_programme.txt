@@ -1,0 +1,9013 @@
+2026
+
+IEEE POWER & ENERGY SOCIETY
+
+GENERAL MEETING
+PROGRAM
+
+SCHEDULE
+
+19–23 JULY 2026
+Montréal, Canada
+
+pes-gm.org
+
+Save the Date!
+2027 IEEE PES General Meeting
+25–29 July 2027 · San Francisco, CA, USA
+Call for papers will open 6 October 2026
+
+TABLE OF CONTENTS
+Welcome Letter ������������������������������������������������������������������������������������������������������������������������������� 2
+General Information ����������������������������������������������������������������������������������������������������������������������� 3
+Convention Center Maps ��������������������������������������������������������������������������������������������������������������� 4
+CEUs & PDHs, Conduct & Safety Statement ������������������������������������������������������������������������������� 7
+Committees
+2026 IEEE PES General Meeting Local Organizing Committee������������������������������������������������������������� 8
+IEEE Power and Energy Governing Board����������������������������������������������������������������������������������������������� 8
+Technical Committee Program Chairs (TCPC)����������������������������������������������������������������������������������������� 9
+
+Opening Plenary Session Panel ������������������������������������������������������������������������������������������������� 10
+Program Schedule
+Sunday, July 19����������������������������������������������������������������������������������������������������������������������������������������� 11
+Monday, July 20 ������������������������������������������������������������������������������������������������������������������������������������� 13
+Tuesday, July 21 ������������������������������������������������������������������������������������������������������������������������������������� 18
+Wednesday, July 22 ������������������������������������������������������������������������������������������������������������������������������� 27
+Thursday, July 23 �������������������������������������������������������������������������������������������������������������������������������������33
+
+Meet the Candidates
+Hong Chen�����������������������������������������������������������������������������������������������������������������������������������������������36
+Jessica J. Bian�������������������������������������������������������������������������������������������������������������������������������������������38
+
+IEEE Milestones ����������������������������������������������������������������������������������������������������������������������������� 40
+
+WELCOME LETTER
+Welcome to the 2026 IEEE Power and Energy Society
+(PES) General Meeting, taking place in the vibrant
+city of Montréal. Known for its innovation ecosystem,
+multicultural character, world-class universities, and
+thriving technology community, Montréal is a city
+where tradition and innovation coexist seamlessly.
+As one of North America’s leading centers for
+artificial intelligence research, clean technology, and
+advanced engineering, Montréal embodies the spirit
+of transformation that defines our timely and forwardlooking conference theme: Powering the Digital Era.
+We hope you will take time to experience the city’s
+renowned hospitality, architecture, culinary excellence,
+arts, and cultural diversity during your stay.
+As the global energy landscape undergoes
+unprecedented transformation, the electric power
+industry stands at the center of a rapidly evolving
+digital revolution. Advances in artificial intelligence,
+grid modernization, cybersecurity, electrification,
+distributed energy resources, cloud computing,
+advanced communications, and data-driven operations
+are redefining the way energy is generated, transmitted,
+distributed, managed, and consumed. The digital era is
+creating remarkable opportunities to improve reliability,
+sustainability, resilience, affordability, and customer
+engagement across power systems worldwide. At
+the same time, it challenges us to rethink traditional
+models, strengthen infrastructure, and prepare the
+workforce of the future.
+Our program begins with a Welcome Reception on
+Sunday evening, setting the stage for an engaging
+week ahead. On Monday morning, we will kick off
+the day with an address from IEEE Power & Energy
+Society (PES) President Dr. C.Y. Chung. Following this,
+we will hold an Opening Plenary Session discussion
+on Powering the Digital Era: AI, Infrastructure, and the
+Transformation of Energy Systems, featuring a panel
+of distinguished experts on the electrical power grid,
+artificial intelligence, and innovative technologies.
+They will share insights on their initiatives and explore
+how the industry can evolve for a more resilient
+future for all communities.
+
+Thank you,
+
+Ambrish Chandra, LF IEEE
+LOC Organizing Committee Chair
+2 | IEEE PES 2026 General Meeting Program
+
+We are thrilled to start Tuesday with the prestigious IEEE
+PES Student Poster Session and Contest, showcasing
+the innovative work of our future leaders. That evening,
+we will celebrate the 2026 IEEE PES Award recipients.
+On Wednesday, join the Student, Industry, and Faculty
+Luncheon and Job Fair for valuable engagement among
+students, professionals, and academia. Throughout the
+week, we are excited to offer over 450 panel sessions,
+technical sessions, and committee meetings, featuring
+distinguished speakers and panelists from leading
+academia, industry, and research who are driving the
+innovation behind the grid of the future.
+The success of the 2026 IEEE PES GM would not be
+possible without the dedication and contributions
+of our PES members, supporters, notably our Host
+Utility Sponsor—Hydro Quebec, countless volunteers,
+technical committees, reviewers, partner organizations,
+IEEE PES staff, and IEEE PES leadership. We extend our
+sincere appreciation to everyone whose commitment
+and hard work have helped bring this conference to
+life. Your efforts continue to strengthen the global
+IEEE PES community and advance its mission to
+foster technological innovation and excellence for
+the benefit of humanity.
+We also thank our authors, presenters, and participants
+from around the world for contributing your expertise
+and insights. Your engagement is what makes the IEEE
+PES General Meeting one of the most influential forums
+in the power and energy field. We are confident that the
+discussions and collaborations initiated here will help
+shape the future of energy systems for years to come.
+As we gather in Montréal, let us embrace this
+opportunity to learn from one another, challenge
+existing assumptions, explore bold ideas, and work
+collectively toward building a more intelligent, resilient,
+sustainable, and digitally empowered energy future.
+Together, we can harness the power of innovation to
+address global challenges and create a lasting, positive
+impact on society.
+We wish you a productive, inspiring, and memorable
+experience at the 2026 IEEE PES GM. Thank you for
+being part of this important journey.
+
+GENERAL INFORMATION
+Registration & Information Desk
+Location: Viger Hall
+Sunday		
+
+7:00AM–7:00PM
+
+Monday
+
+6:30AM–6:00PM
+
+Tuesday
+
+6:30AM–6:00PM
+
+Wednesday
+
+6:30AM–4:00PM
+
+Thursday
+
+6:30AM–12:00PM
+
+The 2026 IEEE General Meeting app
+is proudly sponsored by V&R Energy.
+Download the 2026 IEEE PES GM App.
+
+Badges
+IEEE PES GM badges must be worn at all
+times and are necessary for admittance
+to sessions, meetings, and social events.
+
+The QR Code is applicable for both
+iOS Apple and Android users.
+
+Attendee Breakfasts
+Location: Room 517
+Monday
+
+7:00AM–8:00AM
+
+Tuesday
+
+7:00AM–9:00AM
+
+Wednesday
+
+7:00AM–8:00AM
+
+Thursday
+
+7:00AM–8:00AM
+
+For any technical issues, email
+support@sherpa-solutions.com.
+
+Wireless Internet Sponsored
+by Opal RT Technologies
+
+• Network: IEEE
+• Password: PES2026
+
+Friendly Reminder
+Please turn off your devices that chirp, beep, buzz,
+or ring, including but not limited to pagers, beepers,
+cell phones, PDAs, and laptops during the conference.
+The speakers and audience thank you for your
+consideration and cooperation.
+
+IEEE PES 2026 General Meeting Program | 3
+
+CONVENTION CENTER MAP
+
+ap3
+
+210a
+
+210e
+
+210b
+
+210f
+
+210c
+
+210g
+
+220a
+
+441
+
+440
+
+KITCHEN
+
+ap4
+
+220b
+
+X1
+
+230a
+X2
+
+230b
+X4
+
+210d
+
+210h
+X3
+
+Niveau 4 EN
+
+4 | IEEE PES 2026 General Meeting Program
+
+442
+
+220c
+
+445b 445a 446
+
+447
+
+448
+
+449
+ap14
+
+220d
+
+220e
+
+CONVENTION CENTER MAP
+
+559
+
+TV-507
+
+B-1500b
+
+512e
+512b
+
+516b
+
+510d
+
+512f
+
+514c
+513c
+
+ap14
+
+C523
+
+TV-518
+TV-519
+
+521a
+
+517a
+
+516c
+
+1,260m
+13,560ft
+
+846m
+9,107ft
+
+em19
+
+846m
+9,107ft
+
+1,260m
+13,560ft
+
+2
+
+512g
+
+513f
+
+512h
+
+2
+
+518c
+2
+
+523b
+
+524a
+
+521c
+524b
+522a
+
+519a
+
+524c
+
+515b
+
+516d
+
+515c
+
+516e
+
+564
+
+522b
+
+519b
+
+525a
+
+522c
+
+525b
+
+565
+557
+
+556
+
+521b
+
+2
+
+2
+
+2
+
+2
+
+517d
+
+517c
+
+517b
+
+2
+
+523a
+
+518b
+
+563
+
+513e
+
+554
+
+F517e
+
+A/V
+
+B-1500d
+
+513d
+
+512d
+
+C510s
+
+em23
+
+TV-511
+
+F517d
+em22
+
+C525
+
+SERVICE CIRCULATION
+
+558
+
+as3
+
+FOOD SERVICE AREA 1-2
+
+as4
+
+FOOD SERVICE AREA 3-4
+
+as2
+
+as5
+
+as1
+mc1
+
+SERVICE CIRCULATION
+
+mc2
+C.E.T
+
+KITCHEN
+
+568
+
+567
+
+566
+C.E.T.
+
+C520n TV-520
+570
+
+z
+as7
+
+520a
+
+520b
+
+520c
+
+520d
+
+520e
+
+520f
+
+569
+
+C520e
+
+510c
+
+TV-510
+
+562
+
+561
+
+C520o
+
+510b
+
+560
+
+ap11
+
+510a
+
+512c
+
+TV-516-517
+
+TV-514-515
+
+518a
+
+515a
+C510n
+
+FOYER 517 F517
+F517c
+
+F517b
+
+513b
+C513
+
+553
+
+F500o
+
+511f
+
+C512
+
+511e
+
+514b
+
+TV-512-513
+
+C521
+
+512a
+
+551
+
+516a
+
+TV-509
+
+513a
+
+C516
+
+511c
+
+511b
+
+552
+
+511a
+
+514a
+
+em21
+
+C524
+
+F517a
+
+ap12
+
+TV-503
+
+TV-508
+
+F517o
+
+as6
+
+TV-501-502
+
+FOYER 510 F510
+
+TV-506
+555
+
+TV-504
+
+em13
+em14
+em15
+
+FOYER 511 F511
+
+C511n
+
+511d
+
+ap6
+
+em20
+ap4
+
+em18
+
+C513n
+
+em16
+
+em17
+
+ap3
+
+62’/19m
+
+C520s
+
+Niveau 5 EN
+
+IEEE PES 2026 General Meeting Program | 5
+
+860
+
+CONVENTION CENTER MAP
+
+810
+
+h
+
+861
+
+811
+
+MEZZANINE 8
+
+em23
+756
+
+as6
+
+ap4
+
+em20
+
+em21
+759
+
+757
+
+em23
+
+em22
+760
+
+TV-703
+
+TV-704
+
+ap14
+
+762
+
+761
+
+b
+
+758
+
+730a
+TV-702
+
+KITCHEN
+
+710b
+
+720
+
+710 PREFUNCTION P710
+
+BELVEDERE 715
+
+SATELLITE
+KITCHEN
+705
+
+710a
+
+TERRACE
+725
+
+763
+TV-701
+
+764
+
+mc1
+
+mc2
+755
+
+as1
+
+as3
+
+as4
+
+as2
+
+as5
+
+as7
+ap11
+
+Niveau 7 EN
+
+6 | IEEE PES 2026 General Meeting Program
+
+ap12
+
+MARQUEE IN SEASON
+
+Professional Development Hours (PDHs)
+and Continuing Education Unit (CEUs)
+A continuing education unit (CEU) is 10 contact hours
+of participation in an organized continuing education
+experience under responsible, qualified direction and
+instruction. A unit generally consists of courses of study
+that refresh, update and enhance knowledge skills and
+experience with professional personnel. It is up to each
+student to determine if a specific course or program
+fills the needs of the discipline or certifying body for
+which the CEUs are intended.
+Continuing professional education for licensed
+engineers is measured in professional development
+hours (PDHs). Professional Development Hours (PDH)
+may be earned by an individual for attending a poster,
+panel, or technical session. PDH credits are awarded
+for participation in these activities and are normally
+accepted by accreditation agencies responsible for
+professional registration. A PDH is 1 contact hour of
+instruction or presentation.
+Continuing Education Units (CEUs) readily translate into
+PDHs (1 CEU=10 PDHs), though PDHs do not convert
+automatically to CEUs. The licensee is responsible for
+maintaining records to be used to support PDH credits
+claimed. PES does not track this information.
+
+A link to the PDH form will be emailed to all who
+registered and attended the PES GM. Individuals can
+use this form to track their attendance at a poster, panel,
+or technical session at this meeting. It is up to each
+individual to provide the form to the certifying body or
+employer to determine if a specific course or program
+fills the needs of the discipline or certifying body and/or
+employer which the PDHs are intended for.
+Tutorial Attendees will receive an email with
+instructions on downloading the tutorial presentation
+and may take the CEU/PDH assessment via the PES
+Resource Center. Upon completion of the assessment,
+the attendee will receive the CEU/PDH certificate.
+IEEE does not keep records of who attended what
+session or meeting. If you are audited, it is your
+responsibility to provide authenticating documents.
+Your conference and/or tutorial receipt from the
+registrar can serve as attendance verification for
+the activities held in conjunction with this event.
+
+IEEE Event Conduct and Safety Statement
+IEEE believes that science, technology, and
+engineering are fundamental human activities,
+for which openness, international collaboration,
+and the free flow of talent and ideas are essential.
+Its meetings, conferences and other events seek to
+enable engaging thought-provoking conversations
+that support IEEE’s core mission of advancing
+technology for humanity. Accordingly, IEEE is
+committed to providing a safe productive and
+welcoming environment to all participants
+including staff and vendors at IEEE-related events.
+
+interests without harassment or discrimination in an
+environment that supports diversity and inclusion.
+Participants are expected to adhere to these principles
+and respect the rights of others.
+IEEE seeks to provide a secure environment at its
+events. Participants should report any behavior
+inconsistent with the principles outlined here to
+on-site staff, security, venue personnel, or to
+eventconduct@ieee.org.
+
+IEEE has no tolerance for discrimination, harassment,
+or bullying in any form at IEEE-related events.
+All participants have the right to pursue shared
+
+IEEE PES 2026 General Meeting Program | 7
+
+2026 PES General Meeting Local Organizing Committee
+
+Secretary
+Ali Moeini
+
+Technical Program Co-Chairs
+Jun Yan
+Jean Mahseredjian
+Francois Bouffard
+Seyed Masoud Mohseni-Bonab
+Miloud Rezkallah
+Ilhan Kocar
+
+Technical Program Chair
+Innocent Kamwa
+
+Technical Tours Chair
+Omer Idrees
+
+Chair
+Ambrish Chandra
+Vice Chair
+Basile Agba
+
+Technical Tours Co-Chairs
+Madjer Santos
+Marco Tremblay
+
+Volunteer Chair
+Qingsong Wang
+Volunteer Co-Chairs
+Ilhan Kocar
+Chunyan Lai
+Xiaozhe Wang
+Pierre-Francois Allaire
+Women In Power Co-Chairs
+Camille-Laurie Normandeau
+Diane Desjardins
+
+IEEE Power and Energy Society Governing Board
+President
+C.Y. Chung
+
+Vice President, Technical Activities
+Jim McBride
+
+President-Elect
+Bikash Chandra Pal
+
+Member at-Large Tomorrow’s Leaders
+Jelena Ponocko
+
+Past President
+Shay Bahramirad
+
+Member at-Large Global Engagement
+in Standards & Technology
+Daniel Sabin
+
+Treasurer
+Dean Sharafi
+Secretary
+Mazana Armstrong
+IEEE Division VII Director
+Noel N. Schulz
+Vice President, Chapters and Membership
+Mythili Chaganti
+Vice President, Conferences & Meetings
+Babu Chalamala
+Vice President Education
+Amin Khodaei
+Vice President, New Initiatives/Outreach
+Diane Watkins
+Vice President, Publications
+Jovica V. Milanovic
+Vice President, Strategic
+Communications & Partnerships
+Chan Wong
+8 | IEEE PES 2026 General Meeting Program
+
+Member At-Large Digital Strategy
+& Member Experience
+Dipti Srinivasan
+Member at Large Emerging Technologies
+Zhenyu (Henry) Huang
+Region 1–7 Representative,
+United States and Canada
+Milorad Papic
+Region 8 Representative, Europe,
+Middle East, & Africa
+Eduardo Audiche
+Region 9 Representative, Latin America
+Guadalupe González
+Region 10 Representative, Asia & Pacific
+Canbing Li
+Executive Director
+Tim Licitra
+
+2026 IEEE PES General Meeting Technical Committee Program Chairs
+Analytic Methods for Power Systems
+Yannan Sun
+
+Power System Operation, Planning & Economics
+Zhaoyu Wang
+
+Electric Machinery
+Edson Bortoni
+
+Power Systems Communications & Cyber Security
+Mohammad Reza Khalghani
+
+Energy Development and Power Generation
+Gene Asbury
+
+Power Systems Relaying & Control
+James Niemira
+
+Energy Internet Coordinating Committee
+Luo Xu
+Chenhui Lin
+
+Renewables Systems Integration Coordinating
+Junbo Zhao
+
+Energy Storage & Stationary Battery
+Tu Nguyen
+Grid & Emerging Technologies
+Coordinating Committee
+Kaveri Mahapatra
+Insulated Conductors
+Albert Spear III
+Marine Systems Coordinating
+John Prousalidis
+Fabio d’Agostino
+Nuclear Power Engineering
+Mark Bowman
+Power & Energy Education
+David Wenzhong Gao
+Power System Dynamic Performance
+Abhishek Banerjee
+Georgios Tzounas
+
+Smart Buildings, Loads and Customer Systems
+Jamie Lian
+Samrat Acharya
+Substations
+DJ Moreau
+Surge Protective Devices
+Steven Hensley
+Switchgear
+Anthony Ricciuti
+Transformers
+Bill Griesacker
+Scott Reed
+Transmission and Distribution
+Masoud Davoudi
+Industry Technical Support Leadership Committee
+Kaveh Aflaki
+
+Power System Instrumentation
+and Measurements
+David Wallace
+
+IEEE PES 2026 General Meeting Program | 9
+
+OPENING PLENARY SESSION PANEL
+9:30AM
+Location: Ballroom 710
+Powering the Digital Era: AI, Infrastructure, and the Transformation of Energy Systems
+As the electric power industry undergoes rapid transformation driven by digitalization, artificial intelligence,
+electrification, and accelerating demand growth from large-scale data centers, utilities and system operators
+are facing unprecedented challenges and opportunities. This opening plenary session brings together global
+industry leaders to discuss how the grid is evolving to support a more connected, data-driven, and resilient
+future while advancing reliability, affordability, and energy security. Drawing on perspectives from utilities, global
+power system organizations, and energy strategy leaders, the panel will explore the role of AI in power system
+planning and operations, Transmission and Distribution modernization, infrastructure needs for the digital
+economy, and strategies to strengthen grid resilience in an increasingly complex and dynamic environment.
+
+Meet! Opening plenary session panelists listing and biographies
+on the event website: pes-gm.org.
+
+10 | IEEE PES 2026 General Meeting Program
+
+S U N DAY, J U LY 19
+Start
+
+End
+
+Session Name
+
+Session
+Type
+
+Sponsoring
+Committee
+
+Room
+
+7:00 AM
+
+4:50 PM
+
+Regions 1–7 Professional Chapter
+Chairs & Student Chapter Chair Training
+
+Committee
+Meeting
+
+Admin
+
+Room 511D
+
+7:00 AM
+
+7:00 PM
+
+Registration
+
+Committee
+Meeting
+
+Admin
+
+Viger Hall
+
+8:00 AM
+
+9:50 AM
+
+Satellite Technical Committee
+Representatives Meeting
+
+Committee
+Meeting
+
+Admin
+
+Room 447
+
+8:00 AM
+
+12:00 PM
+
+Grid-Forming Inverters and InverterBased Resources: EMT Modeling,
+Real-Time Simulation, and Hardwarein-the-Loop Testing—Tutorial: Separate
+Registration Fee Required
+
+Tutorial
+
+Room 510C
+
+8:00 AM
+
+12:00 PM
+
+Stability and Resilience in InverterDominated Power Grids: Focus on
+HVDC Integration and Inverter-Based
+Renewables—Tutorial: Separate
+Registration Fee Required
+
+Tutorial
+
+Room 511B
+
+8:00 AM
+
+12:00 PM
+
+Large Load Integration in Modern Power
+Systems: Modeling, Challenges, and
+Reliability Impacts—Tutorial:
+Separate Registration Fee Required
+
+Tutorial
+
+Room 510A
+
+8:00 AM
+
+5:00 PM
+
+Demystifying the Common
+Information Model—Tutorial:
+Separate Registration Fee Required
+
+Tutorial
+
+Room 510B
+
+8:00 AM
+
+5:00 PM
+
+Microgrids: Real-World Operations,
+Considerations, and Lessons
+Learned—Tutorial: Separate
+Registration Fee Required
+
+Tutorial
+
+Room 511C
+
+1:00 PM
+
+2:50 PM
+
+IEEE Std. 115 Synchronous Machines
+Testing and Parameter Identification
+
+Committee
+Meeting
+
+Electric Machinery
+
+Room 513A
+
+1:00 PM
+
+3:50 PM
+
+Joint PES WG/TF Meeting and
+Workshop on Natural Disaster
+Mitigation and Grid Resilience
+
+Committee
+Meeting
+
+Admin
+
+Room 513B
+
+1:00 PM
+
+4:50 PM
+
+Student Chapters Training
+
+Committee
+Meeting
+
+Admin
+
+Room 511F
+
+1:00 PM
+
+5:00 PM
+
+Methods to Address Emerging
+Challenges and Opportunities in
+Transmission Planning—Tutorial:
+Separate Registration Fee Required
+
+Tutorial
+
+Room 511A
+
+1:00 PM
+
+5:00 PM
+
+Offshore Transmission Planning—
+CIGRE JWG C1/B4.49—Tutorial:
+Separate Registration Fee Required
+
+Tutorial
+
+Room 511B
+
+1:00 PM
+
+5:00 PM
+
+Assessment of Risks of SubSynchronous Oscillations—Screening
+and Validation—Tutorial: Separate
+Registration Fee Required
+
+Tutorial
+
+Room 510C
+
+1:00 PM
+
+5:00 PM
+
+Advances in Distribution Optimal Power
+Flow (DOPF): Theory, Implementation,
+and Applications—Tutorial: Separate
+Registration Fee Required
+
+Tutorial
+
+Room 510A
+
+IEEE PES 2026 General Meeting Program | 11
+
+Sunday 7/19 continued
+Session
+Type
+
+Sponsoring
+Committee
+
+Room
+
+PES/CIGRE Collaboration
+
+Committee
+Meeting
+
+Admin
+
+Room 513C
+
+3:50 PM
+
+PEEC Research Subcommittee
+
+Committee
+Meeting
+
+Power & Energy
+Education
+
+Room 512A
+
+3:00 PM
+
+3:50 PM
+
+New Attendees Orientation
+
+Panel
+
+Admin
+
+Room 511E
+
+3:00 PM
+
+4:50 PM
+
+IEEE Std. 1110 Synchronous
+Generator Modeling Practices in
+Power System Stability Analyses
+
+Committee
+Meeting
+
+Electric Machinery
+
+Room 513A
+
+3:00 PM
+
+4:50 PM
+
+Joint PES/CIGRE TF
+
+Committee
+Meeting
+
+Admin
+
+Room 513C
+
+3:30 PM
+
+5:20 PM
+
+Strategic & Emerging Technologies
+Standards Committee
+
+Committee
+Meeting
+
+Admin
+
+Room 513D
+
+6:00 PM
+
+8:00 PM
+
+Welcome Reception
+
+Reception
+
+Admin
+
+Room 517 AB
+
+Start
+
+End
+
+Session Name
+
+2:00 PM
+
+2:50 PM
+
+2:00 PM
+
+*Please check the IEEE PES GM mobile app for the latest program and event updates.
+Notes
+
+12 | IEEE PES 2026 General Meeting Program
+
+M O N DAY, J U LY 20
+Session
+Type
+
+Sponsoring
+Committee
+
+Room
+
+Registration
+
+Committee
+Meeting
+
+Admin
+
+Viger Hall
+
+8:00 AM
+
+Attendee Breakfast
+
+Breakfast
+
+Admin
+
+Room 517
+
+7:00 AM
+
+7:00 PM
+
+Prayer Room
+
+Other
+
+Other
+
+Room 525B
+
+7:15 AM
+
+7:45 AM
+
+PEEC PES Student Program
+Review Committee
+
+Committee
+Meeting
+
+Power & Energy
+Education
+
+Room 513A
+
+8:00 AM
+
+9:30 AM
+
+PES Member's Meeting
+
+Panel
+
+Admin
+
+Room 710
+
+8:00 AM
+
+5:00 PM
+
+Display Tables
+
+Other
+
+Admin
+
+Level 5 Foyer
+
+9:30 AM
+
+11:00 AM
+
+2026 PES GM Plenary—Powering the
+Digital Era: AI, Infrastructure, and the
+Transformation of Energy Systems
+
+Panel
+
+Admin
+
+Room 710
+
+11:00 AM
+
+11:20 AM
+
+Overhead Lines (OHL) SC/
+WG/DG/TF Introduction
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 516C
+
+11:00 AM
+
+11:20 AM
+
+Paper AC Induction Safety for OHL
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 519A
+
+11:00 AM
+
+11:50 AM
+
+Distribution System Analysis
+Subcommittee Meeting
+
+Committee
+Meeting
+
+(AMPS) Distribution
+System Analysis
+
+Room 513A
+
+11:00 AM
+
+11:50 AM
+
+Task Force on Hydrogen Integration
+into Power Systems
+
+Committee
+Meeting
+
+PSOPE—Technologies
+& Innovation
+Subcommittee
+
+Room 513D
+
+11:00 AM
+
+11:50 AM
+
+[AMPS BDA] Task Force on
+Big Data Analytics for SynchroWaveform Measurements
+
+Committee
+Meeting
+
+(AMPS) Big
+Data Analytics
+
+Room 511F
+
+11:00 AM
+
+11:50 AM
+
+IEEE PES China STC—Transmission &
+Distribution—Overhead Line Reports
+
+Committee
+Meeting
+
+Admin
+
+Room 515B
+
+11:00 AM
+
+12:20 PM
+
+Annual meeting of the Working Group
+on Intelligent Data Mining and Analysis
+
+Committee
+Meeting
+
+(AMPS) Intelligent
+Systems
+
+Room 445
+
+11:00 AM
+
+12:50 PM
+
+PEEC ADCOM
+
+Committee
+Meeting
+
+Power & Energy
+Education
+
+Room 515A
+
+11:00 AM
+
+12:50 PM
+
+International Practices
+Subcommittee meeting
+
+Committee
+Meeting
+
+Energy Development
+and Power Generation
+
+Room 513B
+
+11:00 AM
+
+12:50 PM
+
+Task Force on Large Electronic
+Load Modeling
+
+Committee
+Meeting
+
+Power System
+Dynamic Performance
+
+Room 516E
+
+11:00 AM
+
+12:50 PM
+
+Task Force on Modeling and Simulation
+of Large Power Systems with High
+Penetration of Inverter-based Generation
+
+Committee
+Meeting
+
+Power System
+Dynamic Performance
+
+Room 513C
+
+11:00 AM
+
+12:50 PM
+
+15.05.08 HVDC Economics
+and Operating Strategies
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 514B
+
+11:30 AM
+
+11:50 AM
+
+1882 Live work OHL
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 519A
+
+12:00 PM
+
+12:20 PM
+
+2798 Helicopter live work
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 519A
+
+12:30 PM
+
+12:50 PM
+
+1067 Conductive Clothing
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 519A
+
+1:00 PM
+
+1:50 PM
+
+PEEC Career Promotion and Workforce
+Development Subcommittee
+
+Committee
+Meeting
+
+Power & Energy
+Education
+
+Room 515A
+
+1:00 PM
+
+1:50 PM
+
+Annual joint meeting of the Working
+Group on Modern Heuristic Optimization
+(WGMHO) and TF on Modern
+Heuristic Optimization Test Beds
+
+Committee
+Meeting
+
+(AMPS) Intelligent
+Systems
+
+Room 445
+
+Start
+
+End
+
+Session Name
+
+6:30 AM
+
+6:00 PM
+
+7:00 AM
+
+IEEE PES 2026 General Meeting Program | 13
+
+Monday 7/20 continued
+Session
+Type
+
+Sponsoring
+Committee
+
+Distribution Test Feeder Working Group
+
+Committee
+Meeting
+
+(AMPS) Distribution
+System Analysis
+
+Room 513A
+
+1:50 PM
+
+TASS TF IBR/IBL SSO
+
+Committee
+Meeting
+
+(AMPS) Transient
+Analysis and Simulation
+
+Room 510B
+
+1:00 PM
+
+1:50 PM
+
+Power System Economics
+Subcommittee Meeting
+
+Committee
+Meeting
+
+PSOPE—Power
+System Economics
+Subcommittee
+
+Room 524B
+
+1:00 PM
+
+1:50 PM
+
+WG on the Understanding,
+Prediction, Prevention and
+Restoration of Cascading Failures
+
+Committee
+Meeting
+
+(AMPS) Computer
+Analytical Methods
+
+Room 524A
+
+1:00 PM
+
+1:50 PM
+
+Working group on Power system
+dynamics measurement
+
+Committee
+Meeting
+
+Power System
+Dynamic Performance
+
+Room 513D
+
+1:00 PM
+
+1:50 PM
+
+TF on next revision of Shunt
+Capacitor Standard 18
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 515C
+
+1:00 PM
+
+1:50 PM
+
+Monitoring Electric Power
+Quality WG (IEEE Std 1159)
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510C
+
+1:00 PM
+
+1:50 PM
+
+OHL—Std 751 TF—Guide for Wood
+Structures Used for Overhead TLs
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 516C
+
+1:00 PM
+
+1:50 PM
+
+OHL—Std 563 and 664 TFs—Guide on
+Conductor Self-Damping Measurements
+and Lab Measurement Aeolian Dampers
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510D
+
+1:00 PM
+
+1:50 PM
+
+957 Cleaning live insulators
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 519A
+
+1:00 PM
+
+1:50 PM
+
+Mentoring Session—Invitation Only
+
+Panel
+
+Admin
+
+Room 512E
+
+1:00 PM
+
+2:20 PM
+
+P1601 Revision Working Group—
+Standard for Optical AC Current
+and Voltage Sensing Systems
+
+Committee
+Meeting
+
+Power System
+Instrumentation
+and Measurements
+
+Room 513E
+
+1:00 PM
+
+2:50 PM
+
+Field Experience with Generative
+AI in Electricity Grid Operation
+
+Panel
+
+PSOPE—Technologies
+& Innovation
+Subcommittee
+
+Room 518B
+
+1:00 PM
+
+2:50 PM
+
+Growing Challenges of AI/Data Center
+& Renewable Energy and Solutions
+
+Panel
+
+Renewables Systems
+Integration Coordinating
+
+Room 511C
+
+1:00 PM
+
+2:50 PM
+
+Ease of Usage—EMT Simulations
+
+Panel
+
+Energy Development
+and Power Generation
+
+Room 511A
+
+1:00 PM
+
+2:50 PM
+
+Motors Subcommittee Meeting
+
+Committee
+Meeting
+
+Electric Machinery
+
+Room 513B
+
+1:00 PM
+
+2:50 PM
+
+Advancing Industrial Cross-Sector Energy
+Systems for Decarbonization: From
+Research to Real-world Implementation
+
+Panel
+
+Energy Internet
+Coordinating Committee
+
+Room 512B
+
+1:00 PM
+
+2:50 PM
+
+From Physics-Informed Neural Networks
+to Trustworthy AI: Certified, Fast, and
+Resilient AI for the Future Power Grid
+
+Panel
+
+(AMPS) Big
+Data Analytics
+
+Room 516E
+
+1:00 PM
+
+2:50 PM
+
+Dataset Generation Methods
+and Machine Learning Based
+Predictive Stability Assessment
+
+Panel
+
+Power System
+Dynamic Performance
+
+Room 512D
+
+1:00 PM
+
+2:50 PM
+
+Wide area modeling in EMT mode
+
+Panel
+
+Local Organizing
+Committee
+
+Room 511B
+
+1:00 PM
+
+2:50 PM
+
+PSOPE AdCom Meeting
+
+Committee
+Meeting
+
+Power System
+Operation, Planning
+& Economics
+
+Room 512H
+
+1:00 PM
+
+2:50 PM
+
+SBLC—Task Force on Datacenter
+and AI Load Integration (DALI)
+
+Committee
+Meeting
+
+Smart Buildings, Loads
+& Customer Systems
+
+Room 524C
+
+Start
+
+End
+
+Session Name
+
+1:00 PM
+
+1:50 PM
+
+1:00 PM
+
+14 | IEEE PES 2026 General Meeting Program
+
+Room
+
+Monday 7/20 continued
+Session
+Type
+
+Sponsoring
+Committee
+
+Working group on Voltage Stability
+
+Committee
+Meeting
+
+Power System
+Dynamic Performance
+
+Room 513C
+
+2:50 PM
+
+Digital Twin for Power Equipment WG:
+Collaboration with T&D Committee
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 511F
+
+1:00 PM
+
+2:50 PM
+
+IEEE Alternative Energy Generation
+and Storage initiative
+
+Panel
+
+Admin
+
+Room 518C
+
+1:00 PM
+
+2:50 PM
+
+IBR Control Interactions on
+Utility Transmission Systems
+
+Panel
+
+Transmission
+and Distribution
+
+Room 511D
+
+1:00 PM
+
+3:50 PM
+
+Emerging Technologies Best Paper Session
+
+Best Paper
+Session
+
+Admin
+
+Room 512G
+
+1:00 PM
+
+4:50 PM
+
+Power System Operation, Planning,
+and Economics Best Paper Session
+
+Best Paper
+Session
+
+Admin
+
+Room 514B
+
+1:00 PM
+
+4:50 PM
+
+Grid Transformation Best Paper Session
+
+Best Paper
+Session
+
+Admin
+
+Room 514C
+
+1:00 PM
+
+4:50 PM
+
+Synchro-Waveform Analysis
+on Large Blackout Events
+
+Panel
+
+Grid & Emerging
+Technologies
+Coordinating Committee
+
+Room 512C
+
+1:00 PM
+
+4:50 PM
+
+Analytic Methods for Power
+System Best Paper Session
+
+Best Paper
+Session
+
+Best Paper Session
+
+Room 514A
+
+1:30 PM
+
+2:50 PM
+
+Distributed Resources
+Integration Working Group
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520F
+
+1:30 PM
+
+3:20 PM
+
+15.05.02 Dynamic Performance and
+Modeling of HVDC Systems and Power
+Electronics for Transmission Systems
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 512F
+
+2:00 PM
+
+2:50 PM
+
+Multiagent Systems WG Meeting
+
+Committee
+Meeting
+
+(AMPS) Intelligent
+Systems
+
+Room 445
+
+2:00 PM
+
+2:50 PM
+
+Working Group on Distribution
+State Estimation
+
+Committee
+Meeting
+
+(AMPS) Distribution
+System Analysis
+
+Room 513A
+
+2:00 PM
+
+2:50 PM
+
+Working Group on Cyber
+Security in Power Systems
+
+Committee
+Meeting
+
+(AMPS) Computer
+Analytical Methods
+
+Room 524A
+
+2:00 PM
+
+2:50 PM
+
+Transfer of Power Quality Data
+TF (IEEE Std 1159.3)
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510C
+
+2:00 PM
+
+2:50 PM
+
+OHL—Std 977 TF—Guide to
+Installation of Foundations
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 516C
+
+2:00 PM
+
+2:50 PM
+
+OHL—Study Group—High Temperature,
+Low Sag Accessory Application Guide
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510D
+
+2:00 PM
+
+2:50 PM
+
+516 Live Work OHL
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 519A
+
+2:00 PM
+
+3:50 PM
+
+TASS EMT Simulation of Large
+Power Systems TF
+
+Committee
+Meeting
+
+(AMPS) Transient
+Analysis and Simulation
+
+Room 510B
+
+2:00 PM
+
+3:50 PM
+
+TF on AI and Foundation
+Models for Distribution Grids
+
+Committee
+Meeting
+
+PSOPE—Distribution
+System Operation and
+Planning Subcommittee
+
+Room 513D
+
+2:00 PM
+
+3:50 PM
+
+Grid Edge Conference & Expo
+Organizging Committee
+
+Committee
+Meeting
+
+Admin
+
+Room 513F
+
+2:00 PM
+
+4:50 PM
+
+Shunt Capacitor Application
+Guide P1036 WG
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 515C
+
+2:30 PM
+
+4:50 PM
+
+PEEC University Education Subcommittee
+
+Committee
+Meeting
+
+Power & Energy
+Education
+
+Room 515A
+
+3:00 PM
+
+3:20 PM
+
+1307 Fall Protection
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 519A
+
+3:00 PM
+
+3:50 PM
+
+Intelligent Systems Control WG Meeting
+
+Committee
+Meeting
+
+(AMPS) Intelligent
+Systems
+
+Room 445
+
+Start
+
+End
+
+Session Name
+
+1:00 PM
+
+2:50 PM
+
+1:00 PM
+
+Room
+
+IEEE PES 2026 General Meeting Program | 15
+
+Monday 7/20 continued
+Start
+
+End
+
+Session Name
+
+Session
+Type
+
+Sponsoring
+Committee
+
+3:00 PM
+
+3:50 PM
+
+Working Group on Spatial-temporal
+data for Distribution Systems
+
+Committee
+Meeting
+
+(AMPS) Distribution
+System Analysis
+
+Room 513A
+
+3:00 PM
+
+3:50 PM
+
+Task Force on Empowering the Future
+of Power Systems Operation and
+Control with Quantum Computing
+
+Committee
+Meeting
+
+PSOPE—Technologies
+& Innovation
+Subcommittee
+
+Room 513E
+
+3:00 PM
+
+3:50 PM
+
+Power Quality Solutions Working Group
+WG & Guide for Long-Term Assessment of
+Steady-State Power Quality Improvement
+Projects (SPQIP) (IEEE Std 1409 & 1409.1)
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510C
+
+3:00 PM
+
+3:50 PM
+
+OHL—Std 1368 TF—Guide for Aeolian
+Vibration Field Measurement
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 516C
+
+3:00 PM
+
+3:50 PM
+
+OHL—Std 951 TF—Guide to the
+Assembly and Erection of Metal
+Transmission Structures
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510D
+
+3:00 PM
+
+3:50 PM
+
+PowerTech Steering Committee Meeting
+
+Committee
+Meeting
+
+Admin
+
+Room 447
+
+3:00 PM
+
+4:20 PM
+
+[AMPS BDA] Working Group on
+Big Data Webinar Series
+
+Committee
+Meeting
+
+(AMPS) Big
+Data Analytics
+
+Room 511F
+
+3:00 PM
+
+4:50 PM
+
+Building Datasets to Enable AI Tools
+in Power and Energy Systems
+
+Panel
+
+(AMPS) Intelligent
+Systems
+
+Room 512A
+
+3:00 PM
+
+4:50 PM
+
+Renewable Generation
+Subcommittee Meeting
+
+Committee
+Meeting
+
+Electric Machinery
+
+Room 513B
+
+3:00 PM
+
+4:50 PM
+
+Need for Advanced Measurements
+to Address Future Uncertainties
+and Fast Dynamics
+
+Panel
+
+Power System
+Dynamic Performance
+
+Room 512D
+
+3:00 PM
+
+4:50 PM
+
+Renewable Energy Integration: Resource
+Adequacy and System Stability
+
+Panel
+
+Renewables Systems
+Integration Coordinating
+
+Room 511C
+
+3:00 PM
+
+4:50 PM
+
+Computing and Analytic Methods
+Subcommittee (CAMS)
+
+Committee
+Meeting
+
+(AMPS) Computer
+Analytical Methods
+
+Room 510A
+
+3:00 PM
+
+4:50 PM
+
+Young Professional Panel
+
+Panel
+
+Admin
+
+Room 516E
+
+3:00 PM
+
+4:50 PM
+
+TF on Modeling and Dynamic Stability
+Impact of Grid Enhancing Technologies in
+Inverter-Based Resource Rich Systems
+
+Committee
+Meeting
+
+Power System
+Dynamic Performance
+
+Room 518B
+
+3:00 PM
+
+4:50 PM
+
+HVDC Grid evolvement and related
+grid transformation in Europe
+
+Panel
+
+Energy Development
+and Power Generation
+
+Room 511A
+
+3:00 PM
+
+4:50 PM
+
+Hosting Data Centers in
+Distribution Systems—Challenges,
+Strategies, and Solutions
+
+Panel
+
+Transmission
+and Distribution
+
+Room 511D
+
+3:00 PM
+
+4:50 PM
+
+Stray and Contact Voltage Working Group
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520F
+
+3:00 PM
+
+4:50 PM
+
+Long-Term Market Mechanisms to
+Ensure Supply Adequacy in Increasingly
+Zero-Marginal-Cost Systems
+
+Panel
+
+PSOPE—Power
+System Economics
+Subcommittee
+
+Room 512E
+
+3:00 PM
+
+4:50 PM
+
+Smart Grids Synchronized Measurements
+and Data Analytics Association.
+
+Committee
+Meeting
+
+Admin
+
+Room 524C
+
+3:00 PM
+
+4:50 PM
+
+Towards Sustainable and ClimateResilient Energy Systems
+
+Panel
+
+Energy Internet
+Coordinating Committee
+
+Room 512B
+
+3:00 PM
+
+4:50 PM
+
+PSOPE Standards Committee
+
+Committee
+Meeting
+
+Power System
+Operation, Planning
+& Economics
+
+Room 513C
+
+3:30 PM
+
+4:20 PM
+
+Live Rope Use Paper
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 519A
+
+16 | IEEE PES 2026 General Meeting Program
+
+Room
+
+Monday 7/20 continued
+Session
+Type
+
+Sponsoring
+Committee
+
+Room
+
+PES Awards Committee
+
+Committee
+Meeting
+
+Admin
+
+Room 524A
+
+5:20 PM
+
+15.05.18 Studies for Planning of HVDC
+and 15.05.19 Practical Technologies
+for VSC HVDC Systems WGs are
+now combined under Planning
+and Applications of HVDC systems
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 512F
+
+4:00 PM
+
+4:50 PM
+
+Open Data Sets Task Force Meeting
+
+Committee
+Meeting
+
+(AMPS) Intelligent
+Systems
+
+Room 445
+
+4:00 PM
+
+4:50 PM
+
+Task Force on BPS-Connected
+IBR modeling
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Planning
+Subcommittee
+
+Room 513A
+
+4:00 PM
+
+4:50 PM
+
+Voltage Sag Indices TF (IEEE Std 1564)
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510C
+
+4:00 PM
+
+4:50 PM
+
+OHL—Std P738.1 TF—Guide for
+Application of Line Ratings
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 516C
+
+4:00 PM
+
+4:50 PM
+
+OHL—Std 1025 TF—Guide to the Assembly
+and Erection of Concrete Pole Structures
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510D
+
+4:30 PM
+
+5:20 PM
+
+Live Rope Testing Paper
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 519A
+
+5:00 PM
+
+7:00 PM
+
+Monday Evening Poster Session
+
+Poster
+Session
+
+Admin
+
+Room 517
+
+Start
+
+End
+
+Session Name
+
+3:30 PM
+
+4:50 PM
+
+3:30 PM
+
+*Please check the IEEE PES GM mobile app for the latest program and event updates.
+Notes
+
+IEEE PES 2026 General Meeting Program | 17
+
+TU ES DAY, J U LY 21
+Session
+Type
+
+Sponsoring
+Committee
+
+Room
+
+Registration
+
+Committee
+Meeting
+
+Admin
+
+Viger Hall
+
+9:00 AM
+
+Attendee Breakfast and
+Student Poster Competition
+
+Poster
+Session
+
+Power & Energy
+Education
+
+Room 517
+
+7:00 AM
+
+7:00 PM
+
+Prayer Room
+
+Other
+
+Other
+
+Room 525B
+
+8:00 AM
+
+8:50 AM
+
+Task Force on Dynamic Parameter
+Visibility: Identifiability, Algorithms
+and Uncertainty Quantification
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Operations
+Subcommittee
+
+Room 510A
+
+8:00 AM
+
+8:50 AM
+
+Limiting voltage imbalance in
+electric power systems (P2844)
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520F
+
+8:00 AM
+
+8:50 AM
+
+OHL—Study Group—Conductor
+Economic Selection
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510C
+
+8:00 AM
+
+8:50 AM
+
+OHL—Std 1218 TF—Guide for
+Maintenance of Wood TL Structures
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510D
+
+8:00 AM
+
+8:50 AM
+
+ESMO Show Coordination
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520D
+
+8:00 AM
+
+9:20 AM
+
+Reliability Impacts of Inverter-Based
+Resources Working Group
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520C
+
+8:00 AM
+
+9:20 AM
+
+Smart Distribution Working Group
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520E
+
+8:00 AM
+
+9:50 AM
+
+Beyond unidirectional EV charging:
+Vehicle-to-X services for the
+advancement of electric mobility
+
+Panel
+
+Smart Buildings, Loads
+& Customer Systems
+
+Room 512D
+
+8:00 AM
+
+9:50 AM
+
+Excitation and Control System
+421.2 Standard Revision
+
+Committee
+Meeting
+
+Energy Development
+and Power Generation
+
+Room 513D
+
+8:00 AM
+
+9:50 AM
+
+European energy projects and
+grid development activities
+
+Panel
+
+Energy Development
+and Power Generation
+
+Room 511A
+
+8:00 AM
+
+9:50 AM
+
+Protection of Inverter-Based Resource
+Dominated Power Systems
+
+Panel
+
+Power Systems
+Relaying & Control
+
+Room 518B
+
+8:00 AM
+
+9:50 AM
+
+AI/ML and Electricity Markets:
+Challenges and Opportunities
+
+Panel
+
+PSOPE—Power
+System Economics
+Subcommittee
+
+Room 512C
+
+8:00 AM
+
+9:50 AM
+
+P3546 Arc Flash OHL
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 515C
+
+8:00 AM
+
+9:50 AM
+
+Transactions on Sustainable Energy
+Editorial Board Meeting
+
+Committee
+Meeting
+
+Admin
+
+Room 519B
+
+8:00 AM
+
+9:50 AM
+
+Working Group on Data Center
+Interconnection Requirements (P4200)
+
+Committee
+Meeting
+
+Admin
+
+Room 518C
+
+8:00 AM
+
+9:50 AM
+
+Deep Defense Framework for Wildfire
+Risk Governance in Electric Utilities
+
+Panel
+
+Transmission
+and Distribution
+
+Room 516E
+
+8:00 AM
+
+9:50 AM
+
+Late Breaking News
+
+Super
+Session
+
+Super Session
+
+Room 516C
+
+8:00 AM
+
+9:50 AM
+
+Data-driven Analysis of Dunkelflaute
+for Resource Adequacy Planning
+
+Panel
+
+(AMPS) Reliability
+and Risk Analysis
+
+Room 512A
+
+8:00 AM
+
+9:50 AM
+
+Energy Storage Safety in the Digital Era
+
+Panel
+
+Energy Storage &
+Stationary Battery
+
+Room 511E
+
+8:00 AM
+
+9:50 AM
+
+Innovation and Real-World Applications
+of Grid-Forming STATCOMs
+
+Panel
+
+Substations
+
+Room 512E
+
+8:00 AM
+
+9:50 AM
+
+Modeling and Interaction of
+IBRs with Large Loads
+
+Panel
+
+Power System
+Dynamic Performance
+
+Room 511D
+
+Start
+
+End
+
+Session Name
+
+6:30 AM
+
+6:00 PM
+
+7:00 AM
+
+18 | IEEE PES 2026 General Meeting Program
+
+Session
+Type
+
+Sponsoring
+Committee
+
+Generative Artificial Intelligence:
+Pedagogical Challenges and Opportunities
+in Power and Energy Education
+
+Panel
+
+Power & Energy
+Education
+
+Room 512B
+
+9:50 AM
+
+Microgrid-Enabled Data Centers:
+Co-location Strategies and
+Grid Interaction Impacts
+
+Panel
+
+Energy Development
+and Power Generation
+
+Room 511B
+
+8:00 AM
+
+11:50 AM
+
+Analytic Methods for Power Systems 1
+
+Paper Forum
+
+Analytic Methods for
+Power Systems
+
+Room 514B
+
+8:00 AM
+
+11:50 AM
+
+Analytic Methods for Power Systems 2
+
+Paper Forum
+
+Analytic Methods for
+Power Systems
+
+Room 514C
+
+8:00 AM
+
+11:50 AM
+
+Recent Advancements in Grid-Forming
+Technologies—Energy Storage Systems,
+Renewables, and Data Centers
+
+Panel
+
+Electric Machinery
+
+Room 516D
+
+8:00 AM
+
+5:00 PM
+
+Power System Basics: Understanding
+How the Bulk Electric Power
+System Works—Plaintalk: Separate
+Registration Fee Required
+
+Plaintalk
+
+8:00 AM
+
+5:00 PM
+
+Display Tables
+
+Other
+
+Admin
+
+Level 5 Foyer
+
+8:30 AM
+
+9:20 AM
+
+TF on next revision of Series
+Capacitor Standard 824
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 515B
+
+9:00 AM
+
+9:20 AM
+
+OHL—Std 1724 TF—Guide for Prep of
+a T-Line Design Criteria Document
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510D
+
+9:00 AM
+
+9:50 AM
+
+Task Force on Advanced Intelligence
+Techniques for Resilient Power
+System Restoration
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Operations
+Subcommittee
+
+Room 510A
+
+9:00 AM
+
+9:50 AM
+
+Working Group on Modern and Future
+Distribution Systems Planning
+
+Committee
+Meeting
+
+PSOPE—Distribution
+System Operation and
+Planning Subcommittee
+
+Room 513A
+
+9:00 AM
+
+9:50 AM
+
+1668—Recommended practice for
+voltage sag and short interruption ride
+through testing for end-Use Electrical
+Equipment rated less than 1000V
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520F
+
+9:00 AM
+
+9:50 AM
+
+OHL—Std 1283 TF—Guide for
+Determining the Effects of HighTemperature Operation on Conductors,
+Connectors, and Accessories
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510C
+
+9:00 AM
+
+9:50 AM
+
+Steering Committee
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520D
+
+9:00 AM
+
+10:50 AM
+
+IEEE Intelligent Systems
+Subcommitee Meeting
+
+Committee
+Meeting
+
+(AMPS) Intelligent
+Systems
+
+Room 445
+
+9:00 AM
+
+10:50 AM
+
+WG on Asset Management
+
+Committee
+Meeting
+
+PSOPE—Distribution
+System Operation and
+Planning Subcommittee
+
+Room 519A
+
+9:00 AM
+
+10:50 AM
+
+Task Force on Decision Intelligence
+and Optimization Applications
+
+Committee
+Meeting
+
+(AMPS) Computer
+Analytical Methods
+
+Room 524A
+
+9:00 AM
+
+11:00 AM
+
+TCPC Mira Instruction Office hours
+
+Committee
+Meeting
+
+Admin
+
+Room 448
+
+9:30 AM
+
+10:50 AM
+
+Generation and Energy Storage
+Integration Working Group
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520C
+
+9:30 AM
+
+10:50 AM
+
+DMS Advanced Applications
+Integration Working Group
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520E
+
+9:30 AM
+
+11:50 AM
+
+Series Capacitor Application
+Guide P1726 WG
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 515B
+
+10:00 AM
+
+10:50 AM
+
+TF on Real-time simulation of
+Power and Energy Systems
+
+Committee
+Meeting
+
+(AMPS) Transient
+Analysis and Simulation
+
+Room 510B
+
+Start
+
+End
+
+Session Name
+
+8:00 AM
+
+9:50 AM
+
+8:00 AM
+
+Room
+
+Room 518A
+
+IEEE PES 2026 General Meeting Program | 19
+
+Tuesday 7/21 continued
+Start
+
+End
+
+Session Name
+
+Session
+Type
+
+Sponsoring
+Committee
+
+10:00 AM
+
+10:50 AM
+
+Task Force on Impacts of IBR and
+DER Integration on Operations
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Operations
+Subcommittee
+
+Room 510A
+
+10:00 AM
+
+10:50 AM
+
+Working Group on Energy Policy
+
+Committee
+Meeting
+
+PSOPE—Power
+System Economics
+Subcommittee
+
+Room 524B
+
+10:00 AM
+
+10:50 AM
+
+Technology & Innovation
+Subcommittee Meeting
+
+Committee
+Meeting
+
+PSOPE—Technologies
+& Innovation
+Subcommittee
+
+Room 519B
+
+10:00 AM
+
+10:50 AM
+
+Working Group on Cloud for Power Grid
+Modernization and Digital Transformation
+
+Committee
+Meeting
+
+PSOPE—Technologies
+& Innovation
+Subcommittee
+
+Room 520A
+
+10:00 AM
+
+10:50 AM
+
+TF on Reinforcement Learning for Power
+System Dynamic Control (RLPSDC)
+
+Committee
+Meeting
+
+PSOPE—Technologies
+& Innovation
+Subcommittee
+
+Room 520B
+
+10:00 AM
+
+10:50 AM
+
+Working Group on Sustainable Energy
+Systems for Developing Communities
+
+Committee
+Meeting
+
+PSOPE—Distribution
+System Operation and
+Planning Subcommittee
+
+Room 513B
+
+10:00 AM
+
+10:50 AM
+
+Task Force on Grid Resilience Advancement Committee
+with Interdependent Infrastructures
+Meeting
+
+PSOPE—Distribution
+System Operation and
+Planning Subcommittee
+
+Room 513F
+
+10:00 AM
+
+10:50 AM
+
+Task force on "Challenges and
+Future Needs for Dynamic Security
+Assessment in Control Centers with
+a Changing Generation Mix
+
+Committee
+Meeting
+
+Power System
+Dynamic Performance
+
+Room 513A
+
+10:00 AM
+
+10:50 AM
+
+Grid Modernization TF
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520F
+
+10:00 AM
+
+10:50 AM
+
+SBLC-Architecture Subcommittee meeting
+
+Committee
+Meeting
+
+Smart Buildings, Loads
+& Customer Systems
+
+Room 511F
+
+10:00 AM
+
+10:50 AM
+
+OHL—Std 1783 TF—Guide for Test Methods
+to Evaluate the Electrical Performance
+of Insulators in Freezing Conditions
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510D
+
+10:00 AM
+
+11:50 AM
+
+Grid Challenges and Opportunities to
+Support the Growth of AI Datacenters
+
+Panel
+
+Smart Buildings, Loads
+& Customer Systems
+
+Room 518B
+
+10:00 AM
+
+11:50 AM
+
+Agentic AI for Empowering
+Future Grid Operations
+
+Panel
+
+(AMPS) Big
+Data Analytics
+
+Room 516E
+
+10:00 AM
+
+11:50 AM
+
+Excitation and Control System
+421.4 Standard Revision
+
+Committee
+Meeting
+
+Energy Development
+and Power Generation
+
+Room 513D
+
+10:00 AM
+
+11:50 AM
+
+Power Quality and Harmonic Modeling and Panel
+Simulation for Large Load Impact Studies
+
+Transmission
+and Distribution
+
+Room 518C
+
+10:00 AM
+
+11:50 AM
+
+Alternative Solutions for Integration of
+IBRs in Extremely Low Strength Networks
+
+Panel
+
+Power System
+Dynamic Performance
+
+Room 511D
+
+10:00 AM
+
+11:50 AM
+
+PEEC Main Committee
+
+Committee
+Meeting
+
+Power & Energy
+Education
+
+Room 512D
+
+10:00 AM
+
+11:50 AM
+
+Energy Internet Coordinating
+Committee (EICC) Annual Meeting
+
+Committee
+Meeting
+
+Energy Internet
+Coordinating Committee
+
+Room 513C
+
+10:00 AM
+
+11:50 AM
+
+Renewables Systems Integration
+Coordinating Committee Meeting
+
+Committee
+Meeting
+
+Renewables Systems
+Integration Coordinating
+
+Room 524C
+
+10:00 AM
+
+11:50 AM
+
+Power Distribution in the maritime sector
+
+Panel
+
+Marine Systems
+Coordinating
+
+Room 512A
+
+10:00 AM
+
+11:50 AM
+
+Working Group on Dynamic Performance
+of Renewable Energy Systems
+
+Committee
+Meeting
+
+Power System
+Dynamic Performance
+
+Room 513E
+
+20 | IEEE PES 2026 General Meeting Program
+
+Room
+
+Tuesday 7/21 continued
+Session
+Type
+
+Sponsoring
+Committee
+
+Power Grid Artificial Intelligence—
+European Solutions
+
+Panel
+
+Energy Development
+and Power Generation
+
+Room 511A
+
+11:50 AM
+
+OHL—Std 524 TF—Guide to the
+Installation of TL Conductors
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510C
+
+10:00 AM
+
+11:50 AM
+
+1048 Temporary Grounding OHL
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 515C
+
+10:00 AM
+
+11:50 AM
+
+T&D ESMOL SC Meeting
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520D
+
+10:00 AM
+
+11:50 AM
+
+Transactions on Energy Markets, Policy
+and Regulation Editorial Board Meeting
+
+Committee
+Meeting
+
+Admin
+
+Room 447
+
+10:00 AM
+
+11:50 AM
+
+Women in Power Committee
+
+Committee
+Meeting
+
+Admin
+
+Room 515A
+
+10:00 AM
+
+11:50 AM
+
+Late Breaking News: Recent Grid Events
+
+Super
+Session
+
+Super Session
+
+Room 516C
+
+10:00 AM
+
+11:50 AM
+
+Harnessing DERs for Grid
+Flexibility and Resilience
+
+Panel
+
+PSOPE—Distribution
+System Operation and
+Planning Subcommittee
+
+Room 512C
+
+10:00 AM
+
+11:50 AM
+
+AI Threats and Mitigation in Battery
+Cybersecurity: A Dual Perspective
+
+Panel
+
+Energy Storage &
+Stationary Battery
+
+Room 511E
+
+10:00 AM
+
+11:50 AM
+
+Performance Specifications for GridForming Inverter-based Resources
+
+Panel
+
+Energy Development
+and Power Generation
+
+Room 511B
+
+10:00 AM
+
+11:50 AM
+
+Wildfire Risk Mitigation for Grid
+Resiliency in North America
+
+Panel
+
+Local Organizing
+Committee
+
+Room 511C
+
+10:00 AM
+
+11:50 AM
+
+Data, Machine Learning, and
+Generative AI: Redefining the
+Power Sector and Workforce
+
+Panel
+
+Power & Energy
+Education
+
+Room 512B
+
+11:00 AM
+
+11:50 AM
+
+Task Force on Composite
+System Reliability Meeting
+
+Committee
+Meeting
+
+(AMPS) Reliability
+and Risk Analysis
+
+Room 513B
+
+11:00 AM
+
+11:50 AM
+
+Working Group on Distribution System
+BTM DERs: Visibility, Analytics and Control
+
+Committee
+Meeting
+
+(AMPS) Distribution
+System Analysis
+
+Room 513A
+
+11:00 AM
+
+11:50 AM
+
+Task Force on BPS-Connected
+Inverter-Based Resource (IBR)
+Operation Challenges
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Operations
+Subcommittee
+
+Room 510A
+
+11:00 AM
+
+11:50 AM
+
+Working Group on Electricity
+Market Design and Operations
+
+Committee
+Meeting
+
+PSOPE—Power
+System Economics
+Subcommittee
+
+Room 519A
+
+11:00 AM
+
+11:50 AM
+
+Task Force on Digital Twin of
+Large Scale Power Systems
+
+Committee
+Meeting
+
+PSOPE—Technologies
+& Innovation
+Subcommittee
+
+Room 519B
+
+11:00 AM
+
+11:50 AM
+
+TF on Control and Operation of DERs
+
+Committee
+Meeting
+
+PSOPE—Distribution
+System Operation and
+Planning Subcommittee
+
+Room 513F
+
+11:00 AM
+
+11:50 AM
+
+Flicker TF (IEEE Std 1453)
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520F
+
+11:00 AM
+
+12:20 PM
+
+Grid Enhancing Technologies
+Working Group
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520C
+
+11:30 AM
+
+1:45 PM
+
+CIGRE USNC Annual All members
+meeting and luncheon
+
+Luncheon
+
+Other
+
+Room 516A
+
+12:00 PM
+
+12:50 PM
+
+MSCC meeting during GM
+
+Committee
+Meeting
+
+Marine Systems
+Coordinating
+
+Room 513A
+
+12:00 PM
+
+12:50 PM
+
+Bulk Power System Planning
+Subcommittee Meeting
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Planning
+Subcommittee
+
+Room 513B
+
+Start
+
+End
+
+Session Name
+
+10:00 AM
+
+11:50 AM
+
+10:00 AM
+
+Room
+
+IEEE PES 2026 General Meeting Program | 21
+
+Tuesday 7/21 continued
+Session
+Type
+
+Sponsoring
+Committee
+
+ICHQP Executive Committee
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520F
+
+1:50 PM
+
+Distribution Switching and
+Protection Working Group
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520E
+
+12:30 PM
+
+2:50 PM
+
+Chapters and Membership
+Leadership Team Meeting
+
+Committee
+Meeting
+
+Admin
+
+Room 520A
+
+1:00 PM
+
+1:50 PM
+
+Task Force on Power System Resilience
+Metrics and Evaluation Methods
+
+Committee
+Meeting
+
+(AMPS) Reliability
+and Risk Analysis
+
+Room 513A
+
+1:00 PM
+
+1:50 PM
+
+P3597 IEEE Standard for Interfacing
+of Controls and Protection to
+Power System Simulation Tools
+
+Committee
+Meeting
+
+(AMPS) Transient
+Analysis and Simulation
+
+Room 510B
+
+1:00 PM
+
+1:50 PM
+
+Task Force on Operational Tools
+for Enabling Resiliency
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Operations
+Subcommittee
+
+Room 510A
+
+1:00 PM
+
+1:50 PM
+
+TF on Power System Synthetic Data
+Generation and Sharing (PSSDGS)
+
+Committee
+Meeting
+
+PSOPE—Technologies
+& Innovation
+Subcommittee
+
+Room 519A
+
+1:00 PM
+
+1:50 PM
+
+WG on Computational Aspect
+of Distributed Optimization
+in the Power System
+
+Committee
+Meeting
+
+(AMPS) Computer
+Analytical Methods
+
+Room 524B
+
+1:00 PM
+
+1:50 PM
+
+WG on High-Performance
+Computing for Grid Analysis
+
+Committee
+Meeting
+
+(AMPS) Computer
+Analytical Methods
+
+Room 524C
+
+1:00 PM
+
+1:50 PM
+
+PAR Live Work on Insulators
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 515C
+
+1:00 PM
+
+2:20 PM
+
+Voltage Quality WG (IEEE Std 1250)
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520F
+
+1:00 PM
+
+2:20 PM
+
+OHL—Management of Existing Lines DG
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510C
+
+1:00 PM
+
+2:20 PM
+
+ESMO OHL Technical Presentations
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520D
+
+1:00 PM
+
+2:50 PM
+
+Defining Value: Integrated Planning
+Frameworks for a Resilient, Affordable Grid
+
+Panel
+
+Industry Technical
+Support Leadership
+Committee
+
+Room 518B
+
+1:00 PM
+
+2:50 PM
+
+Photovoltaics and Energy Storage
+Applications in Islanding Microgrids
+
+Panel
+
+Energy Development
+and Power Generation
+
+Room 511A
+
+1:00 PM
+
+2:50 PM
+
+Excitation and Control System
+421.5 Standard Revision
+
+Committee
+Meeting
+
+Energy Development
+and Power Generation
+
+Room 513D
+
+1:00 PM
+
+2:50 PM
+
+Networked Microgrid Planning,
+Operation, and Control in Future
+Distribution Grids: Challenges,
+Opportunities and Lessons Learned
+
+Panel
+
+Smart Buildings, Loads
+& Customer Systems
+
+Room 512G
+
+1:00 PM
+
+2:50 PM
+
+Enhancing the decarbonized
+power system flexibility by
+synchrophasors data processing
+
+Panel
+
+PSOPE—Technologies
+& Innovation
+Subcommittee
+
+Room 512F
+
+1:00 PM
+
+2:50 PM
+
+Hybrid Solutions for Dynamic
+Security Assessment: Addressing
+the Impact of AI Data Centers
+
+Panel
+
+Power System
+Dynamic Performance
+
+Room 514A
+
+1:00 PM
+
+2:50 PM
+
+PEEC Student Meetings Subcommittee
+
+Committee
+Meeting
+
+Power & Energy
+Education
+
+Room 513E
+
+1:00 PM
+
+2:50 PM
+
+Emerging Trends in Digital Grid
+Protection, Automation and Control
+
+Panel
+
+Power Systems
+Relaying & Control
+
+Room 512C
+
+1:00 PM
+
+2:50 PM
+
+Data-driven based protection scheme for
+transmission line protection with IBRs
+
+Panel
+
+Power Systems
+Relaying & Control
+
+Room 512E
+
+Start
+
+End
+
+Session Name
+
+12:00 PM
+
+12:50 PM
+
+12:30 PM
+
+22 | IEEE PES 2026 General Meeting Program
+
+Room
+
+Tuesday 7/21 continued
+Session
+Type
+
+Sponsoring
+Committee
+
+Start
+
+End
+
+Session Name
+
+Room
+
+1:00 PM
+
+2:50 PM
+
+Smart Buildings—Loads—Customer Systems Committee
+(SBLC) Technical Committee Meeting
+Meeting
+
+Smart Buildings, Loads
+& Customer Systems
+
+Room 511F
+
+1:00 PM
+
+2:50 PM
+
+Applications of AI in the Power and
+Energy Industry Super Session
+
+Super
+Session
+
+Super Session
+
+Room 516C
+
+1:00 PM
+
+2:50 PM
+
+Accelerating Long-Duration
+Energy Storage Adoption: Bridging
+Innovation, Testing, and Policy
+
+Panel
+
+Energy Storage &
+Stationary Battery
+
+Room 511E
+
+1:00 PM
+
+2:50 PM
+
+Collaborative HVDC Research Projects:
+A View on the European R&D Landscape
+
+Panel
+
+Transmission
+and Distribution
+
+Room 516E
+
+1:00 PM
+
+2:50 PM
+
+Engineering the Future Grid:
+Data Centers and the Continuum
+of Power System Operations
+
+Panel
+
+Electric Machinery
+
+Room 512B
+
+1:00 PM
+
+2:50 PM
+
+Quantum Computing for Power Systems
+
+Panel
+
+(AMPS) Intelligent
+Systems
+
+Room 512A
+
+1:00 PM
+
+3:50 PM
+
+Resilient Grids in a Changing Climate:
+Grid-Enhancing Technologies and Lessons
+from Canada’s Climate-Affected Events
+
+Panel
+
+Local Organizing
+Committee
+
+Room 511B
+
+1:00 PM
+
+4:50 PM
+
+Technical Council, Technical
+Sessions Committee
+
+Committee
+Meeting
+
+Admin
+
+Room 520B
+
+1:00 PM
+
+4:50 PM
+
+Nuclear Plant Digital Modernization
+
+Panel
+
+Nuclear Power
+Engineering
+
+Room 512D
+
+1:00 PM
+
+4:50 PM
+
+Power System Operation,
+Planning & Economics 1
+
+Paper Forum
+
+Power System
+Operation, Planning
+& Economics
+
+Room 514B
+
+1:00 PM
+
+4:50 PM
+
+Power System Operation,
+Planning & Economics 2
+
+Paper Forum
+
+Admin
+
+Room 514C
+
+1:30 PM
+
+2:50 PM
+
+Integration of Data Centers on the
+Transmission System Task Force
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520C
+
+1:30 PM
+
+3:20 PM
+
+Guide for Application & Specification
+of Harmonic Filter WG
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 515B
+
+2:00 PM
+
+2:50 PM
+
+Task Force on Distributed Energy
+Resource Islanding Detection
+
+Committee
+Meeting
+
+(AMPS) Transient
+Analysis and Simulation
+
+Room 510D
+
+2:00 PM
+
+2:50 PM
+
+TASS Dynamic Phasor
+Modeling Methods TF
+
+Committee
+Meeting
+
+(AMPS) Transient
+Analysis and Simulation
+
+Room 510A
+
+2:00 PM
+
+2:50 PM
+
+IEEE Task Force on Benchmarking
+Multiconductor OPF for
+Distribution Systems
+
+Committee
+Meeting
+
+(AMPS) Distribution
+System Analysis
+
+Room 513A
+
+2:00 PM
+
+2:50 PM
+
+TASS TF EMT-type Modeling of
+Converter-based Renewable Energy
+
+Committee
+Meeting
+
+(AMPS) Transient
+Analysis and Simulation
+
+Room 524A
+
+2:00 PM
+
+2:50 PM
+
+Task Force on Cyber-Physical
+Interdependence for Power
+System Operation and Control
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Operations
+Subcommittee
+
+Room 525A
+
+2:00 PM
+
+2:50 PM
+
+Task Force on IoT for Power Systems
+
+Committee
+Meeting
+
+PSOPE—Technologies
+& Innovation
+Subcommittee
+
+Room 519A
+
+2:00 PM
+
+2:50 PM
+
+Working Group (WG) on Machine
+Learning for Power Systems (MLPS)
+
+Committee
+Meeting
+
+PSOPE—Technologies
+& Innovation
+Subcommittee
+
+Room 519B
+
+2:00 PM
+
+2:50 PM
+
+TASS Power Equipment
+Vulnerability to GIC TF
+
+Committee
+Meeting
+
+(AMPS) Transient
+Analysis and Simulation
+
+Room 510B
+
+2:00 PM
+
+2:50 PM
+
+SBLC—SBCS Subcommittee Meeting
+
+Committee
+Meeting
+
+Smart Buildings, Loads
+& Customer Systems
+
+Room 515A
+
+IEEE PES 2026 General Meeting Program | 23
+
+Tuesday 7/21 continued
+Start
+
+End
+
+Session Name
+
+Session
+Type
+
+Sponsoring
+Committee
+
+2:00 PM
+
+2:50 PM
+
+PAR Datacenters Energy
+Intyerconnection Guide
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 515C
+
+2:00 PM
+
+2:50 PM
+
+2027 GTD Asia
+
+Committee
+Meeting
+
+Admin
+
+Room 445
+
+2:00 PM
+
+3:50 PM
+
+Reliability, Risk, and Probability
+Applications (RRPA)
+Subcommittee Meeting
+
+Committee
+Meeting
+
+(AMPS) Reliability
+and Risk Analysis
+
+Room 513C
+
+2:00 PM
+
+3:50 PM
+
+Advanced Grid Modeling for NextGeneration Stability in PowerElectronic-Dominated Systems
+
+Committee
+Meeting
+
+(AMPS) Transient
+Analysis and Simulation
+
+Room 512H
+
+2:00 PM
+
+3:50 PM
+
+CIGRE Executive Committee
+
+Committee
+Meeting
+
+Other
+
+Room 513B
+
+2:00 PM
+
+3:50 PM
+
+Working group on Power
+System Dynamic Modeling
+
+Committee
+Meeting
+
+Power System
+Dynamic Performance
+
+Room 513F
+
+2:00 PM
+
+3:50 PM
+
+PES Conference Advisory
+Committee Meeting
+
+Committee
+Meeting
+
+Admin
+
+Room 524B
+
+2:00 PM
+
+4:50 PM
+
+Distribution Reliability Working Group
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520E
+
+2:30 PM
+
+3:20 PM
+
+Strategic Communications & Partnerships
+
+Committee
+Meeting
+
+Admin
+
+Room 520D
+
+2:30 PM
+
+3:50 PM
+
+Power Quality Standards
+Coordinating Subcommittee 22
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520F
+
+2:30 PM
+
+3:50 PM
+
+OHL—Design and Construction WG
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510C
+
+3:00 PM
+
+3:50 PM
+
+Task Force on Risk Mitigation for
+Bulk Power System Operation
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Operations
+Subcommittee
+
+Room 510A
+
+3:00 PM
+
+3:50 PM
+
+Working Group on Distribution
+Management
+
+Committee
+Meeting
+
+PSOPE—Distribution
+System Operation and
+Planning Subcommittee
+
+Room 519A
+
+3:00 PM
+
+3:50 PM
+
+[AMPS BDA] Task Force on Data
+Governance in the Cloud for
+Power System Organizations
+
+Committee
+Meeting
+
+(AMPS) Big
+Data Analytics
+
+Room 445
+
+3:00 PM
+
+3:50 PM
+
+1070/1071 Restoration structtures OHL
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 515C
+
+3:00 PM
+
+4:00 PM
+
+Open Access Journal of Power and
+Energy Editorial Board Meeting
+
+Committee
+Meeting
+
+Admin
+
+Room 518C
+
+3:00 PM
+
+4:50 PM
+
+Evolving Grid and Power System
+Future: Challenges and Perspectives
+
+Panel
+
+Power Systems
+Relaying & Control
+
+Room 518B
+
+3:00 PM
+
+4:50 PM
+
+Excitation and Control
+System Subcommittee
+
+Committee
+Meeting
+
+Energy Development
+and Power Generation
+
+Room 513D
+
+3:00 PM
+
+4:50 PM
+
+Generic models of renewable power
+plants in transient stability studies—recent
+developments and recent experiences
+
+Panel
+
+Power System
+Dynamic Performance
+
+Room 514A
+
+3:00 PM
+
+4:50 PM
+
+Cyber-Physical Security, Resilience,
+and Emerging Digital Technologies
+for the Future Power Grid
+
+Panel
+
+Smart Buildings, Loads
+& Customer Systems
+
+Room 512G
+
+3:00 PM
+
+4:50 PM
+
+Electric Cooperatives' Experience in
+Building Resiliency: Utility-Scale Battery
+Energy Storage and Microgrid Projects
+
+Panel
+
+Energy Storage &
+Stationary Battery
+
+Room 511E
+
+3:00 PM
+
+4:50 PM
+
+Advancing research and technology
+for the energy transition
+
+Panel
+
+Electric Machinery
+
+Room 512B
+
+24 | IEEE PES 2026 General Meeting Program
+
+Room
+
+Tuesday 7/21 continued
+Start
+
+End
+
+Session Name
+
+Session
+Type
+
+Sponsoring
+Committee
+
+3:00 PM
+
+4:50 PM
+
+AI-driven Cybersecurity for Power Grids
+
+Panel
+
+(AMPS) Computer
+Analytical Methods
+
+Room 512A
+
+3:00 PM
+
+4:50 PM
+
+Power System Equipment Impacts
+due to AI Data Centers
+
+Panel
+
+Electric Machinery
+
+Room 516D
+
+3:00 PM
+
+4:50 PM
+
+Task Force of Foundation Models
+for Situational Awareness,
+Computation, and Analysis
+
+Committee
+Meeting
+
+(AMPS) Computer
+Analytical Methods
+
+Room 511D
+
+3:00 PM
+
+4:50 PM
+
+Task force for Benchmark Network
+for Low Inertia Systems
+
+Committee
+Meeting
+
+Power System
+Dynamic Performance
+
+Room 513E
+
+3:00 PM
+
+4:50 PM
+
+Task Force on Reinforcement Learning for
+Committee
+Power System Dynamic Controls (RLPSDC) Meeting
+
+Power System
+Dynamic Performance
+
+Room 515A
+
+3:00 PM
+
+4:50 PM
+
+Transmission Subcommittee
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520C
+
+3:00 PM
+
+4:50 PM
+
+PES Fellows Committee
+
+Committee
+Meeting
+
+Admin
+
+Room 447
+
+3:00 PM
+
+4:50 PM
+
+IEEE Energy Sustainability Magazine
+Editorial Board Meeting
+
+Committee
+Meeting
+
+Admin
+
+Room 448
+
+3:00 PM
+
+4:50 PM
+
+IC22-003: Mobile and Transportable
+Energy Storage Systems—Technology
+Readiness, Safety and Operation
+
+Committee
+Meeting
+
+Admin
+
+Room 519B
+
+3:00 PM
+
+4:50 PM
+
+Grid-Forming Distributed Energy
+Resources: Evolving Roles from
+Microgrids to Everyday Operations
+
+Panel
+
+Transmission
+and Distribution
+
+Room 516E
+
+3:00 PM
+
+4:50 PM
+
+Highlights in Grid Transformation
+with Large Load Integration
+
+Panel
+
+Admin
+
+Room 512F
+
+3:00 PM
+
+4:50 PM
+
+Data Centers and Grid
+Readiness: An Update
+
+Panel
+
+Industry Technical
+Support Leadership
+Committee
+
+Room 516C
+
+3:00 PM
+
+4:50 PM
+
+Sustainable Development towards
+Collaboration: Power of Energy Society
+
+Panel
+
+Admin
+
+Room 511C
+
+3:00 PM
+
+4:50 PM
+
+From Cities to the Frontier: Microgrid
+Technologies for Diverse Environments
+
+Panel
+
+Energy Development
+and Power Generation
+
+Room 512C
+
+3:00 PM
+
+4:50 PM
+
+T&D Coordination for Stability
+and Flexibility in DER- and
+Data Center-Rich Systems
+
+Panel
+
+PSOPE—Distribution
+System Operation and
+Planning Subcommittee
+
+Room 512E
+
+3:00 PM
+
+5:00 PM
+
+AIPS CC Main Meeting
+
+Committee
+Meeting
+
+AI for Power Systems
+
+Room 511A
+
+3:30 PM
+
+5:20 PM
+
+Low Voltage Shunt Capacitor Application TF Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 515B
+
+4:00 PM
+
+4:50 PM
+
+Renewable Technologies
+Subcommittee Meeting
+
+Committee
+Meeting
+
+Energy Development
+and Power Generation
+
+Room 520A
+
+4:00 PM
+
+4:50 PM
+
+PEEC Awards Subcommittee
+
+Committee
+Meeting
+
+Power & Energy
+Education
+
+Room 513C
+
+4:00 PM
+
+4:50 PM
+
+Microgrid Applications and Implementation Committee
+Meeting
+
+Energy Development
+and Power Generation
+
+Room 513B
+
+4:00 PM
+
+4:50 PM
+
+Working Group on Power System
+Static and Dynamic State Estimation
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Operations
+Subcommittee
+
+Room 510A
+
+4:00 PM
+
+4:50 PM
+
+Working Group on Integrated
+Resource Planning
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Planning
+Subcommittee
+
+Room 513F
+
+Room
+
+IEEE PES 2026 General Meeting Program | 25
+
+Tuesday 7/21 continued
+Session
+Type
+
+Sponsoring
+Committee
+
+[AMPS BDA] Working Group on Datadriven Modeling, Monitoring and
+Control in Power Distribution Networks
+
+Committee
+Meeting
+
+(AMPS) Big
+Data Analytics
+
+Room 513A
+
+4:50 PM
+
+Power Quality Interest Group
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520F
+
+4:00 PM
+
+4:50 PM
+
+OHL—HVDC Lines DG
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510C
+
+4:00 PM
+
+4:50 PM
+
+IEC TC78 Live Working Updates
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 515C
+
+4:00 PM
+
+4:50 PM
+
+Open Access Journal of Power and
+Energy Paper Presentations
+
+Panel
+
+Admin
+
+Room 518C
+
+4:00 PM
+
+5:50 PM
+
+Memorial service for Prof. Roy Billinton
+
+Panel
+
+Other
+
+Room 511B
+
+5:00 PM
+
+5:50 PM
+
+Subcommittee on Distributed
+Energy Resources
+
+Committee
+Meeting
+
+Energy Development
+and Power Generation
+
+Room 513A
+
+5:00 PM
+
+7:00 PM
+
+The Korean Institute of Electrical Engineers
+(KIEE) North America Chapter Meeting
+
+Committee
+Meeting
+
+Other
+
+Room 511E
+
+5:00 PM
+
+7:00 PM
+
+North American Chinese Power
+Professionals' Social Gathering
+
+Reception
+
+Other
+
+Room 516A
+
+6:00 PM
+
+6:50 PM
+
+Management of Distributed
+Battery Storage Systems
+
+Committee
+Meeting
+
+Energy Development
+and Power Generation
+
+Room 513A
+
+7:00 PM
+
+9:00 PM
+
+Awards Gala
+Separate Ticket Required
+
+Dinner
+
+Start
+
+End
+
+Session Name
+
+4:00 PM
+
+4:50 PM
+
+4:00 PM
+
+Room
+
+Room 710
+
+*Please check the IEEE PES GM mobile app for the latest program and event updates.
+Notes
+
+26 | IEEE PES 2026 General Meeting Program
+
+WE D N ES DAY, J U LY 22
+Session
+Type
+
+Sponsoring
+Committee
+
+Room
+
+Registration
+
+Committee
+Meeting
+
+Admin
+
+Viger Hall
+
+8:00 AM
+
+Attendee Breakfast
+
+Breakfast
+
+Admin
+
+Room 517
+
+7:00 AM
+
+7:00 PM
+
+Prayer Room
+
+Other
+
+Other
+
+Room 525B
+
+8:00 AM
+
+8:50 AM
+
+AMPS Administrative meeting
+
+Committee
+Meeting
+
+Analytic Methods for
+Power Systems
+
+Room 524A
+
+8:00 AM
+
+9:20 AM
+
+OHL—Std 2746 TF—Guide for
+AC Inferference from T-lines
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510C
+
+8:00 AM
+
+9:20 AM
+
+OHL—Std 3132 TF—Guide for Spacers and
+Spacer-Dampers on Bundled Conductors
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 520E
+
+8:00 AM
+
+9:50 AM
+
+Tactical Microgrid Standard:
+Introduction and Case Studies
+
+Panel
+
+Power Systems
+Communications
+& Cyber Security
+
+Room 512D
+
+8:00 AM
+
+9:50 AM
+
+TF Grid Codes
+
+Committee
+Meeting
+
+Electric Machinery
+
+Room 513B
+
+8:00 AM
+
+9:50 AM
+
+Grid Enhancing Technologies: The Enabler
+for Smarter Decarbonized Power Systems
+
+Panel
+
+Industry Technical
+Support Leadership
+Committee
+
+Room 514A
+
+8:00 AM
+
+9:50 AM
+
+Sen Transformer—from Concept
+to Field Demonstration
+
+Panel
+
+Transformers
+
+Room 518B
+
+8:00 AM
+
+9:50 AM
+
+Some Aspects of Voltage Support
+Services in Control Center Operations
+
+Panel
+
+Power System
+Dynamic Performance
+
+Room 512E
+
+8:00 AM
+
+9:50 AM
+
+Creating Resiliency and Reliability for
+Utilities, Communities and Customers
+
+Panel
+
+PSOPE—Bulk Power
+System Operations
+Subcommittee
+
+Room 512F
+
+8:00 AM
+
+9:50 AM
+
+New Recommended Practices in
+Distribution System Analysis
+
+Panel
+
+(AMPS) Distribution
+System Analysis
+
+Room 512A
+
+8:00 AM
+
+9:50 AM
+
+Data Centers’ Workforce Training and
+Education: Needs and Challenges
+
+Panel
+
+Power & Energy
+Education
+
+Room 512C
+
+8:00 AM
+
+9:50 AM
+
+Planning for Distribution System
+Resilience to Extreme Weather Events
+
+Panel
+
+PSOPE—Distribution
+System Operation and
+Planning Subcommittee
+
+Room 512G
+
+8:00 AM
+
+9:50 AM
+
+HVDC Practical Challenges
+and Lessons Learned
+
+Panel
+
+Transmission
+and Distribution
+
+Room 518C
+
+8:00 AM
+
+9:50 AM
+
+EDPG Adcom meeting
+
+Committee
+Meeting
+
+Energy Development
+and Power Generation
+
+Room 513C
+
+8:00 AM
+
+9:50 AM
+
+System Level Stability Analysis
+for IBR Dominated Grids
+
+Panel
+
+Energy Development
+and Power Generation
+
+Room 512B
+
+8:00 AM
+
+9:50 AM
+
+Harmonics WG (IEEE Std 519)
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510D
+
+8:00 AM
+
+9:50 AM
+
+Transactions on Energy Conversion
+Editorial Board Meeting
+
+Committee
+Meeting
+
+Admin
+
+Room 520A
+
+8:00 AM
+
+9:50 AM
+
+Resources for Large Data
+Centers Super Session
+
+Super
+Session
+
+Super Session
+
+Room 516C
+
+8:00 AM
+
+9:50 AM
+
+Assessing the Impact of Extreme
+Events on Power System Resilience
+
+Panel
+
+(AMPS) Reliability
+and Risk Analysis
+
+Room 511B
+
+8:00 AM
+
+9:50 AM
+
+Screening Methods for EMT Studies
+and GFM Needs Identification
+
+Panel
+
+Electric Machinery
+
+Room 511A
+
+8:00 AM
+
+10:20 AM
+
+P2681 Working Group
+
+Committee
+Meeting
+
+Power System
+Instrumentation
+and Measurements
+
+Room 513E
+
+Start
+
+End
+
+Session Name
+
+6:30 AM
+
+4:00 PM
+
+7:00 AM
+
+IEEE PES 2026 General Meeting Program | 27
+
+Wednesday 7/22 continued
+Start
+
+End
+
+Session Name
+
+Session
+Type
+
+Sponsoring
+Committee
+
+8:00 AM
+
+11:50 AM
+
+Power System Dynamic Performance
+
+Paper Forum
+
+Power System
+Dynamic Performance
+
+8:00 AM
+
+5:00 PM
+
+Distribution System: Delivering
+Power to the Customer—Plaintalk:
+Separate Registration Fee Required
+
+Plaintalk
+
+8:00 AM
+
+5:00 PM
+
+Display Tables
+
+Other
+
+Admin
+
+Level 5 Foyer
+
+9:00 AM
+
+9:50 AM
+
+Working Group on Power
+System Restoration
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Operations
+Subcommittee
+
+Room 510A
+
+9:00 AM
+
+9:50 AM
+
+Operational Survivability for Off-Grid
+and Microgrid Projects TF Meeting
+
+Committee
+Meeting
+
+PSOPE—Distribution
+System Operation and
+Planning Subcommittee
+
+Room 513A
+
+9:00 AM
+
+9:50 AM
+
+WG on Power System Modeling and
+Integration Using CIM Standards
+
+Committee
+Meeting
+
+(AMPS) Computer
+Analytical Methods
+
+Room 524B
+
+9:00 AM
+
+9:50 AM
+
+PSDP Power Systems Stability
+Subcommittee meeting
+
+Committee
+Meeting
+
+Power System
+Dynamic Performance
+
+Room 513F
+
+9:00 AM
+
+9:50 AM
+
+Capacitor GMD Mitigation TF
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 515A
+
+9:00 AM
+
+10:50 AM
+
+Distribution Resiliency Working Group
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510B
+
+9:00 AM
+
+11:50 AM
+
+AMPS Committee Meeting (open to all)
+
+Committee
+Meeting
+
+Analytic Methods for
+Power Systems
+
+Room 524A
+
+9:30 AM
+
+10:20 AM
+
+OHL—Corona and Field Effects WG
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510C
+
+10:00 AM
+
+10:50 AM
+
+Working Group on Common Mode
+and Dependent Outages Meeting
+
+Committee
+Meeting
+
+(AMPS) Reliability
+and Risk Analysis
+
+Room 513A
+
+10:00 AM
+
+10:50 AM
+
+Bulk Power System
+Operation Subcommittee
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Operations
+Subcommittee
+
+Room 510A
+
+10:00 AM
+
+10:50 AM
+
+TF on Microgrid Pre-Feasibility Toolkit
+
+Committee
+Meeting
+
+PSOPE—Distribution
+System Operation and
+Planning Subcommittee
+
+Room 524B
+
+10:00 AM
+
+10:50 AM
+
+SBLC—Load Subcommittee Meeting
+
+Committee
+Meeting
+
+Smart Buildings, Loads
+& Customer Systems
+
+Room 524C
+
+10:00 AM
+
+10:50 AM
+
+PSDP Power Systems Stability
+Control Subcommittee meeting
+
+Committee
+Meeting
+
+Power System
+Dynamic Performance
+
+Room 513F
+
+10:00 AM
+
+10:50 AM
+
+Harmonics Modeling & Simulation TF
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510D
+
+10:00 AM
+
+10:50 AM
+
+15.05.14 Education on HVDC and FACTS
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 516D
+
+10:00 AM
+
+10:50 AM
+
+Reliability and Resilience for
+the New Grid Needs
+
+Panel
+
+Industry Technical
+Support Leadership
+Committee
+
+Room 514A
+
+10:00 AM
+
+11:50 AM
+
+Optimal Operation and Integration
+of Large Data Centers in the Grid
+
+Panel
+
+(AMPS) Big
+Data Analytics
+
+Room 512A
+
+10:00 AM
+
+11:50 AM
+
+Generator Subcommittee Meeting
+
+Committee
+Meeting
+
+Electric Machinery
+
+Room 513B
+
+10:00 AM
+
+11:50 AM
+
+Industrial AI for Grid Stability and
+Renewable Integration: From
+Concept to Deployment
+
+Panel
+
+PSOPE—Technologies
+& Innovation
+Subcommittee
+
+Room 512F
+
+10:00 AM
+
+11:50 AM
+
+From Challenge to Asset: Leveraging
+IBRs for Power System Stability
+
+Panel
+
+Power System
+Dynamic Performance
+
+Room 512E
+
+28 | IEEE PES 2026 General Meeting Program
+
+Room
+Room 514B
+Room 518A
+
+Wednesday 7/22 continued
+Session
+Type
+
+Sponsoring
+Committee
+
+Research and Educational Experiences of
+NSF CAREER Awardees in Power Systems
+
+Panel
+
+Power & Energy
+Education
+
+Room 512C
+
+11:50 AM
+
+Wind and Solar Collector
+Design Working Group
+
+Committee
+Meeting
+
+Energy Development
+and Power Generation
+
+Room 513C
+
+10:00 AM
+
+11:50 AM
+
+ENSURE’ing the Energy Transition:
+Panel
+Breakthroughs from Germany’s Kopernikus
+Project for Future-Proof Power-Systems
+
+Energy Development
+and Power Generation
+
+Room 511A
+
+10:00 AM
+
+11:50 AM
+
+Capacitor Subcommittee
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 515A
+
+10:00 AM
+
+11:50 AM
+
+Recent Advances in Design
+Technologies and AI-Enabled
+Methods for Electric Motor Drives
+
+Panel
+
+Electric Machinery
+
+Room 512B
+
+10:00 AM
+
+11:50 AM
+
+End-to-End DC
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 516E
+
+10:00 AM
+
+11:50 AM
+
+Transactions on Power
+Systems Editorial Board
+
+Committee
+Meeting
+
+Admin
+
+Room 520A
+
+10:00 AM
+
+11:50 AM
+
+Transactions on Power Delivery
+Editorial Board Meeting
+
+Committee
+Meeting
+
+Admin
+
+Room 520B
+
+10:00 AM
+
+11:50 AM
+
+Solutions for performing widearea electromagnetic transient
+(EMT) studies of Transmission and
+Distribution (T&D) systems with highpenetration levels of inverter-based
+resources (IBR) and data centers
+
+Panel
+
+Transmission
+and Distribution
+
+Room 516C
+
+10:00 AM
+
+11:50 AM
+
+Advancing Grid Resiliency and Reliability:
+The Role of Real-Time Simulation
+
+Panel
+
+Admin
+
+Room 518B
+
+10:00 AM
+
+11:50 AM
+
+Empowering Data Centers with
+Energy Storage: Boosting Reliability,
+Flexibility, and Grid Synergy
+
+Panel
+
+Energy Storage &
+Stationary Battery
+
+Room 511B
+
+10:00 AM
+
+11:50 AM
+
+Demystifying ADMS and DERMS
+Integration: Paving the Way for
+Advanced Distribution Systems
+
+Panel
+
+PSOPE—Distribution
+System Operation and
+Planning Subcommittee
+
+Room 512G
+
+10:00 AM
+
+11:50 AM
+
+EMT simulation and stability analysis
+of power system with large loads
+
+Panel
+
+(AMPS) Transient
+Analysis and Simulation
+
+Room 511E
+
+10:00 AM
+
+11:50 AM
+
+The Measurement of Power, Reactive
+Power, Apparent Power, and Power Factor
+
+Panel
+
+Power System
+Instrumentation
+and Measurements
+
+Room 512D
+
+10:30 AM
+
+11:50 AM
+
+OHL—Lightning Performance of OH
+Lines WG and Std 1243/1410
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510C
+
+11:00 AM
+
+11:50 AM
+
+Standard 762 Working Group Meeting
+
+Committee
+Meeting
+
+(AMPS) Reliability
+and Risk Analysis
+
+Room 513A
+
+11:00 AM
+
+11:50 AM
+
+Task Force on Wildfire AwareRisk Management (WARM)
+for the Electric Power Grid
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Operations
+Subcommittee
+
+Room 510A
+
+11:00 AM
+
+11:50 AM
+
+TF on Electrification in Native Lands
+
+Committee
+Meeting
+
+PSOPE—Distribution
+System Operation and
+Planning Subcommittee
+
+Room 524B
+
+11:00 AM
+
+11:50 AM
+
+Power Quality Data Analytics WG (P3139)
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510D
+
+11:00 AM
+
+11:50 AM
+
+DERMS: Hierarchical Levels
+and Complementarity
+
+Panel
+
+Industry Technical
+Support Leadership
+Committee
+
+Room 514A
+
+11:00 AM
+
+1:50 PM
+
+Power & Energy Magazine Editorial Board
+
+Committee
+Meeting
+
+Admin
+
+Room 520C
+
+Start
+
+End
+
+Session Name
+
+10:00 AM
+
+11:50 AM
+
+10:00 AM
+
+Room
+
+IEEE PES 2026 General Meeting Program | 29
+
+Wednesday 7/22 continued
+Session
+Type
+
+Sponsoring
+Committee
+
+Start
+
+End
+
+Session Name
+
+11:30 AM
+
+1:30 PM
+
+Student Faculty Industry Luncheon
+Separate Ticket Required
+
+Luncheon
+
+11:30 AM
+
+5:50 PM
+
+Technical Council/Lunch and Meeting
+
+Committee
+Meeting
+
+Admin
+
+Room 519A
+
+12:00 PM
+
+1:50 PM
+
+Task Force on Power system restoration
+with renewable energy resources
+
+Committee
+Meeting
+
+Power System
+Dynamic Performance
+
+Room 513F
+
+1:00 PM
+
+1:20 PM
+
+Task Force on PQ Team Management
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510D
+
+1:00 PM
+
+1:50 PM
+
+Resource Adequacy Working
+Group (RAWG) Meeting
+
+Committee
+Meeting
+
+(AMPS) Reliability
+and Risk Analysis
+
+Room 513A
+
+1:00 PM
+
+1:50 PM
+
+Task Force on Systems Modeling
+for Electricity Market Design
+
+Committee
+Meeting
+
+PSOPE—Power
+System Economics
+Subcommittee
+
+Room 513D
+
+1:00 PM
+
+1:50 PM
+
+Working group on Dynamic
+Security Assessment
+
+Committee
+Meeting
+
+Power System
+Dynamic Performance
+
+Room 519B
+
+1:00 PM
+
+1:50 PM
+
+A Binational Review of Bulk Power
+Transmission Interconnections—Challenges
+and Opportunities for Better Integration
+
+Panel
+
+Industry Technical
+Support Leadership
+Committee
+
+Room 514A
+
+1:00 PM
+
+2:20 PM
+
+P3580 Working Group
+
+Committee
+Meeting
+
+Power System
+Instrumentation
+and Measurements
+
+Room 513B
+
+1:00 PM
+
+2:50 PM
+
+Planning for the Unknown: Advancing
+Transmission Amid Uncertainty on
+Resources, Loads, and Beyond
+
+Panel
+
+PSOPE—Bulk Power
+System Planning
+Subcommittee
+
+Room 518B
+
+1:00 PM
+
+2:50 PM
+
+Digital Transition in Substations:
+The Hydro-Québec IEC
+61850 Experience
+
+Panel
+
+Power Systems
+Communications
+& Cyber Security
+
+Room 512C
+
+1:00 PM
+
+2:50 PM
+
+Materials Subcommittee Session in
+memory of the key contributors to
+the EMC standards: Clyde Maughn,
+William McCown, Adam Balawejder
+
+Committee
+Meeting
+
+Electric Machinery
+
+Room 445
+
+1:00 PM
+
+2:50 PM
+
+Beyond the Trim: Predictive Vegetation
+Management for a Resilient Grid
+
+Panel
+
+(AMPS) Big
+Data Analytics
+
+Room 512A
+
+1:00 PM
+
+2:50 PM
+
+The Role of Synchronous Condensers
+in Emerging Power Systems
+
+Panel
+
+Electric Machinery
+
+Room 512B
+
+1:00 PM
+
+2:50 PM
+
+Electricity Markets in the Age of AI:
+Managing Complexity and Uncertainty
+
+Panel
+
+PSOPE—Power
+System Economics
+Subcommittee
+
+Room 512D
+
+1:00 PM
+
+2:50 PM
+
+European Energy transition: AI, Sector
+Coupling, and Grid Innovations for
+the European Energy Transition
+
+Panel
+
+Energy Development
+and Power Generation
+
+Room 511A
+
+1:00 PM
+
+2:50 PM
+
+PSOPE Main Meeting
+
+Committee
+Meeting
+
+Power System
+Operation, Planning
+& Economics
+
+Room 516E
+
+1:00 PM
+
+2:50 PM
+
+Wind and Solar Grounding Task
+Force Meeting (PAR 2778)
+
+Committee
+Meeting
+
+Energy Development
+and Power Generation
+
+Room 513C
+
+1:00 PM
+
+2:50 PM
+
+OHL—Conductors and Accessories WG
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510C
+
+1:00 PM
+
+2:50 PM
+
+SCATE Working Group
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510B
+
+1:00 PM
+
+2:50 PM
+
+Data Challenges for Intelligent
+Power Grid Resilience Actions
+
+Panel
+
+Transmission
+and Distribution
+
+Room 516D
+
+1:00 PM
+
+2:50 PM
+
+High Renewable Energy Penetrations within Panel
+Isolated and Remote Area Power Systems
+
+Energy Development
+and Power Generation
+
+Room 511B
+
+30 | IEEE PES 2026 General Meeting Program
+
+Room
+Room 710
+
+Wednesday 7/22 continued
+Start
+
+End
+
+Session Name
+
+Session
+Type
+
+Sponsoring
+Committee
+
+Room
+
+1:00 PM
+
+2:50 PM
+
+Designing the Grid for the
+Digital World Super Session
+
+Super
+Session
+
+Super Session
+
+Room 516C
+
+1:00 PM
+
+2:50 PM
+
+AI-powered Digital Twins for Grid-Scale
+Energy Storage: Enabling Predictive
+Maintenance and Real-Time Optimization
+
+Panel
+
+Energy Storage &
+Stationary Battery
+
+Room 511C
+
+1:00 PM
+
+2:50 PM
+
+Learning Power System Physics
+with AI: From Black-Box Models
+to Physics-Guided Intelligence
+
+Panel
+
+(AMPS) Big
+Data Analytics
+
+Room 511E
+
+1:00 PM
+
+2:50 PM
+
+The Nexus between AI Technology
+and Power System Education
+
+Panel
+
+Power & Energy
+Education
+
+Room 511D
+
+1:00 PM
+
+4:20 PM
+
+HVDC & FACTS Subcommittee Meeting
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 512F
+
+1:00 PM
+
+4:50 PM
+
+Grid Transformation
+
+Paper Forum
+
+Admin
+
+Room 514B
+
+1:30 PM
+
+3:20 PM
+
+PQ Subcommittee
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510D
+
+1:30 PM
+
+3:20 PM
+
+Student Job Fair
+
+Reception
+
+Admin
+
+Room 710
+
+2:00 PM
+
+2:50 PM
+
+TASS Modeling and Analysis of System
+Transients using Digital Programs WG
+
+Committee
+Meeting
+
+(AMPS) Transient
+Analysis and Simulation
+
+Room 510A
+
+2:00 PM
+
+2:50 PM
+
+Task Force on Advancing Situational
+Awareness Through Explainable
+Artificial Intelligence
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Operations
+Subcommittee
+
+Room 525A
+
+2:00 PM
+
+2:50 PM
+
+Working Group on Emerging Technologies
+
+Committee
+Meeting
+
+PSOPE—Power
+System Economics
+Subcommittee
+
+Room 513D
+
+2:00 PM
+
+2:50 PM
+
+Priority topics for industry executives—
+a multi-utility, interdisciplinary perspective.
+
+Panel
+
+Industry Technical
+Support Leadership
+Committee
+
+Room 518C
+
+2:00 PM
+
+4:20 PM
+
+Publications Board Meeting
+
+Committee
+Meeting
+
+Admin
+
+Room 447
+
+2:00 PM
+
+4:50 PM
+
+NEMA GS-CP Capacitor
+Section (Members Only)
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 515A
+
+3:00 PM
+
+3:50 PM
+
+Distribution System Operation
+& Planning Subcommittee
+
+Committee
+Meeting
+
+PSOPE—Distribution
+System Operation and
+Planning Subcommittee
+
+Room 524B
+
+3:00 PM
+
+3:50 PM
+
+Task force for Datasets for Machine
+Learning of Dynamic Stabiltiy Prediction
+
+Committee
+Meeting
+
+Power System
+Dynamic Performance
+
+Room 513F
+
+3:00 PM
+
+3:50 PM
+
+Task force on Forced Oscillations
+
+Committee
+Meeting
+
+Power System
+Dynamic Performance
+
+Room 513A
+
+3:00 PM
+
+4:20 PM
+
+Sensors Application Guide Task Force:
+
+Committee
+Meeting
+
+Power System
+Instrumentation
+and Measurements
+
+Room 513B
+
+3:00 PM
+
+4:50 PM
+
+Addressing the Operational Challenges
+Posed by Large Load Integration
+
+Panel
+
+PSOPE—Bulk Power
+System Operations
+Subcommittee
+
+Room 511D
+
+3:00 PM
+
+4:50 PM
+
+Large Language Models for Power
+and Energy Systems: Current Research
+and Dealing with Known Issues
+
+Panel
+
+(AMPS) Intelligent
+Systems
+
+Room 511E
+
+3:00 PM
+
+4:50 PM
+
+Smart Grid for Smart City
+Recommendation and Guidelines
+
+Panel
+
+Energy Development
+and Power Generation
+
+Room 512B
+
+3:00 PM
+
+4:50 PM
+
+Connect circuit, control, and computing
+theories with the practical world:
+Design an effective program for
+operation and protection of inverterbased resources and loads
+
+Panel
+
+Power & Energy
+Education
+
+Room 512C
+
+IEEE PES 2026 General Meeting Program | 31
+
+Wednesday 7/22 continued
+Session
+Type
+
+Sponsoring
+Committee
+
+Cybersecurity for distribution
+grids and microgrids
+
+Panel
+
+Power Systems
+Communications
+& Cyber Security
+
+Room 512D
+
+4:50 PM
+
+Sub-Synchronous Oscillations in
+Inverter-based Resources and
+Loads: Emerging Events, Open
+Questions, and Pathways Forward
+
+Panel
+
+(AMPS) Transient
+Analysis and Simulation
+
+Room 512A
+
+3:00 PM
+
+4:50 PM
+
+[AMPS BDA] Big Data Analytics
+(BDA) Subcommittee Meeting
+
+Committee
+Meeting
+
+(AMPS) Big
+Data Analytics
+
+Room 524A
+
+3:00 PM
+
+4:50 PM
+
+Understanding What's Happening
+to the Transformer as it Ages
+
+Panel
+
+Transformers
+
+Room 518B
+
+3:00 PM
+
+4:50 PM
+
+OHL—Structural Materials
+and Hardware WG
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510C
+
+3:00 PM
+
+4:50 PM
+
+Large Loads—EMT Studies,
+Models, & Needs
+
+Panel
+
+Transmission
+and Distribution
+
+Room 516D
+
+3:00 PM
+
+4:50 PM
+
+Grid for the Digital World
+
+Panel
+
+Energy Development
+and Power Generation
+
+Room 511B
+
+3:00 PM
+
+4:50 PM
+
+Learning from recent system-wide
+events: minimal set of measurements
+and models to be exchanged to
+reproduce large disturbance events
+
+Panel
+
+Power System
+Dynamic Performance
+
+Room 511C
+
+3:00 PM
+
+4:50 PM
+
+Renewable Energy and
+Protection Challenges
+
+Panel
+
+Admin
+
+Room 518C
+
+3:00 PM
+
+4:50 PM
+
+Bridging AI/ML Innovations
+and Industrial Practice in Power
+System Dispatch and Control
+
+Panel
+
+PSOPE—Technologies
+& Innovation
+Subcommittee
+
+Room 512E
+
+3:00 PM
+
+4:50 PM
+
+Testing and Inspection of Electric
+Machine Insulation Systems Subject
+to Modern Grid Intermittency
+
+Panel
+
+Electric Machinery
+
+Room 511A
+
+3:30 PM
+
+4:20 PM
+
+Distribution Subcommittee
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510D
+
+4:00 PM
+
+4:50 PM
+
+Working Group on Transmission
+System Planning
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Planning
+Subcommittee
+
+Room 513C
+
+4:00 PM
+
+4:50 PM
+
+Task Force on Advanced Methods for
+Computational Intensive Power System
+Planning Applications Meeting
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Planning
+Subcommittee
+
+Room 513D
+
+4:00 PM
+
+5:00 PM
+
+Intelligent Grid and Emerging Technologies Committee
+Coordinating Committee (IGETCC)
+Meeting
+
+Grid & Emerging
+Technologies
+Coordinating Committee
+
+Room 513A
+
+4:30 PM
+
+5:20 PM
+
+PES Author Forum with the
+Transactions Editor in Chief
+
+Panel
+
+Admin
+
+Room 514A
+
+5:00 PM
+
+5:50 PM
+
+ACPE-Australasian committee for
+Power Engineering Universities
+
+Committee
+Meeting
+
+Other
+
+Room 513B
+
+5:00 PM
+
+6:50 PM
+
+PSDP ADCom meeting
+
+Committee
+Meeting
+
+Power System
+Dynamic Performance
+
+Room 513A
+
+5:00 PM
+
+6:50 PM
+
+NEMA Insulators WG (Invite Only)
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 510D
+
+6:00 PM
+
+7:20 PM
+
+Bangladesh Power Engineering Meeting
+
+Committee
+Meeting
+
+Other
+
+Room 513B
+
+6:00 PM
+
+7:30 PM
+
+Power Professionals—India Group
+
+Committee
+Meeting
+
+Other
+
+Room 512A
+
+Start
+
+End
+
+Session Name
+
+3:00 PM
+
+4:50 PM
+
+3:00 PM
+
+32 | IEEE PES 2026 General Meeting Program
+
+Room
+
+TH U RS DAY, J U LY 23
+Session
+Type
+
+Sponsoring
+Committee
+
+Room
+
+Registration
+
+Committee
+Meeting
+
+Admin
+
+Viger Hall
+
+7:00 PM
+
+Prayer Room
+
+Other
+
+Other
+
+Room 525B
+
+7:00 AM
+
+8:00 AM
+
+Attendee Breakfast
+
+Breakfast
+
+Admin
+
+Room 517
+
+7:30 AM
+
+11:50 AM
+
+Transmission & Distribution
+Committee Adcom
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 513A
+
+8:00 AM
+
+9:50 AM
+
+Using CIM for Large Scale Grid
+Models to Unlock Innovation
+and Support Load Growth
+
+Panel
+
+(AMPS) Computer
+Analytical Methods
+
+Room 512A
+
+8:00 AM
+
+9:50 AM
+
+Electric Machinery Committee Meeting
+
+Committee
+Meeting
+
+Electric Machinery
+
+Room 513B
+
+8:00 AM
+
+9:50 AM
+
+Frequency-Constrained Grid Operations
+for Low-Inertia Power Systems
+
+Panel
+
+PSOPE—Bulk Power
+System Operations
+Subcommittee
+
+Room 512E
+
+8:00 AM
+
+9:50 AM
+
+System Adequacy Beyond Capacity:
+The Need for Flexibility
+
+Panel
+
+PSOPE—Bulk Power
+System Planning
+Subcommittee
+
+Room 512F
+
+8:00 AM
+
+9:50 AM
+
+Open-Source Software Security
+for Critical Infrastructure
+
+Panel
+
+Power Systems
+Communications
+& Cyber Security
+
+Room 512C
+
+8:00 AM
+
+9:50 AM
+
+New Trends in Cyber-Physical Security
+Analytics for the Smart Grids
+
+Panel
+
+(AMPS) Big
+Data Analytics
+
+Room 518B
+
+8:00 AM
+
+9:50 AM
+
+Powering the Digital Age: How
+Data Centres Are Driving the
+Need for FACTS Devices
+
+Panel
+
+Transmission
+and Distribution
+
+Room 516D
+
+8:00 AM
+
+9:50 AM
+
+Sensors Subcommittee
+
+Committee
+Meeting
+
+Power System
+Instrumentation
+and Measurements
+
+Room 513C
+
+8:00 AM
+
+9:50 AM
+
+Big Data Analytics for Inverter Based
+Resources (IBR) Monitoring, Performance
+Evaluation, and Grid Impacts
+
+Panel
+
+Power Systems
+Relaying & Control
+
+Room 512D
+
+8:00 AM
+
+9:50 AM
+
+OHL—Insulator Performance
+and Application WG
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 518C
+
+8:00 AM
+
+9:50 AM
+
+Dynamic Modeling and Grid
+Impact of AI Data Center Loads
+
+Paper
+Session
+
+Power System
+Dynamic Performance
+
+Room 512G
+
+8:00 AM
+
+9:50 AM
+
+Reimagining Power Systems with AI:
+Turning Research into Real-World Impact
+
+Panel
+
+AI for Power Systems
+
+Room 516E
+
+8:00 AM
+
+9:50 AM
+
+Resiliency of the Power Grid Super Session
+
+Super
+Session
+
+Super Session
+
+Room 516C
+
+8:00 AM
+
+9:50 AM
+
+Rise of Large Loads: Implications
+for Energy Development
+
+Panel
+
+Energy Development
+and Power Generation
+
+Room 512B
+
+8:00 AM
+
+9:50 AM
+
+Resource Adequacy and Interregional
+Transmission: Understanding the Impacts
+
+Panel
+
+(AMPS) Reliability
+and Risk Analysis
+
+Room 516A
+
+8:00 AM
+
+10:50 AM
+
+EDPG Main Meeting
+
+Committee
+Meeting
+
+Energy Development
+and Power Generation
+
+Room 524B
+
+8:00 AM
+
+11:50 AM
+
+Emerging Technologies
+
+Paper Forum
+
+Power Systems
+Relaying & Control
+
+Room 514B
+
+8:00 AM
+
+5:00 PM
+
+Transmission System: The Interconnected
+Bulk Electric System—Plaintalk:
+Separate Registration Fee Required
+
+Plaintalk
+
+8:00 AM
+
+5:00 PM
+
+Display Tables
+
+Other
+
+Start
+
+End
+
+Session Name
+
+6:30 AM
+
+12:00 PM
+
+7:00 AM
+
+Room 518A
+
+Admin
+
+Level 5 Foyer
+
+IEEE PES 2026 General Meeting Program | 33
+
+Thursday 7/23 continued
+Session
+Type
+
+Sponsoring
+Committee
+
+Task Force on Dynamic State Estimation
+Based on Electro-Mechanical
+Wave Propagation Modeling
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+Systems Operations
+
+Room 525A
+
+10:50 AM
+
+Task Force on Economics of
+Flexibility, Models and Data
+
+Committee
+Meeting
+
+PSOPE—Power
+System Economics
+Subcommittee
+
+Room 513C
+
+10:00 AM
+
+11:20 AM
+
+OHL—Corrosion Management WG
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 518C
+
+10:00 AM
+
+11:50 AM
+
+Physics-Informed Learning
+for Distribution System Modeling,
+Estimation and Optimization
+
+Panel
+
+(AMPS) Distribution
+System Analysis
+
+Room 512A
+
+10:00 AM
+
+11:50 AM
+
+Electric Machinery Committee
+Long-Range Planning
+
+Committee
+Meeting
+
+Electric Machinery
+
+Room 513B
+
+10:00 AM
+
+11:50 AM
+
+Advances in the Modeling of
+Geomagnetic Disturbances (GMD)
+
+Panel
+
+(AMPS) Transient
+Analysis and Simulation
+
+Room 512B
+
+10:00 AM
+
+11:50 AM
+
+Smart Grid Cybersecurity in the Quantum
+Era: Challenges and Opportunities
+
+Panel
+
+Power Systems
+Communications
+& Cyber Security
+
+Room 512E
+
+10:00 AM
+
+11:50 AM
+
+Flexible Interconnection for Large Loads
+
+Panel
+
+Smart Buildings, Loads
+& Customer Systems
+
+Room 516A
+
+10:00 AM
+
+11:50 AM
+
+Advanced study requirements
+for customer connection
+
+Panel
+
+Transmission
+and Distribution
+
+Room 516D
+
+10:00 AM
+
+11:50 AM
+
+A Climate-Aware Framework for
+Bulk Power System Planning
+Integrating Electric Meteorology
+
+Panel
+
+PSOPE—Bulk Power
+System Planning
+Subcommittee
+
+Room 512F
+
+10:00 AM
+
+11:50 AM
+
+Addressing Cyber-Security in
+Power and Energy Society
+
+Paper
+Session
+
+Power Systems
+Communications
+& Cyber Security
+
+Room 516E
+
+10:00 AM
+
+11:50 AM
+
+AI in Power Grids: Real-World Use
+Cases and Lessons Learned
+
+Panel
+
+PSOPE—Distribution
+System Operation and
+Planning Subcommittee
+
+Room 512G
+
+10:00 AM
+
+11:50 AM
+
+Trustworthy AI for stability assessment
+and control of digitalized power systems
+
+Panel
+
+Energy Internet
+Coordinating Committee
+
+Room 512D
+
+10:00 AM
+
+11:50 AM
+
+Firm capacity markets in systems
+with high penetration of variable
+energy sources and storage systems:
+Latin America and beyond.
+
+Panel
+
+Energy Development
+and Power Generation
+
+Room 512C
+
+10:00 AM
+
+12:50 PM
+
+PSDP Committee meeting
+
+Committee
+Meeting
+
+Power System
+Dynamic Performance
+
+Room 518B
+
+11:00 AM
+
+11:50 AM
+
+Working Group on Assessment
+of Power System Flexibility
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Planning
+Subcommittee
+
+Room 513C
+
+11:30 AM
+
+12:50 PM
+
+Overhead Lines Adcom
+(Officers and WG Chairs)
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 518C
+
+12:00 PM
+
+12:50 PM
+
+LATIN AMERICAN INFRASTRUCTURE
+WORKING GROUP—
+INTERNATIONAL PRACTICES
+
+Committee
+Meeting
+
+Energy Development
+and Power Generation
+
+Room 524B
+
+12:00 PM
+
+1:50 PM
+
+Tech Council Operations &
+Procedures (O&P)
+
+Committee
+Meeting
+
+Admin
+
+Room 513C
+
+Start
+
+End
+
+Session Name
+
+9:00 AM
+
+9:50 AM
+
+10:00 AM
+
+34 | IEEE PES 2026 General Meeting Program
+
+Room
+
+Thursday 7/23 continued
+Session
+Type
+
+Sponsoring
+Committee
+
+Room
+
+1547.7 Working Group
+
+Committee
+Meeting
+
+Admin
+
+Room 513D
+
+2:20 PM
+
+Overhead Lines Subcommittee
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 518C
+
+1:00 PM
+
+2:50 PM
+
+Quantum Technologies in Power
+Grid: Operations & Security
+
+Panel
+
+PSOPE—Bulk Power
+System Operations
+Subcommittee
+
+Room 512A
+
+1:00 PM
+
+2:50 PM
+
+AI application for Power
+System Online Analysis
+
+Panel
+
+PSOPE—Technologies
+& Innovation
+Subcommittee
+
+Room 512B
+
+1:00 PM
+
+2:50 PM
+
+Powering Large Loads and Interconnecting
+Generation to Support Load Growth
+
+Panel
+
+Transmission
+and Distribution
+
+Room 516A
+
+1:00 PM
+
+2:50 PM
+
+Resiliency of the Power Grid
+
+Panel
+
+Energy Development
+and Power Generation
+
+Room 516B
+
+1:00 PM
+
+2:50 PM
+
+AI, Dataset and Data Center—How
+will the power community rise to
+new technological challenges?
+
+Panel
+
+(AMPS) Intelligent
+Systems
+
+Room 516D
+
+1:00 PM
+
+2:50 PM
+
+IEEE Std. C50.13 IEEE Standard for 50
+Hz and 60 Hz Synchronous Generators
+for Non-Hydraulic Applicatons
+Rated 10 MVA and Above
+
+Committee
+Meeting
+
+Electric Machinery
+
+Room 513B
+
+2:30 PM
+
+4:20 PM
+
+Overhead Lines Special Sessions
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 518C
+
+3:00 PM
+
+4:20 PM
+
+PSIM Committee
+
+Committee
+Meeting
+
+Power System
+Instrumentation
+and Measurements
+
+Room 513B
+
+3:00 PM
+
+4:50 PM
+
+Resilience of Critical Facility Microgrids
+and Datacenters in Weak Grid Conditions
+
+Panel
+
+Energy Development
+and Power Generation
+
+Room 516B
+
+3:00 PM
+
+4:50 PM
+
+Connected Flows: Coordinating
+Energy, Water, and Data Systems
+
+Panel
+
+PSOPE—Power
+System Economics
+Subcommittee
+
+Room 512D
+
+3:00 PM
+
+4:50 PM
+
+Data-Driven Dynamic Modeling for Power
+Grids with High Penetrations of Inverters
+
+Panel
+
+PSOPE—Bulk Power
+System Planning
+Subcommittee
+
+Room 512C
+
+3:00 PM
+
+4:50 PM
+
+Toward Holistic Grid Visibility:
+AI-Enabled Dynamic State Estimation
+and Situational Awareness
+
+Panel
+
+(AMPS) Computer
+Analytical Methods
+
+Room 512A
+
+3:00 PM
+
+4:50 PM
+
+Grid Interaction Challenges of Data Centers Panel
+
+Transmission
+and Distribution
+
+Room 516A
+
+3:00 PM
+
+4:50 PM
+
+Local and Grid Level Values of BTM DERs:
+Sharing Best Practical Experiences
+
+Panel
+
+(AMPS) Distribution
+System Analysis
+
+Room 512B
+
+4:00 PM
+
+4:50 PM
+
+Working Group on Integrated
+Energy System/Multi-energy
+Network Modeling and Planning
+
+Committee
+Meeting
+
+PSOPE—Bulk Power
+System Planning
+Subcommittee
+
+Room 513C
+
+4:30 PM
+
+6:20 PM
+
+ANSI C29 WG
+
+Committee
+Meeting
+
+Transmission
+and Distribution
+
+Room 518C
+
+Start
+
+End
+
+Session Name
+
+12:00 PM
+
+4:50 PM
+
+1:00 PM
+
+IEEE PES 2026 General Meeting Program | 35
+
+MEET THE CANDIDATES
+Upcoming 2027 IEEE Division VII
+Director-Elect Elections Candidates
+Ballots will be mailed in August, balloting will begin on 17 August 2026,
+and elections will close on 1 October 2026, 12:00 noon ET (16:00 UTC-04).
+
+Dr. Hong Chen is a visionary leader who has played a pivotal role in
+advancing IEEE PES Technical Activities over the past three decades,
+through chairing task forces, Technical Committees, and the Technical
+Council, serving as Vice President of Technical Activities on the PES
+Governing Board. Through these roles and her leadership in launching
+new initiatives, she has achieved significant impact.
+
+Hong Chen
+(Nominated by IEEE Division VII)
+Principal Engineer
+PJM Interconnection
+Audubon, Pennsylvania, USA
+
+Dr. Chen is a well-known practitioner in electricity markets and power
+grid operation risk mitigation. Over the past three decades, she has led
+the development of multiple power grid applications, delivering billions
+of dollars savings. Driven by her passion for technological innovation,
+Dr. Chen serves as an industry advisor to many R&D projects sponsored
+by National Science Foundation, Department of Energy, and Power
+Systems Engineering Research Center.
+Hong Chen received her Bachelor’s and Master’s degrees from Southeast
+University in China and her Ph.D. from University of Waterloo in Canada.
+
+Statement
+As Division VII Director, I will work closely with PES members, Technical Committees, and the Governing
+Board to actively promote PES’ leadership in the overall IEEE’s mission. PES not only supports the core
+technologies that power the world, but also plays a pivotal role in addressing climate change. As a globally
+respected think-tank of more than 42,000 experts, PES represents a powerful community. Together, we are
+uniquely positioned to accelerate innovation, and drive toward a sustainable, resilient and net-zero energy
+future. In this position, I will dedicate my time and energy to elevating the visibility of PES contributions
+within IEEE and supporting the ongoing transformation of our industry.
+PES currently contributes nearly half of all IEEE standards. There are opportunities to expand this impact
+further. I will strongly advocate for PES interests, enhance our society’s global influence by strengthening
+collaboration across IEEE societies. By fostering deeper connections between industry and academia,
+supporting the growth of young professionals, and advancing Women in Power, I will help ensure PES’s
+leadership in shaping the future of energy!
+
+36 | IEEE PES 2026 General Meeting Program
+
+IEEE Accomplishments and Activities (S’98–M’03–SM’07–F’24)
+Accomplishments
+· Launched the IEEE Alternative Energy Generation and Storage Initiative in 2025 to promote emerging energy
+generation and storage technologies for terrestrial, ocean and space applications.
+· Led the development of the first PES Technical Roadmap (PES-TR123, June 2024)
+· Received 2024 IEEE PES Wanda Reder Pioneer in Power Award “For contributions in leading strategic
+technology development in PES and power grid operation”.
+· Led Technical Committees in development or revision of over 120 IEEE Standards and approved over 30
+technical reports, alongside many tutorials, webinars, workshops, and conference technical programs from
+2022 to 2023; also initiated a joint technical report and joint conference between PES and CIGRE in 2023,
+promoting global collaboration.
+· Championed the move of Satellite Technical Committees from Chapters Council to Technical Activities in 2022,
+improving PES governance and interaction, increasing visibility, and providing support to local volunteers.
+· Led the establishment of Power System Operation, Planning and Economics committee (PSOPE) in 2014–2016
+in support of PES committee structure reorganization and served as its first Chair in 2017. PSOPE received
+Technical Committee of the Year Award.
+
+Activities
+· Chair of IEEE Alternative Energy Generation and Storage Initiative (2025—Present)
+· Vice-Chair of IEEE Roadmap Committee (2025—Present)
+· IEEE Fellow Committee (2025—Present)
+· IEEE PES Industry Technical Support Leadership Committee: Secretary (2025), Vice-Chair (Present)
+· Technical Program Chair: 2025 and 2027 PES Grid Edge Conference & Expo
+· Chair of PES Technical Council Awards Committee and External Proposal Management Committee (2024—2025)
+· Vice-President of PES Technical Activities (2022—2023)
+· PES Technical Council: Past Chair (2024—2025), Chair (2022—2023); Vice-Chair (2020—2021);
+Secretary (2018—2019)
+· Founding Chair of PES Power System Operation, Planning and Economics Committee (2016—2017)
+· Power System Operations Committee: Chair (2015—2016); Vice-Chair and TCPC (2013—2014);
+Secretary (2011–2012)
+· Chair of IEEE Task Forces (2009–Present)
+· Editor: IEEE PES Power and Energy Magazine (2022–Present); IEEE Transactions on Power Systems
+(2012–2019); IEEE Transactions on Smart Grid (2011–2016)
+
+IEEE PES 2026 General Meeting Program | 37
+
+MEET THE CANDIDATES
+Upcoming 2027 IEEE Division VII
+Director-Elect Elections Candidates
+Ballots will be mailed in August, balloting will begin on 17 August 2026,
+and elections will close on 1 October 2026, 12:00 noon ET (16:00 UTC-04).
+
+Jessica J. Bian
+(Nominated by IEEE Division VII)
+Chief Technology Officer (CTO)
+RAS Fusion
+Atlanta, Georgia, USA
+
+Dr. Jessica Bian is an IEEE Fellow, member of the US National Academy
+of Engineering, and internationally recognized industry executive leader
+with decades of success proven through novel transformation strategies.
+She is also a visionary technical pioneer and architect, has spearheaded
+electric industry’s reliability metrics and risk assessment. Currently
+she is CTO at RAS Fusion. Before that, she was VP at Grid-X Partners,
+and a policy advisor at the US Federal Energy Regulatory Commission.
+Previously, she was Director of Performance Analysis at North American
+Electric Reliability Corporation (NERC). Under her leadership, a
+total of 18 industry-wide reliability indicators were established. Her
+trending and statistical analysis have served as benchmarks and
+guidance for developing effective and risked-based industry reliability
+standards, and been cited globally, including CIGRE, RTOs/ISOs, North
+American Transmission Forum, Canadian Electricity Association and
+US Department of Energy. Before joining NERC, Jessica was with PJM,
+ERCOT and Westinghouse Electric.
+
+Statement
+IEEE is a home to the world’s most innovative and hard-working leaders in the global technical community.
+Jessica has been a catalyst of action and a messenger of the future. If elected to the position, Jessica will act in
+the interests of the IEEE as a whole, all members and the public. Specifically, as a member of the IEEE Technical
+Activities Board (TAB) and an IEEE Board Director, Jessica will:
+· Provide leadership in achieving IEEE’s vision, mission, and goals;
+· Assist the TAB Chair and the IEEE Board of Directors by carrying out additional Ad-Hoc assignments;
+· Participate in strategic planning, initiates programs and activities, and ensure appropriate mechanisms
+to monitor the progress and success of such programs and activities;
+· Suggest to the Nominations and Appointments Committees, potential nominees who can make
+significant contributions;
+· When assigned the role of Coordinator, serve as the liaison to Committees or other Organizational Units
+(OUs) and communicate action items and reports from those Committees and OUs at IEEE Board meetings;
+· Participate in TAB Division Directors’ Forum, and on TAB and its Committees.
+38 | IEEE PES 2026 General Meeting Program
+
+IEEE Accomplishments and Activities (S’89–M’93–SM’99–F’25)
+J essica chaired the IEEE Industry Engagement Committee (IEC) in 2024 and 2025, during which she led
+the Committee to achieve the following major accomplishments:
+· Reversed the industry membership decline trend. IEEE industry membership grew 10% (10,000 more)
+within last two years. Meanwhile, recognized contributions from IEEE industry members by helping IEEE
+OUs (Societies/Councils and Regions) elevate more than 8,500 industry professionals to become IEEE
+Senior Members.
+· Led to run inaugural IEEE-wide virtual career fairs to meet students’ needs and advance YPs’ career
+development. More than 200 companies and 5,000 job seekers participated in these fairs.
+· Redesigned the IEEE Corporate Engagement Program to strengthen industry partnerships, achieving
+a milestone increase in Premier corporate members from three to six—the first growth since 2020.
+· Collaborated with MGA, product design (MSD), and IT teams, completed the innovative AI-powered IEEE
+Career Guidance Counselor (ICGC), and AI-driven IEEE Industry Content Platform (ICP) that transformed
+academic papers in IEEE Xplore into industry-application content for corporations and industry members.
+
+IEEE Positions:
+· Chair, IEEE Industry Engagement Committee (2024–2025)
+· President, IEEE Power & Energy Society (PES) (2022–2023)
+· Member, TAB Management Committee (2023–2025)
+· Member, TAB Finance Committee (2024–2025)
+· Member, TAB Ad-Hoc Committee on Governance (2024–2025)
+· Member, TAB Nominations and Appointments Committee (2024)
+· TAB Liaison, MGA Member Engagement and Life Cycle Committee (2022)
+· Member, IEEE Future Directions Committee (2017–2019)
+· Member, PES Young Professional Leadership Advisory Committee (2020–2023)
+· Member, PES Women-in-Power Leadership Advisory Committee (2017–2022)
+
+The voting membership of IEEE annually elects officers that serve on the top-tier IEEE governing bodies.
+The candidates comprise of members who have been nominated either by the nominating committee for
+that position or by petition.
+The IEEE Board of Directors nominates candidates for IEEE President-Elect, and divisional and regional
+nominating committees nominate the candidates for the Division and Region Director positions. The annual
+ballot also includes candidates for positions in the IEEE Standards Association, IEEE Technical Activities,
+IEEE-USA, and IEEE Women in Engineering.
+In accordance with IEEE Bylaw I-307 Nominations and Elections, individual voting members may propose,
+by petition, names to be added to the ballot for the offices that appear on the IEEE annual election ballot.
+Learn more: ieee.org/about/corporate/election/candidates
+IEEE PES 2026 General Meeting Program | 39
+
+IEEE MILESTONES
+The IEEE Milestones Program is a commemorative plaque program which recognizes significant technical
+achievements in all areas associated with IEEE. The designated fields (per IEEE Bylaw I-104.11) are: Engineering,
+Computer Sciences and Information Technology, Physical Sciences, Biological and Medical Sciences, Mathematics,
+Technical Communications, Education, Management, and Law and Policy. It is a program of the IEEE History
+Committee, administered through the IEEE History Center.
+IEEE Milestones commemorate the technological innovation and excellence for the benefit of humanity found in
+unique products, services, seminal papers, and patents. Milestones commemorate the achievement, rather than a
+place or a person. Milestones are proposed by any IEEE member, and are sponsored by one or more IEEE sections.
+To be proposed as an IEEE Milestone, an achievement must be at least 25 years old, have benefited humanity, and
+must have had widespread geographic importance.
+
+IEEE Milestones in the Greater Montréal include the following:
+First 735 kV AC Transmission System, 1965
+Hydro-Québec building, 75 Boulevard René-Lévesque Ouest, Montréal, QC
+
+Emergence of Radio Broadcasting with Experimental Station XWA, 1919–1920
+1041 William Street, Montréal, QC
+
+The Trans-Canada Microwave System, 1958
+Bell Building — 700 de la Gauchetière Tower
+· View more IEEE Milestones in the interactive worldwide innovation map at ethw.org/Map.com.
+· Guidelines for submitting an IEEE Milestone can be found at ieeemilestones.ethw.org.
+· Please contact Robert Colburn at the IEEE History Center with any questions at r.colburn@ieee.org.
+
+40 | IEEE PES 2026 General Meeting Program
+
+Managing Power
+System Complexity
+at Scale
+The Challenge: Beyond RMS
+to Continental EMT
+Traditional RMS tools often fail to capture fast
+transients and complex control interactions in modern
+grids. As we transition toward Inverter-Based Resources
+(IBRs), Transmission System Operators (TSOs) require
+Electromagnetic Transient (EMT) simulations capable
+of handling “very large grid” data with absolute precision.
+
+Proven Success: The Entire French Grid in EMTP®
+EMTP® has demonstrated unmatched performance by modeling the complete French transmission system—
+Europe’s largest grid:
+
+Scale
+Over 25,000
+nodes and 58,000
+devices modeled
+simultaneously.
+
+Integrated
+Load-Flow
+
+Automatic
+Initialization
+
+Features a
+state-of-the-art
+Load-ﬂow solver
+for seamless
+large-scale grid
+management.
+
+Speeds up
+studies with
+robust, automatic
+initialization
+directly from loadﬂow results.
+
+Speed
+
+Data Integrity
+
+Simulates 1s of this
+continental-scale
+network in just 11
+minutes on a
+single core.
+
+Direct CIM and
+CGMES imports
+ensure EMT studies
+align perfectly with
+RMS planning data.
+
+The Reference for Transients, Stability & Load-Flow
+EMTP® is the only uniﬁed environment combining Transients, Stability, and Load-ﬂow.
+We are already leading the way in Advanced AI and Data Management, redeﬁning
+how you version, automate, and scale your grid studies to meet future energy demands.
+
+Ready to boost your simulation eﬀiciency?
+EMTP® provides access to world-class technical support at every step
+of your project.
+
+Get a 1-Hour call with an application engineer.
+Visit: emtp.com
+
+IEEE PES 2026 General Meeting Program | 41
+
+Elevate
+Your Career!
+Apply or nominate fellow IEEE members
+to be upgraded to IEEE Senior members.
+Qualifying IEEE members can apply or nominate fellow
+IEEE members to be upgraded to IEEE senior members,
+and receive the following benefits and more.
+Recognition: The professional recognition of your peers for
+technical and professional excellence.
+Leadership Eligibility: Senior members are eligible to hold
+executive IEEE volunteer position.
+Complimentary Society Membership: You may join one new
+IEEE Society for one year.
+Review Panel: Senior members are invited to be on the panel
+to review Senior member applications.
+Senior Member Plaque: An engraved plaque you can proudly
+display to colleagues, clients, and employers.
+IEEE Senior Membership Requirements
+· B
+ e engineers, scientists, educators, technical
+executives, or originators in IEEE-designated fields.
+· Have experience reflecting professional maturity.
+· Have been in professional practice for at least
+ten years (with some credit for certain degrees).
+· Show significant performance over
+a period of at least five of their
+years in professional practice.
+42 | IEEE PES 2026 General Meeting Program
+
+ieee.org/membership/senior
+
+Join Us!
+
+At Upcoming IEEE PES Flagship Events
+
+pes-gridedge.org
+
+pes-gm.org
+
+ieeet-d.org
+
+2027 IEEE PES Grid Edge
+Technologies Conference & Expo
+19–22 April 2027 | Salt Lake City, Utah
+Open: Exhibitor Booth Sales
+Opening 2026 Summer: Sponsorships
+
+2027 IEEE PES General Meeting
+25–29 July 2027 | San Francisco, CA
+6 October 2026: Call for Papers Opens
+Opening 2027 February: Supporter Sales
+
+2028 IEEE PES T&D Conference & Expo
+24–27 April 2028 | Atlanta, Georgia
+Open: Exhibitor Booth Sales
+Opening 2026 Summer: Sponsorships
+
+Maximize Your Exposure! Become a PES Event Supporter
+Through targeted opportunities, IEEE PES events places your company
+in front of top industry professionals for high-level engagement.
+ieee-pes.org
+
+IEEE PES 2026 General Meeting Program | 43
+
+NOTES
+
+44 | IEEE PES 2026 General Meeting Program
+
+NOTES
+
+IEEE PES 2026 General Meeting Program | 45
+
+Thank You To Our 2026 IEEE PES General Meeting Supporters
+Host Utility Sponsor
+
+Gold Sponsors
+
+Silver Sponsors
+
+Bronze Sponsors
+
+View the full list of 2026 IEEE PES GM supporters at pes-gm.org.
+
+

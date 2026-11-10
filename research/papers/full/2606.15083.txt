@@ -1,0 +1,3520 @@
+arXiv:2606.15083v2 [quant-ph] 28 Jun 2026
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for
+Physics-Constrained Power System Islanding
+YUQI JIANG, Pennsylvania State University, USA
+YUQI ZHANG, Kent State University, USA
+ZHIDING LIANG, Rensselaer Polytechnic Institute, USA
+QIANG GUAN, Kent State University, USA
+YAN LI, Pennsylvania State University, USA
+GANESH KUMAR VENAYAGAMOORTHY, Clemson University, USA and University of Pretoria, South Africa
+Quantum computing has rapidly emerged as a powerful paradigm for tackling computationally demanding problems. In particular,
+quantum optimization shows strong promise for hard combinatorial problems in power systems, where increasing distributed energy
+penetration heightens the need for intentional islanding to maintain grid reliability and resilience. However, power system islanding
+is an NP-hard combinatorial optimization problem that becomes computationally prohibitive for classical solvers as network size
+grows, motivating the use of quantum computing as a promising alternative pipeline. This study develops a resource-efficient hybrid
+QAOA islanding framework that brings physics-constrained power-system partitioning into the quantum optimization workflow.
+The framework combines coherency-informed graph reduction, physics-aware constraint modeling, and structured post-processing
+to efficiently convert shallow-circuit QAOA samples into high-quality feasible islanding decisions without deep circuits or large
+shot budgets. The proposed framework is validated on the standard IEEE benchmark systems (9-, 14-, 24-, 30-, 39-, and 57-bus),
+demonstrating that the hybrid workflow achieves Gurobi-optimal solution quality with a clear quantum resource advantage over
+vanilla QAOA, while the resulting islanding solutions satisfy all physical feasibility requirements after network separation. This study
+establishes QAOA-based islanding as a viable quantum approach for critical infrastructure, with structured post-processing as the key
+enabler of quantum resource efficiency.
+CCS Concepts: • Hardware → Quantum computation; • Mathematics of computing → Combinatorial optimization; • Applied
+computing → Engineering.
+Additional Key Words and Phrases: Power system islanding, Quantum Approximate Optimization Algorithm (QAOA), post-processing
+
+1
+
+Introduction
+
+Recent advances in quantum hardware and algorithms have intensified interest in applying near-term quantum
+computing to structured optimization and simulation problems [25, 29]. In the noisy intermediate-scale quantum (NISQ)
+setting, hybrid quantum-classical methods are especially attractive because they combine parameterized quantum
+circuits with classical outer-loop optimization while avoiding the requirement of full fault tolerance [4, 7]. Among these
+approaches, variational quantum algorithms have emerged as a leading framework for exploring practical quantum
+advantage in scientifically and technologically relevant applications [7].
+Among the engineering domains that can benefit from such hybrid quantum optimization, power systems are
+especially compelling because many power grid operation decisions are inherently large-scale combinatorial problems
+Authors’ Contact Information: Yuqi Jiang, Pennsylvania State University, Department of Electrical Engineering, University Park, Pennsylvania, USA;
+Yuqi Zhang, Kent State University, Department of Computer Science, Kent, Ohio, USA; Zhiding Liang, Rensselaer Polytechnic Institute, Department of
+Computer Science, Troy, New York, USA; Qiang Guan, Kent State University, Department of Computer Science, Kent, Ohio, USA; Yan Li, yql5925@psu.edu,
+Pennsylvania State University, Department of Electrical Engineering, University Park, Pennsylvania, USA; Ganesh Kumar Venayagamoorthy, Clemson
+University, Real-Time Power and Intelligent Systems Laboratory, Holcombe Department of Electrical and Computer Engineering, Clemson, South
+Carolina, USA and University of Pretoria, Pretoria, South Africa.
+
+Manuscript submitted to ACM
+
+1
+
+2
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+
+defined on network topologies. Tasks such as topology reconfiguration [3], contingency mitigation [8], and controlled
+islanding [23] require operators to search over many discrete operating configurations while simultaneously satisfying
+physical and operational constraints. These topology-constrained decision problems are often NP-hard and can become
+computationally prohibitive for classical methods as network size and operational uncertainty increase, particularly
+when high-quality decisions are needed under stressed operating conditions [2]. This computational structure makes
+modern power grids a natural application area for quantum optimization methods [26].
+Large-scale integration of distributed energy resources has made resilient power system operation more challenging
+by introducing new sources of uncertainty [11]. The intermittent output of renewable energy resources such as wind
+and solar can cause significant fluctuations, making it challenging to maintain the balance between supply and demand.
+If not properly managed, these imbalances can propagate through the interconnected grid and escalate into cascading
+failures [15]. As a result, protection schemes are often required to adopt more conservative settings to preserve security
+margins. This motivates the necessity of intentional islanding as a system-level resilience measure: by deliberately
+separating a stressed power network into multiple self-sustained islands, operators can confine disturbances, preserve
+critical loads, and create sustainable operating regions while restoration is initiated [12].
+However, practical islanding is fundamentally a combinatorial decision-making problem under tight operational
+constraints [12]. This combinatorial optimization problem is NP-hard, which requires substantial classical computing
+resources and implementation time to obtain near-optimal results. In power system studies, classical optimization
+methods is the main idea for solving this problem. Prior work has approached controlled islanding using Linear
+Programming [23], Ordered Binary Decision Diagrams [31], and Binary Integer Programming [17]. These classical
+approaches can become computationally prohibitive and less adaptable as system size and uncertainty grow, limiting
+their ability to deliver high-quality islanding decisions. Although quantum computing has been applied to power grid
+partitioning problems related to islanding [16], these approaches model the problem as a graph-theoretic decomposition
+and do not enforce the operational constraints that practical islanding requires. The quantum annealing formulation in
+[16] optimizes only topological objectives such as cut cost and sub-network size balance, while omitting power balance
+and the connectivity of the resulting sub-networks, leaving solutions potentially infeasible as operational islands.
+The recent progress of quantum computing has provided a new pipeline to solve the combinatorial optimization
+problems [9]. It leverages quantum superposition and interference to lead the search toward high-quality solutions,
+potentially altering the effective optimization landscape relative to classical procedures [14]. The Quantum Approximate
+Optimization Algorithm (QAOA) has been studied in a wide range of optimization problems [13]. Recent studies have
+applied QAOA to financial portfolio optimization [35], chemical simulation and drug discovery [27], and traffic flow
+optimization [33]. In the context of power system applications, QAOA has also been used for the OPP problem [22],
+unit commitment benchmarking [1], and power system contingency analysis [21].
+A central challenge in applying QAOA to constrained problems is that quantum measurement produces raw bitstring
+samples, which are not guaranteed to satisfy the problem’s feasibility requirements [28]. Post-processing addresses this
+gap by applying classical procedures after quantum measurement to convert these raw samples into feasible, high-quality
+solutions, for instance, by repairing constraint violations, selecting the best sample among the measured outcomes,
+or applying local search corrections [5, 30]. Despite being a necessary step in any constrained quantum optimization
+pipeline, post-processing remains only sparsely studied. Prior work has shown that quadratic unconstrained binary
+optimization (QUBO)-based greedy post-processing can map quantum-device outputs to constraint-satisfying solutions
+while preserving monotone descent of a selected energy [30]. That framework, however, assumes that constraints
+are independent in the sense that each decision variable appears in at most one constraint penalty. While this holds
+Manuscript submitted to ACM
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 3
+
+for simple combinatorial benchmarks, many real-world optimization applications, including power system islanding,
+involve operationally coupled constraints in which the same variable simultaneously governs multiple requirements,
+violating the independence assumption and placing such problems outside the scope of existing post-processing theory.
+In addition, the previous QUBO-based post-processing method does not cover feasibility requirements that must be
+evaluated outside the QUBO penalty model. Power system islanding post-processing is distinguished from both of
+the preceding settings in that its feasibility conditions are simultaneously operationally coupled and only partially
+representable within the QUBO penalty model.
+In this study, an end-to-end QAOA framework is developed for the power system islanding problem, which aims to
+minimize the mismatch of the power flow during islanding operations. This paper pioneers the study of QAOA for
+the full power system islanding solution pipeline. Beyond the quantum modeling and optimization stages, the paper
+also develops post-processing as a central part of the solution framework, proposed for settings where part of the
+feasible structure lies outside standard QUBO encodings and where constraints are operationally coupled, extending
+principled post-processing beyond the independent-constraint settings addressed by prior work. The paper therefore
+also studies a broader methodological question for quantum computing in real-world optimization: how sampled
+quantum outputs can be systematically converted into feasible, high-quality decisions when the governing constraints
+combine QUBO-encodable penalties with application-level structure that must be checked or repaired classically. The
+proposed framework is validated on six IEEE benchmark systems, 9-, 14-, 24-, 30-, 39-, and 57-bus using real IBM
+Quantum processors ibm_marrakesh, demonstrating that principled post-processing consistently recovers near-optimal,
+fully feasible islanding partitions across all tested instances with modest circuit resources. A complementary noise
+study further indicates that the workflow remains resilient under realistic quantum noise, supporting its practicality for
+near-term quantum hardware. The main contributions of this paper can be summarized as:
+• This study develops a resource-efficient hybrid QAOA framework for physics-constrained power system islanding,
+advancing quantum islanding beyond purely topological graph partitioning. The formulation jointly represents
+the objective of minimizing disrupted active power flow across severed lines and the operational feasibility
+requirements needed for valid islands. A coherency-based graph reduction further lowers qubit count before
+circuit execution without compromising solution quality.
+• This study provides a comprehensive post-processing study for constrained quantum optimization applied to
+islanding, systematically designing and comparing multiple repair strategies that convert raw QAOA samples
+into fully feasible islanding decisions under both QUBO-encodable and operationally coupled constraints. The
+study specifically addresses the challenge of enforcing exact graph connectivity, which lies outside standard
+QUBO encodings and must be handled classically, alongside the algebraic operational constraints. Unlike existing
+post-processing approaches, the proposed methods and their guarantees remain applicable when constraints are
+operationally coupled and the independence assumption of prior theory does not hold, directly broadening the
+reach of principled post-processing to practical applications beyond simple benchmarks.
+• The framework is validated on six IEEE benchmark systems (9- to 57-bus) using real IBM Quantum processors.
+The coherency-based reduction demonstrably reduces the required qubit count across the benchmark cases
+without altering solution optimality. The post-processing stage substantially improves both solution quality
+and feasibility over vanilla QAOA sampling, with the best method recovering the Gurobi-optimal cut on all
+benchmarks using few QAOA circuit layers and modest shot budgets while producing fully feasible islanding
+
+Manuscript submitted to ACM
+
+4
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+
+solutions. Additional noise-resilience evaluation further shows that the workflow maintains robust performance
+under realistic quantum noise.
+The remainder of this paper is as follows: Section 2 introduces the islanding problem formulation, Section 3 develops
+the quantum solution process for the islanding formulation, Section 4 presents the post-processing framework for
+non-QUBO and feasibility-critical constraints, Section 5 gives a numerical example, and Section 6 summarizes this
+work.
+2
+
+Problem Formulation
+
+A power grid is modeled as a weighted graph G = (𝑉 , 𝐸), where 𝑉 = {1, . . . , 𝑁 } is the set of buses and 𝐸 ⊆ 𝑉 × 𝑉 is
+the set of transmission lines. Each transmission line 𝑒𝑖 𝑗 ∈ 𝐸 connecting bus 𝑖 to bus 𝑗 carries an associated weight 𝑝𝑖 𝑗 ,
+representing the active power flow along that line in the direction from 𝑖 to 𝑗. The graph structure captures the physical
+topology of the network, where buses represent substations or connection points, and transmission lines represent the
+physical conductors through which power is transferred.
+To distinguish bus functionalities, the bus set 𝑉 is partitioned into three mutually disjoint subsets:
+𝑉 = 𝑉𝐺 ∪ 𝑉𝐿 ∪ 𝑉0,
+
+(1)
+
+where 𝑉𝐺 , 𝑉𝐿 , and 𝑉0 denote the sets of generator, load, and transit buses, respectively. Generator buses inject active
+power into the network, load buses withdraw active power to serve demand, and transit buses act purely as intermediate
+routing points, facilitating power transfer without contributing to or consuming from the network.
+For each bus 𝑖 ∈ 𝑉 , let 𝑝𝑖𝐺 ≥ 0 and 𝑝𝑖𝐷 ≥ 0 denote the total active power generation and demand, respectively. The
+net active power injection at bus 𝑖 is then defined as
+𝑝𝑖 := 𝑝𝑖𝐺 − 𝑝𝑖𝐷 ,
+
+(2)
+
+where 𝑝𝑖 > 0 indicates a net supplier (generator bus), 𝑝𝑖 < 0 indicates a net consumer (load bus), and 𝑝𝑖 = 0 indicates a
+transit bus. This work neglects network losses, so system-wide power balance requires the following conservation
+constraint:
+∑︁
+
+∑︁
+
+(3)
+
+𝑉𝐺 := {𝑖 ∈ 𝑉 : 𝑝𝑖𝐺 > 0, 𝑝𝑖𝐷 = 0},
+
+(4)
+
+𝑉𝐿 := {𝑖 ∈ 𝑉 : 𝑝𝑖𝐷 > 0, 𝑝𝑖𝐺 = 0},
+
+(5)
+
+𝑉0 := {𝑖 ∈ 𝑉 : 𝑝𝑖𝐺 = 0, 𝑝𝑖𝐷 = 0}.
+
+(6)
+
+𝑖 ∈𝑉
+
+𝑝𝑖𝐺 −
+
+∑︁
+
+𝑝𝑖𝐷 = 0.
+
+𝑝𝑖 =
+
+𝑖 ∈𝑉
+
+𝑖 ∈𝑉
+
+Accordingly, the three bus subsets are formally defined as
+
+This partition provides a structured characterization of the functional roles of buses within the grid.
+When a disturbance occurs and islanding operation becomes necessary, the number of islands 𝐾 is pre-determined
+by the coherent groups of generators [10, 23]. In this work, coherent generator groups are identified via a coherency
+algorithm [10, 34]. Accordingly, the generator-bus set 𝑉𝐺 is partitioned into 𝐾 pairwise disjoint coherent groups:
+𝑉𝐺 =
+
+𝐾
+Ø
+𝑘=1
+
+Manuscript submitted to ACM
+
+𝑉𝐺(𝑘 ) ,
+
+𝑉𝐺(𝑘 ) ∩ 𝑉𝐺(ℓ ) = ∅,
+
+∀ 𝑘 ≠ ℓ,
+
+(7)
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 5
+where 𝑉𝐺(𝑘 ) denotes the 𝑘-th coherent generator group. By construction, all generators within the same group 𝑉𝐺(𝑘 ) are
+enforced to remain within the same island following controlled islanding.
+Each island is represented as a connected subgraph G (𝑘 ) = (𝑉 (𝑘 ) , 𝐸 (𝑘 ) ) of G, where 𝑉 (𝑘 ) denotes the full set of buses
+assigned to island 𝑘, comprising generator, load, and transit buses. The island bus sets form a complete partition of 𝑉 :
+𝑉 =
+
+𝐾
+Ø
+
+𝑉 (𝑘 ) ,
+
+𝑉 (𝑘 ) ∩ 𝑉 (ℓ ) = ∅,
+
+∀ 𝑘 ≠ ℓ,
+
+(8)
+
+𝑘=1
+
+with the coherency constraint 𝑉𝐺(𝑘 ) ⊆ 𝑉 (𝑘 ) ensuring that generators within the same coherent group are assigned to
+the same island. The set of transmission lines severed to form the islands, referred to as the cut set, is defined as:
+𝐸𝑐 := {𝑒𝑖 𝑗 ∈ 𝐸 : 𝑖 ∈ 𝑉 (𝑘 ) , 𝑗 ∈ 𝑉 (ℓ ) , 𝑘 ≠ ℓ },
+
+(9)
+
+here 𝐸𝑐 comprises all transmission lines whose two endpoints are assigned to distinct islands. To ensure each island
+operates self-sufficiently following separation, the net active power injection must be balanced within each island:
+∑︁
+𝑝𝑖 = 0, ∀ 𝑘 = 1, . . . , 𝐾 .
+(10)
+𝑖 ∈𝑉 (𝑘 )
+
+The controlled islanding problem is then formulated as minimizing the total disrupted active power flow across the
+severed lines, subject to the partitioning, connectivity, and coherency requirements, which can be expressed as:
+∑︁
+∑︁ |𝑝𝑖 𝑗 | + |𝑝 𝑗𝑖 |
+min
+,
+(11)
+𝐾
+2
+{𝑉𝑘 }𝑘=1
+𝑖 ∈𝑉 , 𝑗 ∈𝑉
+𝑘,ℎ∈ {1,...,𝐾 }
+ℎ≠𝑘
+
+𝑘
+
+ℎ
+
+𝑒𝑖 𝑗 ∈𝐸
+
+s.t. 𝑉𝑘 ∩ 𝑉ℎ = ∅, ∀𝑘 ≠ ℎ,
+
+𝐾
+Ø
+
+𝑉𝑘 = 𝑉 ,
+
+(12)
+
+𝑘=1
+
+|𝑉𝑘 | ≥ 𝑁 min, ∀𝑘 ∈ {1, . . . , 𝐾 },
+
+(13)
+
+|𝑉𝑘 ∩ 𝑉𝐺 | ≥ 𝑁𝐺,min, ∀𝑘 ∈ {1, . . . , 𝐾 },
+
+(14)
+
+|𝑉𝑘 ∩ 𝑉𝐿 | ≥ 𝑁𝐿,min, ∀𝑘 ∈ {1, . . . , 𝐾 },
+
+
+∀𝑔, 𝑔′ ∈ 𝑉𝐺 : 𝑐 (𝑔) = 𝑐 (𝑔′ ) ⇒ ∃𝑘 : {𝑔, 𝑔′ } ⊆ 𝑉𝑘 ∧
+
+
+𝑐 (𝑔) ≠ 𝑐 (𝑔′ ) ⇒ ∀𝑘 : ¬({𝑔, 𝑔′ } ⊆ 𝑉𝑘 ) ,
+
+(15)
+
+C(𝐺 [𝑉𝑘 ]) = 1, ∀𝑘 ∈ {1, . . . , 𝐾 }.
+
+(17)
+
+(16)
+
+where the objective in (11) minimizes the total magnitude of active power transfers across island boundaries. The
+parameters 𝑁𝐺,min ≥ 1 and 𝑁𝐿,min ≥ 1 denote the required minimum numbers of generator and load buses in each
+island, respectively. To ensure a smooth post-islanding transition, the islanding decisions must satisfy key physical
+and operational constraints of the power system, which are given in (12)–(17). Here, 𝑐 (𝑔) ∈ {1, . . . , 𝐾 } denotes the
+𝐾 forms a disjoint and complete
+coherent-group label of generator 𝑔. (12) enforces a one-hot bus assignment so that {𝑉𝑘 }𝑘=1
+
+partition of 𝑉 . (13) prevents degenerate islands, namely trivially small partitions that contain too few buses to represent
+meaningful or operationally useful islands, by requiring each island to contain at least 𝑁 min buses. (14) guarantees selfsustained generation capability by enforcing at least 𝑁𝐺,min generator buses in each island. (15) avoids generator-only
+islands by requiring at least 𝑁𝐿,min load buses in each island. (16) preserves dynamic stability by grouping coherent
+generators within the same island while separating non-coherent groups. (17) ensures operability by constraining each
+Manuscript submitted to ACM
+
+6
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+
+Fig. 1. Overall framework of the proposed QAOA-based controlled power system islanding approach. The pipeline consists of five
+operation blocks: (a) problem setup, which converts real-world power-grid data into a graph representation; (b) QAOA encoding,
+which maps the graph-partitioning problem into a Hamiltonian representation and circuit input; (c) QAOA circuit execution and
+measurement, which produces a raw bitstring distribution; (d) classical post-processing (M. 1–5), which repairs and filters sampled
+candidates to improve feasibility; and (e) solution extraction, which converts selected bitstrings into the final islanding solution.
+
+island subgraph 𝐺 [𝑉𝑘 ] to be connected, and C is the graph connected check algorithm (the subgraph is connected if
+C(𝐺 [𝑉𝑘 ]) = 1). This formulation is computationally difficult because it contains weighted graph partitioning as its
+core combinatorial structure, and the additional coherency, size, generation, load, and connectivity constraints further
+restrict the feasible partitions. The feasible region is also highly nonconvex because the binary assignment, coherency,
+and connectivity conditions induce a discrete combinatorial search space with many local minima, making it difficult
+for classical solvers to reliably attain the global optimum within practical time limits.
+While the formulation in (11)–(17) captures the essential combinatorial structure of the islanding problem, the cut
+objective is a proxy for physical feasibility rather than an exact measure: cutting lines with smaller pre-islanding
+active power flow generally causes less disturbance to the post-separation power balance. To assess the actual physical
+consistency of a partition beyond what this proxy captures, power flow validation is applied after the QAOA pipeline.
+As incorporating such constraints directly into the QUBO would significantly increase its complexity and qubit
+requirements, they are instead applied as two post-pipeline physical validation steps. First, a partition is accepted only
+if every island yields a feasible power flow solution. Second, each island must satisfy 𝑃𝑔,max > 𝑃𝑑 and 𝑄 max > 𝑄𝑑 , where
+𝑃𝑔,max and 𝑄 max denote the total available active-generation capacity and reactive upper capability of the island, and 𝑃𝑑
+and 𝑄𝑑 denote the corresponding active- and reactive-power demand, ensuring each island is self-supporting in both
+active and reactive power following separation [24]. The numerical results in Section 5 confirm that this compromise
+does not affect solution feasibility.
+The overall framework of the proposed approach is illustrated in Fig. 1. Fig. 1 (a) maps the real-world power grid into
+the graph representation used for islanding optimization; Fig. 1 (b) and Fig. 1 (c) show QUBO/Hamiltonian encoding
+followed by QAOA execution and measurement; and Fig. 1 (d) and Fig. 1 (e) show classical post-processing and extraction
+of the final islanding solution. The next section details the quantum solution process, including the coherency-based
+reduction applied before QUBO construction.
+3
+
+QAOA Solutions for Power System Islanding
+
+Within the encoding and execution path summarized in Fig. 1 (b)–(c), the quantum solution process consists of three
+stages: graph reduction via generator coherency, QUBO conversion of the objective and constraints, and QAOA circuit
+construction and optimization with a classical outer loop.
+Manuscript submitted to ACM
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 7
+3.1
+
+Graph Reduction via Generator Coherency
+
+In the NISQ setting, both the qubit count and the number of circuit executions (shots) needed to estimate the objective
+are limiting resources, and the sampling cost grows with the dimension of the search space. Embedding power system
+domain knowledge into the problem formulation offers a principled way to reduce this search space before the QUBO
+is constructed, saving quantum resources without sacrificing solution quality. The coherency constraint (16) provides
+exactly such an opportunity, since it requires every generator in 𝑉𝐺(𝑘 ) to be assigned to the same island. When the
+subgraph 𝐺 [𝑉𝐺(𝑘 ) ] induced by group 𝑘 is connected, this constraint implies that the entire group can be collapsed into a
+single super-bus without altering the feasible set or the cut objective. This reduction is applied before the QUBO is
+constructed, decreasing both the number of assignment variables and the number of penalty terms in the Hamiltonian.
+Let K𝑐 ⊆ {1, . . . , 𝐾 } denote the indices of coherency groups whose induced subgraph is connected, verified by a
+breadth-first search on 𝐺 [6]. For each 𝑘 ∈ K𝑐 , all buses in 𝑉𝐺(𝑘 ) are replaced by a single super-bus 𝑣𝑘∗ . The reduced bus
+set is
+ 
+
+Ø
+𝑉′ = 𝑉 \
+𝑉𝐺(𝑘 ) ∪ 𝑣𝑘∗ : 𝑘 ∈ K𝑐 ,
+
+(18)
+
+𝑘 ∈ K𝑐
+
+with 𝑁 ′ = |𝑉 ′ | = 𝑁 −
+
+Í
+
+𝑘 ∈ K𝑐
+
+
+|𝑉𝐺(𝑘 ) | − 1 < 𝑁 . For every bus 𝑣 ∉ 𝑉𝐺(𝑘 ) , the aggregated edge weight from 𝑣𝑘∗ to 𝑣 is
+∑︁
+𝑤 ′ (𝑣𝑘∗ , 𝑣) =
+𝑤 (𝑢, 𝑣),
+(19)
+(𝑘 )
+
+𝑢 ∈𝑉𝐺
+
+where 𝑤 (𝑢, 𝑣) = 0 whenever (𝑢, 𝑣) ∉ 𝐸, yielding the reduced graph 𝐺 ′ = (𝑉 ′, 𝐸 ′, 𝑤 ′ ).
+Lemma 3.1 (Cut preservation). The cut value of any partition on 𝐺 ′ equals the cut value of the corresponding expanded
+partition on 𝐺.
+Proof. Define the surjection 𝜑 : 𝑉 → 𝑉 ′ by 𝜑 (𝑢) = 𝑣𝑘∗ if 𝑢 ∈ 𝑉𝐺(𝑘 ) for some 𝑘 ∈ K𝑐 , and 𝜑 (𝑢) = 𝑢 otherwise.
+Given a partition 𝜋 : 𝑉 ′ → {1, . . . , 𝐾 } on the reduced graph, define the expanded assignment 𝜋˜ : 𝑉 → {1, . . . , 𝐾 } by
+𝜋˜ (𝑢) = 𝜋 (𝜑 (𝑢)). The cut value on 𝐺 under 𝜋˜ is
+∑︁
+
+
+˜ =
+𝐶 (𝐺, 𝜋)
+𝑤 (𝑢, 𝑣) 1 𝜋˜ (𝑢) ≠ 𝜋˜ (𝑣)
+(𝑢,𝑣) ∈𝐸
+
+∑︁
+
+=
+
+
+
+𝑤 (𝑢, 𝑣) 1 𝜋 (𝜑 (𝑢)) ≠ 𝜋 (𝜑 (𝑣)) .
+
+(20)
+
+(𝑢,𝑣) ∈𝐸
+
+For any edge (𝑢, 𝑣) ∈ 𝐸 with 𝜑 (𝑢) = 𝜑 (𝑣), both endpoints map to the same super-bus, so 𝜋 (𝜑 (𝑢)) = 𝜋 (𝜑 (𝑣)) and the
+indicator is zero. Hence only edges with 𝜑 (𝑢) ≠ 𝜑 (𝑣) contribute. Grouping the remaining terms by their image pair
+(𝑎, 𝑏) = (𝜑 (𝑢), 𝜑 (𝑣)) ∈ 𝐸 ′ and applying (19) gives
+∑︁ 
+
+˜ =
+𝐶 (𝐺, 𝜋)
+1 𝜋 (𝑎) ≠ 𝜋 (𝑏)
+(𝑎,𝑏 ) ∈𝐸 ′
+
+=
+
+∑︁
+
+∑︁
+
+𝑤 (𝑢, 𝑣)
+
+𝑢 ∈𝜑 −1 (𝑎), 𝑣 ∈𝜑 −1 (𝑏 )
+(𝑢,𝑣) ∈𝐸
+
+
+
+𝑤 ′ (𝑎, 𝑏) 1 𝜋 (𝑎) ≠ 𝜋 (𝑏) = 𝐶 (𝐺 ′, 𝜋).
+
+(𝑎,𝑏 ) ∈𝐸 ′
+
+□
+
+Manuscript submitted to ACM
+
+8
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+By Lemma 3.1, the islanding problem on 𝐺 ′ shares the same optimal cut value as on 𝐺. The number of assignment
+
+qubits saved by the reduction is
+Δ𝑄 = 𝐾
+
+∑︁
+
+
+|𝑉𝐺(𝑘 ) | − 1 ,
+
+(21)
+
+𝑘 ∈ K𝑐
+
+since a connected coherent group with |𝑉𝐺(𝑘 ) | generator buses is represented by one super-bus, eliminating |𝑉𝐺(𝑘 ) | −1 busassignment variables for each island index. This count is independent of the minimum generator and load requirements
+𝑁𝐺,min and 𝑁𝐿,min in (14)–(15); those parameters only define the lower-bound constraints. When the reduced graph is
+used with general 𝑁𝐺,min , each super-bus 𝑣𝑘∗ retains the generator multiplicity |𝑉𝐺(𝑘 ) | for evaluating generator-count
+feasibility. In addition, buses within each merged group are co-islanded by construction, so the intra-group terms of
+𝐻 coh in (28) vanish identically on 𝐺 ′ , reducing the Hamiltonian complexity without weakening any feasibility guarantee.
+After QAOA measurement on 𝐺 ′ , the solution is expanded back to 𝐺 by assigning every bus in 𝑉𝐺(𝑘 ) to the island of its
+super-bus 𝑣𝑘∗ .
+3.2
+
+QUBO Conversion of the Objective Function
+
+To embed the formulation into QAOA, we first rewrite it as a QUBO problem. For each bus 𝑖, a binary variable 𝑦𝑖,𝑘 is
+defined to denote the assignment of that bus to island 𝑘, where 𝑦𝑖,𝑘 = 1 denotes that bus 𝑖 belongs to island 𝑘; otherwise,
+𝑦𝑖,𝑘 = 0. Under this encoding, and assuming each bus is assigned to exactly one island, a line 𝑒𝑖 𝑗 is internal to an island
+Í𝐾
+if buses 𝑖 and 𝑗 are assigned to the same island, namely when 𝑘=1
+𝑦𝑖,𝑘 𝑦 𝑗,𝑘 = 1, and it is cut otherwise. Therefore, the
+cut objective can be rewritten in binary form as
+𝐾
+∑︁
+|𝑝𝑖 𝑗 | + |𝑝 𝑗𝑖 |
+©
+ª
+𝑤 𝑖 𝑗 ­1 −
+𝑦𝑖,𝑘 𝑦 𝑗,𝑘 ® ,
+𝑤𝑖 𝑗 :=
+.
+2
+𝑒𝑖 𝑗 ∈𝐸
+𝑘=1
+«
+¬
+The one-hot assignment condition required by (12) is then enforced through
+
+𝐻 cut =
+
+∑︁
+
+𝐾
+∑︁
+
+𝑦𝑖,𝑘 = 1,
+
+∀𝑖 ∈ 𝑉 .
+
+(22)
+
+(23)
+
+𝑘=1
+
+To embed the full problem onto QAOA circuits, the remaining inequality constraints are incorporated through a
+penalty-based reformulation: each constraint is converted into a nonnegative penalty term that is zero when satisfied
+and strictly positive when violated, and the original cost is augmented by weighted penalties so that any infeasible
+assignment incurs an energy increase large enough to be dominated in the minimization.
+For (12)-(16), the QUBO conversion of these constraints can be denoted as:
+2
+𝐾
+∑︁ ©∑︁
+ª
+𝐻ℎ = 𝜆ℎ
+­ 𝑦𝑖,𝑘 − 1® .
+𝑖 ∈𝑉 « 𝑘=1
+¬
+
+(24)
+2
+
+𝐻𝑠 = 𝜆 𝑀
+
+𝐾 ∑︁
+∑︁
+©
+(𝑀 ) ª
+­ 𝑦𝑖,𝑘 − 𝑁 min − 𝑠𝑘 ® .
+𝑘=1 «𝑖 ∈𝑉
+¬
+
+(25)
+2
+
+𝐾
+∑︁
+© ∑︁
+ª
+𝐻 gen = 𝜆𝐺
+𝑦𝑔,𝑘 − 𝑁𝐺,min − 𝑠𝑘(𝐺 ) ® .
+­
+𝑘=1 «𝑔∈𝑉𝐺
+¬
+
+Manuscript submitted to ACM
+
+(26)
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 9
+
+2
+𝐾
+∑︁
+ª
+© ∑︁
+𝐻 load = 𝜆𝐿
+𝑦ℓ,𝑘 − 𝑁𝐿,min − 𝑠𝑘(𝐿) ® .
+­
+𝑘=1 «ℓ ∈𝑉𝐿
+¬
+
+𝐻 coh = 𝜆coh
+
+𝐾 ∑︁
+𝐾
+∑︁
+
+∑︁
+
+(27)
+
+
+2
+𝑦𝑔,𝑘 − 𝑦𝑔′ ,𝑘
+
+𝑐=1 𝑘=1 𝑔,𝑔′ ∈𝑉 (𝑐 )
+𝐺
+
+𝑔<𝑔′
+𝐾
+∑︁
+
++ 𝜆coh
+
+∑︁
+
+∑︁
+
+∑︁
+
+𝑦𝑔,𝑘 𝑦𝑔′ ,𝑘 .
+
+(28)
+
+𝑘=1 𝑐,𝑐 ′ ∈ {1,...,𝐾 } 𝑔∈𝑉 (𝑐 ) 𝑔′ ∈𝑉 (𝑐 ′ )
+𝐺
+𝐺
+𝑐<𝑐 ′
+
+where the nonnegative slack variables are encoded by auxiliary binary variables as
+𝑠𝑘(𝑀 ) =
+
+𝐵∑︁
+𝑀 −1
+
+(𝑀 )
+,
+2𝑏 𝑢𝑘,𝑏
+
+(𝑀 )
+∈ {0, 1},
+𝑢𝑘,𝑏
+
+(29)
+
+𝑏=0
+
+
+
+
+
+𝐵𝑀 = log2 (𝑁 − 𝑁 min + 1) ,
+𝐵∑︁
+𝐺 −1
+
+𝑠𝑘(𝐺 ) =
+
+(𝐺 )
+2𝑏 𝑢𝑘,𝑏
+,
+
+(𝐺 )
+𝑢𝑘,𝑏
+∈ {0, 1},
+
+(30)
+
+𝑏=0
+
+
+
+𝐵𝐺 = log2 (|𝑉𝐺 | − 𝑁𝐺,min + 1) ,
+𝑠𝑘(𝐿) =
+
+𝐵∑︁
+𝐿 −1
+
+(𝐿)
+,
+2𝑏 𝑢𝑘,𝑏
+
+(𝐿)
+∈ {0, 1},
+𝑢𝑘,𝑏
+
+(31)
+
+𝑏=0
+
+
+
+
+
+𝐵𝐿 = log2 (|𝑉𝐿 | − 𝑁𝐿,min + 1) .
+These slack variables convert the inequality constraints in (13)–(15) into equality constraints amenable to squared
+(·)
+QUBO penalties. The resulting auxiliary binaries {𝑢𝑘,𝑏
+} introduce additional qubits beyond the 𝑁 𝐾 assignment qubits
+
+{𝑦𝑖,𝑘 }: 𝐾𝐵𝑀 qubits for (13), 𝐾𝐵𝐺 qubits for (14), and 𝐾𝐵𝐿 qubits for (15). The exact auxiliary-qubit counts used in the
+experiments are reported in Table 2.
+For (17), a Depth-First Search (DFS) strategy is used to determine whether the induced subgraphs 𝐺 [𝑉𝑘 ] are connected
+(i.e., C(𝐺 [𝑉𝑘 ]) = 1) [32]. However, DFS is an algorithmic graph procedure and does not admit a QUBO representation.
+Therefore, during the QUBO construction for QAOA, we incorporate a quadratic connectivity surrogate that encourages
+each island to form a single connected component. Specifically, the surrogate penalizes each bus in island 𝑘 whose
+neighbors are all assigned to other islands, discouraging isolated nodes and promoting local connectivity. Since exact
+connectivity admits no compact polynomial binary representation, this quadratic penalty is directly QUBO-compatible
+and guides the search toward connected partitions without increasing the problem size. After the QAOA measurement,
+DFS is applied in post-processing to explicitly and exactly verify C(𝐺 [𝑉𝑘 ]) = 1 for each sampled solution. The
+connectivity surrogates can be denoted as:
+𝐻𝑐 = 𝜇
+
+𝐾 ∑︁
+∑︁
+∑︁
+©
+ª
+𝑦𝑖,𝑘 𝑦 𝑗,𝑘 ® ,
+­𝑦𝑖,𝑘 −
+𝑘=1 𝑖 ∈𝑉 «
+𝑗 ∈ N (𝑖 )
+¬
+
+(32)
+
+where N (𝑖) denotes the neighbor set of node 𝑖.
+
+Manuscript submitted to ACM
+
+10
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+
+Thus, the overall problem Hamiltonian for QAOA is constructed by augmenting the objective Hamiltonian with
+quadratic penalty terms for the physical and operational constraints. Each penalty term is scaled by a positive weight to
+ensure that any violation increases the total energy, so that low-energy states correspond to feasible islanding solutions.
+Accordingly, the problem Hamiltonian is given by:
+𝐻 prob = 𝐻 cut + 𝜆ℎ 𝐻¯ℎ + 𝜆𝑀 𝐻¯𝑠 + 𝜆𝐺 𝐻¯gen
+(33)
++ 𝜆𝐿 𝐻¯load + 𝜆coh 𝐻¯coh + 𝜇 𝐻¯𝑐 .
+where 𝜆ℎ , 𝜆𝑀 , 𝜆𝐺 , 𝜆𝐿 , 𝜆coh, 𝜇 > 0 are penalty weights and 𝐻¯ (·) denotes the corresponding unweighted QUBO penalty
+expressions in (24)–(28) and (32).
+3.3
+
+QAOA Implementation
+
+Given the problem Hamiltonian 𝐻 prob in (33), the next step is to construct a QAOA circuit that approximately minimizes
+its expected energy. To implement 𝐻 prob on quantum hardware, we first rewrite the binary variables into Pauli-𝑍
+operators via the standard mapping
+𝑧𝑖,𝑘 = 1 − 2𝑦𝑖,𝑘 ,
+
+𝑦𝑖,𝑘 ∈ {0, 1}, 𝑧𝑖,𝑘 ∈ {±1},
+
+(34)
+
+which transforms the QUBO energy into an Ising-form cost Hamiltonian.
+The standard transverse-field initialization Hamiltonian is adopted to promote exploration over the computational
+basis:
+𝐻𝐵 =
+
+𝑛𝑞
+∑︁
+
+𝜎𝑞𝑥 ,
+
+(35)
+
+𝑞=1
+
+and initialize the circuit in the uniform superposition state
+|𝜓 0 ⟩ =
+
+𝑛𝑞
+Ì
+|0⟩ + |1⟩
+.
+√
+2
+𝑞=1
+
+(36)
+
+With a 𝑝-layer QAOA, the variational state is prepared as
+|𝜓 (𝜸, 𝜷)⟩ =
+
+𝑝
+Ö
+
+𝑒 −𝑖𝛽ℓ 𝐻𝐵 𝑒 −𝑖𝛾ℓ 𝐻prob |𝜓 0 ⟩,
+
+(37)
+
+ℓ=1
+
+where 𝜸 = (𝛾 1, . . . , 𝛾𝑝 ) and 𝜷 = (𝛽 1, . . . , 𝛽𝑝 ) are variational parameters updated by a classical outer loop. For each
+candidate (𝜸, 𝜷), the QAOA circuit is executed and measured to obtain a batch of bitstrings 𝑧 ∼ 𝑃𝜸,𝜷 , which are
+decoded into partitions {𝑉𝑘 (𝑧)}. Accordingly, instead of filtering out DFS-infeasible samples, we incorporate the DFS
+connectivity outcome directly into the outer-loop objective by augmenting the measured energy with a feasibility
+penalty. Specifically, for a measured bitstring 𝑧 (decoded to {𝑉𝑘 (𝑧)}), define the DFS indicator
+𝜒𝐶 (𝑧) :=
+
+𝐾
+Ö
+
+
+I C 𝐺 [𝑉𝑘 (𝑧)] = 1 ∈ {0, 1},
+
+(38)
+
+𝑘=1
+
+where I{·} is the indicator function and 𝜒𝐶 (𝑧) = 1 iff all induced subgraphs 𝐺 [𝑉𝑘 (𝑧)] are connected. The corresponding
+DFS-modified energy is
+
+eprob (𝑧) := 𝐻 prob (𝑧) + 𝜆𝐶 1 − 𝜒𝐶 (𝑧) ,
+𝐻
+
+Manuscript submitted to ACM
+
+(39)
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 11
+
+where 𝜆𝐶 > 0 is a penalty weight. The classical outer loop then minimizes the DFS-modified expected energy
+h
+i
+eprob (𝑧) ,
+min e
+E(𝜸, 𝜷) := E𝑧∼𝑃𝜸,𝜷 𝐻
+
+(40)
+
+𝜸,𝜷
+
+which can be estimated from 𝑆 circuit executions as
+𝑆
+1 ∑︁ e  (𝑠 ) 
+b
+e
+E(𝜸, 𝜷) =
+𝐻 prob 𝑧
+,
+𝑆 𝑠=1
+
+𝑧 (𝑠 ) ∼ 𝑃𝜸,𝜷 ,
+
+(41)
+
+where 𝑃𝜸,𝜷 denotes the QAOA measurement distribution induced by the variational state. In addition, this work utilizes
+COBYLA as the classical optimizer for QAOA circuit parameter updating. However, the output of the variational loop
+is still a distribution over measured bitstrings rather than a guaranteed feasible islanding decision. Therefore, after
+the QAOA sampling stage, an additional classical post-processing layer is introduced to decode, evaluate, and repair
+promising samples before the final islanding solution is selected.
+4
+
+Post-Processing Framework for Feasible Islanding
+
+Following the QAOA execution and measurement stage in Fig. 1 (c), measured bitstrings are passed to the classical
+post-processing operation shown in Fig. 1 (d), and the selected result is decoded into the islanding solution shown
+in Fig. 1 (e). Because the islanding constraints sharply restrict the feasible region, many low-energy samples remain
+infeasible. Post-processing is therefore used to repair promising samples and improve the final solution quality and
+feasibility.
+Related work [30] studied QUBO-based greedy post-processing that maps quantum outputs to constraint-satisfying
+solutions under monotone energy descent. For islanding, this suggests starting with a QUBO-only repair rule, since the
+cut objective and the algebraic assignment, size, generator, and load constraints are already expressed in QUBO form.
+Exact graph connectivity, however, is verified by DFS rather than by a native QUBO term. This naturally motivates
+a staged repair strategy that first handles the QUBO constraints and then connectivity. Because such a staged repair
+can improve DFS feasibility while increasing the QUBO penalty, the later methods introduce stricter descent controls,
+modified repair targets, or relaxed admissible moves. The five methods proposed below develop that basic idea with
+different feasibility guarantees.
+4.1
+
+Post-Processing Mathematical Preliminaries
+
+All the methods operate on the same mathematical objects and share the same elementary operations. A measured
+bitstring 𝑧 ∈ {0, 1}𝑁 𝐾 , indexing all binary bus-to-island assignment variables (𝑁 buses, 𝐾 islands), is decoded into
+𝐾 . Each method evaluates the QUBO energy and a connectivity-violation objective, and
+an island partition {𝑉𝑘 (𝑧)}𝑘=1
+
+applies single-variable flips as its local move. For a decoded configuration 𝑧, the QUBO energy is
+𝑄 (𝑧) = 𝐻 cut (𝑧) + 𝜆ℎ 𝐻¯ℎ (𝑧)
++ 𝜆𝑀 𝐻¯𝑠 (𝑧) + 𝜆𝐺 𝐻¯gen (𝑧)
+
+(42)
+
++ 𝜆𝐿 𝐻¯load (𝑧) + 𝜆coh 𝐻¯coh (𝑧).
+which combines the cut objective with the algebraic constraint penalties. The connectivity-violation objective is
+𝐶 (𝑧) :=
+
+𝐾
+∑︁
+
+
+𝜔 (𝐺 [𝑉𝑘 (𝑧)]) − 1 ,
+
+(43)
+
+𝑘=1
+
+Manuscript submitted to ACM
+
+12
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+
+where 𝜔 (𝐺 [𝑉𝑘 (𝑧)]) denotes the number of connected components in island 𝑘. Thus, 𝐶 (𝑧) = 0 if and only if every island
+is internally connected.
+Each algebraic constraint in (42) is encoded as a nonnegative penalty. For constraint 𝑚 with coefficient vector 𝑎𝑚
+𝑖 ∈ Z,
+Í
+𝑚
+𝑚
+𝑚
+𝑚
+feasibility bounds [𝑏 min, 𝑏 max ], and constraint sum 𝑆 (𝑧) = 𝑖 ∈ V𝑚 𝑎𝑖 𝑧𝑖 , the general hinge-loss form is
+
+
+𝑚
+𝑚
+𝐻 𝑚 (𝑧) = max 0, 𝑆 𝑚 (𝑧) − 𝑏𝑚
+(44)
+max , 𝑏 min − 𝑆 (𝑧) ,
+𝑚
+which equals zero when 𝑆 𝑚 (𝑧) ∈ [𝑏𝑚
+min , 𝑏 max ] and is strictly positive otherwise. In the QUBO of Section 3, inequality
+
+constraints are converted to equalities via binary slack variables (29)–(31), so each penalty takes the equivalent squared
+𝑚
+form 𝐻 𝑚 (𝑧) = (𝑆 𝑚 (𝑧) − 𝑏𝑚 ) 2 with 𝑏𝑚 = 𝑏𝑚
+min = 𝑏 max after substitution. The QUBO energy therefore decomposes as
+Í
+𝑚
+𝑄 (𝑧) = 𝐻 cut (𝑧) + 𝑚 𝜆𝑚 𝐻 (𝑧).
+
+For variable index 𝑗, the flip 𝑧 ⊕ 𝑒 𝑗 denotes the configuration with 𝑧 𝑗 toggled and all other entries unchanged. For
+any energy function 𝐸, the per-flip change is
+Δ𝐸𝑗 (𝑧) := 𝐸 (𝑧 ⊕ 𝑒 𝑗 ) − 𝐸 (𝑧).
+
+(45)
+
+When 𝐸 = 𝑄 we write Δ 𝑗 (𝑧) for brevity; when 𝐸 = 𝐶 we write Δ𝐶𝑗 (𝑧).
+All methods that repair QUBO constraints share the same Stage 1 subroutine: starting from the current configuration
+𝑧 (𝑡 ) , select
+
+
+𝑗 ∗ (𝑡) = arg min Δ 𝑗 𝑧 (𝑡 ) ,
+
+(46)
+
+𝑗
+
+and update
+
+
+
+
+
+𝑧 (𝑡 ) ⊕ 𝑒 𝑗 ∗ (𝑡 ) if Δ 𝑗 ∗ (𝑡 ) 𝑧 (𝑡 ) < 0,
+
+(47)
+𝑧
+=
+𝑧 (𝑡 )
+
+(terminate).
+
+
+Because each flip strictly decreases 𝑄 on a finite state space, Stage 1 is cycle-free and terminates in at most 2𝑁 − 1 steps.
+(𝑡 +1)
+
+Under condition (A3) stated in Appendix A, every local minimum of 𝑄 is QUBO-feasible.
+Methods that include a connectivity-repair stage (Methods 2, 3, and 4) operate on the set of flips that strictly reduce
+𝐶,
+J (𝑧) =
+
+
+
+𝑗 : Δ𝐶𝑗 (𝑧) < 0 .
+
+(48)
+
+The methods differ in what additional condition, if any, is imposed on the 𝑄 change Δ 𝑗 (𝑧) for candidates in J (𝑧).
+4.2
+
+M. 1: QUBO-only descent
+
+M. 1 is exactly the Stage 1 greedy descent subroutine from Section 4.1 applied to 𝑄, with no subsequent repair stage. It is
+the direct islanding adaptation of the post-measurement greedy repair in [30]. As shown in Algorithm 1, the algorithm
+runs (46)–(47) until no flip decreases 𝑄, then performs a single DFS pass to evaluate 𝐶 (𝑧 ∗ ). Termination follows directly
+from Section 4.1; QUBO-feasibility of the output holds under condition (A3) stated in Appendix A. Since 𝑄 contains no
+connectivity term, however, 𝐶 (𝑧 ∗ ) may be nonzero and connectivity of the resulting partition is not guaranteed.
+4.3
+
+M. 2: Unconstrained two-stage repair
+
+M. 2 appends a connectivity-repair stage to M. 1. After the Stage 1 descent from Section 4.1 terminates, Stage 2 accepts
+any reassignment that reduces 𝐶, regardless of the effect on 𝑄.
+
+Manuscript submitted to ACM
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 13
+Algorithm 1 M.1: QUBO-Only Descent
+1: Data: bitstring 𝑧 ∈ {0, 1} 𝑁 𝐾 , QUBO energy 𝑄
+2: Result: 𝑧 ∗ at a local minimum of 𝑄; 𝑧 ∗ ∈ F𝑄 under (A3)
+3: while ∃ 𝑗 such that Δ 𝑗 (𝑧) < 0 do
+
+𝑗 ∗ ← arg min 𝑗 Δ 𝑗 (𝑧)
+𝑧 ← 𝑧 ⊕ 𝑒𝑗∗
+6: end while
+7: 𝑧 ∗ ← 𝑧
+8: Evaluate 𝐶 (𝑧 ∗ ) via DFS
+9: return 𝑧 ∗
+4:
+
+5:
+
+⊲ connectivity not guaranteed
+
+Algorithm 2 M.2: Unconstrained Two-Stage Repair
+1: Data: bitstring 𝑧 ∈ {0, 1} 𝑁 𝐾 , energies 𝑄 and 𝐶, outer bound 𝐾
+2: Result: 𝑧 ∗ with 𝑄 locally minimal; 𝐶 (𝑧 ∗ ) = 0 if found within 𝐾 iterations
+3: for 𝑘 = 1 to 𝐾 do
+
+while ∃ 𝑗 such that Δ 𝑗 (𝑧) < 0 do
+𝑗 ∗ ← arg min 𝑗 Δ 𝑗 (𝑧)
+6:
+𝑧 ← 𝑧 ⊕ 𝑒𝑗∗
+7:
+end while
+8:
+if 𝐶 (𝑧) = 0 then
+9:
+return 𝑧
+10:
+end if
+11:
+𝑗 ∗ ← arg min 𝑗 ∈ J (𝑧 ) Δ 𝑗 (𝑧)
+12:
+𝑧 ← 𝑧 ⊕ 𝑒𝑗∗
+13: end for
+14: return 𝑧
+
+⊲ Stage 1: QUBO descent
+
+4:
+
+5:
+
+⊲ connectivity satisfied
+⊲ Stage 2: unconstrained repair
+⊲ flip regardless of sign of Δ 𝑗 ∗
+
+After Stage 1 terminates, if 𝐶 (𝑧) > 0 then Stage 2 operates on J (𝑧) from (48) and picks
+𝑗 ∗ = arg min Δ 𝑗 (𝑧),
+
+(49)
+
+𝑗 ∈ J (𝑧 )
+
+where Δ 𝑗 (𝑧) is the per-flip 𝑄 change from (45). The flip 𝑧 ← 𝑧 ⊕ 𝑒 𝑗 ∗ is executed unconditionally, without checking the
+sign of Δ 𝑗 ∗ , and Stage 1 is restarted on the updated configuration. Algorithm 2 shows this alternation, which repeats for
+at most 𝐾 outer iterations.
+Remark 4.1. The Stage 1 descent still strictly decreases 𝑄. Stage 2, however, imposes no descent condition: a connectivityimproving flip can simultaneously increase the QUBO penalty terms, so 𝑄 may rise after a Stage 2 move. The two
+stages therefore optimize different targets in sequence, and no globally consistent energy function is monotonically
+decreasing throughout the run. As a consequence, the same configuration can be revisited across outer iterations, and
+an outer bound 𝐾 is required for termination to be guaranteed.
+
+4.4
+
+M. 3: Constrained two-stage descent
+
+M. 3 retains the two-stage structure of M. 2 and strengthens Stage 2 by admitting a connectivity-repair flip only if it
+simultaneously strictly decreases 𝑄.
+
+Manuscript submitted to ACM
+
+14
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+
+Algorithm 3 M.3: Constrained Two-Stage Descent
+1: Data: bitstring 𝑧 ∈ {0, 1} 𝑁 𝐾 , energies 𝑄 and 𝐶
+2: Result: 𝑧 ∗ ∈ F𝑄 under (A3); 𝐶 (𝑧 ∗ ) = 0 if a descent-compatible repair exists
+3: while true do
+
+while ∃ 𝑗 such that Δ 𝑗 (𝑧) < 0 do
+𝑗 ∗ ← arg min 𝑗 Δ 𝑗 (𝑧)
+6:
+𝑧 ← 𝑧 ⊕ 𝑒𝑗∗
+7:
+end while
+8:
+if 𝐶 (𝑧) = 0 then
+9:
+return 𝑧
+10:
+end if
+11:
+𝑗 ∗ ← arg min 𝑗 ∈ J (𝑧 ) Δ 𝑗 (𝑧)
+12:
+if Δ 𝑗 ∗ (𝑧) < 0 then
+13:
+𝑧 ← 𝑧 ⊕ 𝑒𝑗∗
+14:
+else
+15:
+return 𝑧
+16:
+end if
+17: end while
+
+⊲ Stage 1: QUBO descent
+
+4:
+
+5:
+
+⊲ Stage 2: constrained repair
+⊲ restart Stage 1
+⊲ no descent-compatible repair exists
+
+After the Stage 1 descent from Section 4.1 terminates with 𝐶 (𝑧) > 0, Stage 2 forms J (𝑧) as in (48) and selects the
+best candidate,
+𝑗 ∗ = arg min Δ 𝑗 (𝑧).
+
+(50)
+
+𝑗 ∈ J (𝑧 )
+
+The flip is then conditionally applied:
+
+
+
+𝑧 ⊕ 𝑒 𝑗 ∗ if Δ 𝑗 ∗ (𝑧) < 0 (restart Stage 1),
+
+𝑧 ←
+(51)
+𝑧
+
+if Δ 𝑗 ∗ (𝑧) ≥ 0 (terminate).
+
+
+Relative to M. 2, the only modification is the sign condition on Δ 𝑗 ∗ in (51), which ensures that 𝑄 decreases at every
+executed flip and thereby eliminates the need for an outer iteration bound 𝐾. The resulting constrained two-stage
+descent procedure is shown in Algorithm 3.
+Remark 4.2. Because both stages flip only when Δ 𝑗 ∗ (𝑧) < 0, every executed move strictly decreases 𝑄. Strict monotone
+decrease on a finite state space excludes revisits and bounds the total flip count without any outer iteration limit. Under
+condition (A3) stated in Appendix A, Stage 1 local minima are QUBO-feasible. The failure case in (51) arises when every
+connectivity-improving flip violates a tight equality constraint, causing Δ 𝑗 ∗ (𝑧) ≥ 0 for all 𝑗 ∗ ∈ J . Formal proofs of
+global strict descent, the no-cycle property, and the tight-constraint failure mode are given in Appendix A.
+
+4.5
+
+M. 4: Penalty-relaxation descent
+
+M. 4 keeps the two-stage structure of M. 3 but introduces a per-iteration penalty schedule that gradually reduces the
+QUBO penalty weight across outer iterations, enlarging the set of admissible Stage 2 flips.
+For outer iteration 𝑟 ≥ 1, fix a non-decreasing function 𝑓 : N+ → [1, ∞) with 𝑓 (1) = 1 and define the iteration-𝑟
+penalty coefficient and energy,
+𝜆 (𝑟 ) =
+Manuscript submitted to ACM
+
+𝜆
+,
+𝑓 (𝑟 )
+
+𝑄 (𝑟 ) (𝑧) = 𝐻 cut (𝑧) + 𝜆 (𝑟 )
+
+∑︁
+𝑚
+
+𝐻 𝑚 (𝑧),
+
+(52)
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 15
+Algorithm 4 M.4: Penalty-Relaxation Descent
+1: Data: bitstring 𝑧 ∈ {0, 1} 𝑁 𝐾 , base penalty 𝜆, relaxation schedule 𝑓 (𝑟 ), bound 𝑅max
+2: Result: 𝑧 ∗ with 𝐶 (𝑧 ∗ ) = 0 if found within 𝑅max iterations
+3: for 𝑟 = 1 to 𝑅max do
+4:
+5:
+6:
+7:
+8:
+9:
+10:
+11:
+12:
+13:
+14:
+15:
+
+𝜆 (𝑟 ) ← 𝜆/𝑓 (𝑟 ); 𝑄 (𝑟 ) (𝑧) ← 𝐻 cut (𝑧) + 𝜆 (𝑟 )
+repaired ← true
+while repaired do
+)
+while ∃ 𝑗 such that Δ (𝑟
+𝑗 (𝑧) < 0 do
+
+Í
+
+𝑚𝐻
+
+𝑚 (𝑧)
+
+⊲ Stage 1: descent on 𝑄 (𝑟 )
+
+)
+𝑗 ∗ ← arg min 𝑗 Δ (𝑟
+𝑗 (𝑧)
+𝑧 ← 𝑧 ⊕ 𝑒𝑗∗
+end while
+if 𝐶 (𝑧) = 0 then
+return 𝑧
+end if
+)
+if ∃ 𝑗 ∗ ∈ J (𝑧) such that Δ (𝑟
+𝑗 ∗ (𝑧) < 0 then
+
+𝑗 ∗ ← arg min
+
+⊲ Stage 2: relaxed repair
+
+(𝑟 )
+𝑗 ∈ J (𝑧 ) Δ 𝑗 (𝑧)
+
+𝑧 ← 𝑧 ⊕ 𝑒𝑗∗
+else
+18:
+repaired ← false
+19:
+end if
+20:
+end while
+21: end for
+22: return 𝑧
+
+⊲ restart Stage 1 at same 𝑟
+
+16:
+
+17:
+
+⊲ no admissible flip; increment 𝑟
+
+where 𝜆 = 𝜆 (1) is the base coefficient used by M. 1 through M. 3. A concrete implementation sets 𝑓 (𝑟 ) = 1 + 𝜌 (𝑟 − 1) for
+a relaxation step 𝜌 > 0, so that 𝜆 (𝑟 ) decreases linearly and 𝑄 (𝑟 ) changes across iterations.
+)
+(𝑟 ) (𝑧 ⊕ 𝑒 ) − 𝑄 (𝑟 ) (𝑧) consistently. Stage 1
+Both stages in outer iteration 𝑟 use 𝑄 (𝑟 ) and its per-flip change Δ (𝑟
+𝑗
+𝑗 (𝑧) = 𝑄
+)
+∗
+applies the same greedy rule as (47) with Δ 𝑗 replaced by Δ (𝑟
+𝑗 . Stage 2 then seeks 𝑗 ∈ J (𝑧) satisfying
+)
+Δ (𝑟
+𝑗 ∗ (𝑧) < 0.
+
+(53)
+
+If (53) holds, the flip is executed and Stage 1 is restarted on the updated configuration at the same iteration 𝑟 . If no
+such 𝑗 ∗ exists, 𝑟 is incremented, which reduces 𝜆 (𝑟 +1) , and Stage 1 restarts. Algorithm 4 shows this penalty-relaxation
+procedure, which terminates on success (DFS satisfied) or when 𝑟 exceeds the outer bound 𝑅max .
+Remark 4.3. A smaller 𝜆 (𝑟 ) lowers the threshold in (53), so a flip that repairs connectivity at the cost of a QUBO
+)
+(𝑟 ) > Δ
+violation is more likely to yield Δ (𝑟
+max =
+𝑗 ∗ < 0. However, the QUBO feasibility guarantee of Stage 1 requires 𝜆
+
+max𝑧,𝑗 |Δ𝐻𝑗 cut (𝑧)|. If 𝜆 (𝑟 ) falls below this threshold, Stage 1 may terminate at a QUBO-infeasible configuration. The two
+requirements are therefore in fundamental tension, and no single 𝜆 (𝑟 ) simultaneously ensures both. Within each fixed 𝑟
+the descent on 𝑄 (𝑟 ) is strict, and no configuration is revisited. Across iterations, cycles are possible when 𝑓 is constant,
+so an outer bound 𝑅max is required for termination. Formal proofs of within-iteration descent, the cross-iteration cycle
+condition, and the QUBO-feasibility incompatibility are given in Appendix A.
+
+Manuscript submitted to ACM
+
+16
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+
+4.6
+
+M. 5: Unified-energy descent
+
+M. 5 eliminates the two-stage structure entirely by encoding both QUBO feasibility and DFS connectivity into a single
+post-processing energy,
+Q (𝑧) := 𝑄 (𝑧) + 𝜇 𝐶 (𝑧),
+
+(54)
+
+and applying the common greedy descent directly to Q.
+For the unified energy to guarantee full feasibility, 𝜇 must dominate all QUBO-side effects of any single flip. Concretely,
+the required condition is
+𝜇 > max Δ 𝑗 (𝑧) ,
+
+(55)
+
+𝑧, 𝑗
+
+where Δ 𝑗 (𝑧) is the per-flip QUBO change defined in Section 4.1. Under (55), any flip that reduces 𝐶 produces a net
+decrease in Q regardless of its QUBO effect, so connectivity repair is always preferred over any QUBO trade-off.
+The per-flip change in Q decomposes as
+Δ𝑢𝑗 (𝑧) = Δ 𝑗 (𝑧) + 𝜇 Δ𝐶𝑗 (𝑧),
+using the QUBO and DFS per-flip changes already introduced in Section 4.1. M. 5 then iterates the single rule
+
+
+𝑗 ∗ (𝑡) = arg min Δ𝑢𝑗 𝑧 (𝑡 ) ,
+
+(56)
+
+(57)
+
+𝑗
+
+and updates the configuration by
+
+
+
+𝑧 (𝑡 ) ⊕ 𝑒 𝑗 ∗ (𝑡 ) if Δ𝑢𝑗∗ (𝑡 ) < 0,
+
+𝑧
+=
+(58)
+
+𝑧 (𝑡 )
+if Δ𝑢𝑗∗ (𝑡 ) ≥ 0 (terminate).
+
+
+The QUBO and connectivity objectives are thus handled within a single unified descent loop, with no alternation
+(𝑡 +1)
+
+between stages. The complete unified-energy descent procedure is shown in Algorithm 5.
+Remark 4.4. Strict descent on the fixed function Q makes the trajectory cycle-free and guarantees termination without
+an outer bound 𝐾. Under condition (55), conditions (A4) and (A5), and the flip-existence condition of Appendix A, every
+local minimum satisfies 𝐶 (𝑧 ∗ ) = 0 and all algebraic constraints, so 𝑧 ∗ ∈ F𝑄 ∩ F𝐶 ; M. 5 thus provides the strongest
+feasibility guarantee of the five methods, which directly resolves the failure case of M. 3, where the two-stage separation
+can leave every connectivity-improving flip QUBO-increasing and force Stage 2 to terminate without a feasible repair.
+The practical cost is that condition (55) requires a large 𝜇, which biases every descent step toward connectivity repair
+regardless of QUBO state. Since QAOA samples tend to be near QUBO-feasible, M. 3 can exploit this: Stage 1 polishes 𝑄
+with few flips and Stage 2 then performs only a small targeted repair, whereas M. 5 blends both objectives from the
+outset and may terminate with worse 𝑄. Formal proofs are given in Appendix A.
+
+4.7
+
+Method Summary and Interpretation
+
+M. 1 and M. 2 are natural baselines derived from the QUBO formulation, while M. 3 through M. 5 are principled
+developments that add formal descent and feasibility guarantees.
+• M. 1 and M. 2 establish QUBO-only and staged-repair baselines, with no guarantee of 𝑧 ∗ ∈ F𝑄 ∩ F𝐶 .
+• M. 3 adds a descent filter to Stage 2 of M. 2, achieving strict global monotonicity on 𝑄.
+• M. 4 relaxes the penalty weight 𝜆 (𝑟 ) across iterations to recover Stage 2 flips blocked by M. 3.
+Manuscript submitted to ACM
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 17
+Algorithm 5 M.5: Unified-Energy Descent
+1: Data: bitstring 𝑧 ∈ {0, 1} 𝑁 𝐾 , energies 𝑄 and 𝐶, weight 𝜇 > max𝑧,𝑗 |Δ 𝑗 (𝑧)|
+2: Result: 𝑧 ∗ ∈ F𝑄 ∩ F𝐶 under (A4), (A5)
+3: while ∃ 𝑗 such that Δ𝑢𝑗 (𝑧) < 0 do
+
+⊲ single descent on Q = 𝑄 + 𝜇𝐶
+
+𝑗 ∗ ← arg min 𝑗 Δ𝑢𝑗 (𝑧)
+where Δ𝑢𝑗 (𝑧) = Δ 𝑗 (𝑧) + 𝜇 Δ𝐶𝑗 (𝑧)
+5:
+𝑧 ← 𝑧 ⊕ 𝑒𝑗∗
+6: end while
+7: return 𝑧
+4:
+
+⊲ 𝑧 ∈ F𝑄 ∩ F𝐶 under stated conditions
+
+Table 1. Summary of the proposed post-processing methods.
+
+Method
+1
+2
+3
+4
+5
+
+Objective
+
+Descent
+
+Output at 𝑧 ∗
+
+Terminates
+
+𝑄
+𝑄 → 𝐶 (staged)
+𝑄 (two-stage)
+𝑄 (𝑟 ) , 𝜆 (𝑟 ) ↓
+Q = 𝑄 + 𝜇𝐶
+
+Strict
+Stage 1
+Strict
+Per-𝑟
+Strict
+
+Conditional F𝑄
+—
+Conditional F𝑄
+—
+Conditional F𝑄 ∩ F𝐶
+
+Always
+With cutoff
+Always
+With cutoff
+Always
+
+• M. 5 replaces the staged structure with a single descent on Q = 𝑄 + 𝜇𝐶, and under the regularity conditions
+stated in Appendix A is the only formulation that guarantees 𝑧 ∗ ∈ F𝑄 ∩ F𝐶 .
+Table 1 summarizes the key properties. Formal proofs are given in Appendix A.
+5
+
+Case Study
+
+5.1
+
+Experimental Setup and Test Systems
+
+The numerical study is conducted on six standard IEEE benchmark systems: 9-bus, 14-bus, 24-bus, 30-bus, 39-bus, and
+57-bus. These cases span different network sizes and islanding structures, including both two-island and three-island
+settings, and therefore provide a representative test bed for evaluating the proposed QAOA-based islanding framework
+under increasing combinatorial complexity. For each case, the coherent generator groups determine the target number
+of islands 𝐾, and the resulting QAOA samples are assessed both before and after post-processing. To benchmark
+solution quality, the post-processed quantum results are compared against vanilla QAOA sampling and against a
+classical reference solver Gurobi. The evaluation focuses on cut quality, quantum runtime, feasibility behavior, and
+physical operability of the resulting islands. For all benchmark cases, the minimum island size is set to 𝑁 min = 2, and
+the generator and load count requirements in (14)–(15) are set to 𝑁𝐺,min = 1 and 𝑁𝐿,min = 1, respectively.
+The experiments are implemented within the IBM Quantum stack using a real IBM Quantum backend. In particular,
+the hardware runs use ibm_marrakesh, which IBM identifies as a 156-qubit Heron r2 processor [18]. For quantum
+implementation, Table 2 summarizes the key configuration choices for each system, including the target island count 𝐾,
+the assignment, auxiliary, and total qubit counts before and after coherency-based bus merging, the QAOA depth
+parameter 𝑝, the number of shots 𝑆, and the total classical iteration budget 𝐼 max . The auxiliary-qubit breakdown reflects
+how the minimum-bus, generator-count, and load-count constraints contribute to the quantum resource requirement.
+Manuscript submitted to ACM
+
+18
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+Table 2. QAOA benchmark settings and qubit counts.
+
+Case
+
+Assignment
+qubits
+
+𝐾
+
+Minimum-bus
+auxiliary qubits
+
+Generator
+auxiliary qubits
+
+Load
+auxiliary qubits
+
+Total
+qubits
+
+𝑝
+
+𝑆
+
+𝐼 max
+
+1 100
+1 200
+2 800
+2 1000
+4 3000
+4 3000
+
+2
+2
+3
+2
+3
+3
+
+w/o
+w/
+w/o
+w/
+w/o
+w/
+w/o
+w/
+w/o
+w/
+merging merging merging merging merging merging merging merging merging merging
+9-bus
+14-bus
+24-bus
+30-bus
+39-bus
+57-bus
+
+2
+2
+3
+2
+3
+2
+
+18
+28
+72
+60
+117
+114
+
+18
+24
+60
+58
+117
+104
+
+6
+8
+15
+10
+16
+12
+
+6
+8
+15
+10
+16
+12
+
+4
+6
+12
+6
+10
+6
+
+4
+4
+9
+6
+10
+2
+
+4
+8
+12
+10
+13
+12
+
+4
+8
+12
+10
+13
+12
+
+32
+50
+111
+86
+156
+144
+
+32
+44
+96
+84
+156
+130
+
+Table 3. Bus assignments of the islanding solutions obtained by the proposed QAOA framework.
+IEEE test
+case
+
+Islanding solution (bus sets)
+
+9-bus
+
+Island 1: 1, 4, 5; Island 2: 2, 3, 6–9
+
+14-bus
+
+Island 1: 1–5; Island 2: 6–14
+
+24-bus
+
+Island 1: 6, 10–14, 20, 23; Island 2: 3, 15–19, 21, 22, 24;
+Island 3: 1, 2, 4, 5, 7, 8, 9
+
+30-bus
+
+Island 1: 9–30; Island 2: 1–8
+
+39-bus
+
+Island 1: 1, 2, 3, 25–30, 37, 38; Island 2: 15–24, 33–36;
+Island 3: 4–14, 31, 32, 39
+Island 1: 1–5, 11, 13–23, 32–49, 56, 57;
+Island 2: 6–10, 12, 24–31, 50–55
+
+57-bus
+
+Each configuration is evaluated over five independent trials, and the reported statistics are the sample mean and
+standard deviation across those repetitions.
+The framework is further evaluated under realistic hardware noise conditions via the FakeMarrakesh noise model [19],
+a calibrated replica of the ibm_marrakesh Heron r2 device noise profile. This evaluation is restricted to the IEEE 9-bus
+case, as its 32-qubit circuit (Table 2) is the only configuration within the 32-qubit ceiling imposed by the IBM cloud
+simulator [18], and each condition is repeated over five independent trials with results reported as the sample mean
+and standard deviation.
+5.2
+
+Benchmark Performance Comparison
+
+This subsection benchmarks the proposed hybrid quantum-classical islanding workflow across the six IEEE test systems
+by comparing raw vanilla QAOA sampling with five post-processing methods denoted M. 1–M. 5 and with the classical
+Gurobi optimum as a reference. The representative islanding solutions obtained from the QAOA-based workflow are
+listed in Table 3, and Fig. 2 shows how these solutions map back to the physical network structure through compact
+islands separated by a small set of cut interfaces. The Table 3 entries denote the buses assigned to each island. Based
+on the coherency constraints, the IEEE 9-bus, 14-bus, 30-bus, and 57-bus systems are partitioned into two islands,
+whereas the IEEE 24-bus and 39-bus systems are partitioned into three islands. The IEEE 24-bus and 39-bus cases
+are therefore more challenging from the optimization perspective, since the three-island requirement increases the
+combinatorial complexity of the partitioning problem and imposes stricter demands on the subsequent connectivity
+and resource-balance repair steps.
+Table 4, Fig. 3, and Fig. 4 jointly summarize the benchmark outcomes in terms of cut quality and quantum runtime.
+Without post-processing, vanilla QAOA yields mean cuts of 3.153, 192.748, 1768.581, 243.29, 7544.796, and 815.28 on
+IEEE 9-, 14-, 24-, 30-, 39-, and 57-bus, respectively, against the Gurobi optima of 1.238, 88.241, 776.206, 16.863, 228.993,
+
+Manuscript submitted to ACM
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 19
+
+(a) IEEE 9-bus
+
+(b) IEEE 14-bus
+
+(c) IEEE 24-bus
+
+(d) IEEE 30-bus
+
+(e) IEEE 39-bus
+
+(f) IEEE 57-bus
+
+Fig. 2. Optimal islanding results generated by the proposed QAOA framework on the IEEE test systems. Bus colors indicate the island
+assignment of each bus, and the red dashed lines denote the transmission interfaces removed to form the final islands. The resulting
+partitions remain spatially compact and are separated by only a small number of inter-area transmission cuts.
+Manuscript submitted to ACM
+
+20
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+IEEE 9-bus: cut weight
+
+4
+
+Mean tQ (s)
+
+Mean ccut
+
+3
+
+IEEE 9-bus: quantum runtime
+
+2
+1
+0
+
+lla M. 1 M. 2 M. 3 M. 4 M. 5
+
+i
+Van
+
+5
+4
+3
+2
+1
+0
+
+lla M. 1 M. 2 M. 3 M. 4 M. 5
+
+i
+Van
+
+IEEE 14-bus: cut weight
+
+IEEE 14-bus: quantum runtime
+6
+
+Mean tQ (s)
+
+Mean ccut
+
+300
+200
+100
+0
+
+4
+2
+0
+
+lla M. 1 M. 2 M. 3 M. 4 M. 5
+
+i
+Van
+
+lla M. 1 M. 2 M. 3 M. 4 M. 5
+
+i
+Van
+
+IEEE 24-bus: cut weight
+
+IEEE 24-bus: quantum runtime
+8
+
+Mean tQ (s)
+
+Mean ccut
+
+2000
+1500
+1000
+500
+0
+
+6
+4
+2
+0
+
+lla M. 1 M. 2 M. 3 M. 4 M. 5
+
+i
+Van
+
+lla M. 1 M. 2 M. 3 M. 4 M. 5
+
+i
+Van
+
+IEEE 30-bus: quantum runtime
+Mean tQ (s)
+
+Mean ccut
+
+IEEE 30-bus: cut weight
+500
+400
+300
+200
+100
+0
+
+lla M. 1 M. 2 M. 3 M. 4 M. 5
+
+i
+Van
+
+IEEE 39-bus: cut weight
+
+2000
+0
+
+Mean ccut
+
+5
+
+lla M. 1 M. 2 M. 3 M. 4 M. 5
+
+IEEE 57-bus: quantum runtime
+
+15
+
+Mean tQ (s)
+lla M. 1 M. 2 M. 3 M. 4 M. 5
+
+10
+
+i
+Van
+
+IEEE 57-bus: cut weight
+
+i
+Van
+
+15
+
+0
+
+lla M. 1 M. 2 M. 3 M. 4 M. 5
+
+i
+Van
+
+1000
+800
+600
+400
+200
+0
+
+IEEE 39-bus: quantum runtime
+
+20
+
+Mean tQ (s)
+
+Mean ccut
+
+4000
+
+lla M. 1 M. 2 M. 3 M. 4 M. 5
+
+i
+Van
+
+8000
+6000
+
+5
+4
+3
+2
+1
+0
+
+10
+5
+0
+
+lla M. 1 M. 2 M. 3 M. 4 M. 5
+
+i
+Van
+
+Fig. 3. Comparison of average cut quality and average quantum runtime across all the IEEE test systems for vanilla QAOA and all the
+proposed post-processing methods. The left column shows the average cut values with sample standard deviation bars, and the right
+column shows the average quantum runtime with sample standard deviation bars.
+
+Manuscript submitted to ACM
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 21
+
+and 128.239. Fig. 3 shows the same trend in absolute terms, while Fig. 4 shows that the relative gap to Gurobi grows
+from about 154% on IEEE 9-bus to over 3000% on IEEE 39-bus for vanilla QAOA.
+Among the post-processing methods, M. 3 and M. 4 provide the most consistent improvement. M. 4 reaches the
+Gurobi optimum on every reported case, and M. 3 is exact on all but IEEE 24-bus, where its average performance is just
+slightly below M. 4. Fig. 3 shows that these cut improvements are accompanied by only a limited increase in quantum
+runtime. For example, on IEEE 39-bus the mean 𝑡𝑄 rises from 9.4 s for vanilla QAOA to 12.6 s and 12.4 s for M. 3 and M. 4,
+respectively, while the mean cut drops from 7544.796 to the near-optimal range. On the same system, M. 2 and M. 5 still
+incur mean runtimes of 14.6 s and 14.8 s, respectively, but fail to produce finite cut values, indicating that the additional
+runtime is not converted into effective repair on this harder case. This is attributable to the algorithmic properties
+of M. 2 and M. 5 under the three-island structure: M. 2’s Stage 2 accepts any connectivity-improving flip without a
+𝑄-descent condition, which can repeatedly raise the QUBO energy across repair moves and leave Stage 1 unable to
+recover a feasible configuration within the iteration budget; M. 5’s large-𝜇 unified descent prioritizes connectivity at
+every step, which on a three-island instance with more interdependent repair decisions can push the configuration
+away from the QUBO-feasible region. By contrast, M. 3 admits connectivity-repair flips only when they also strictly
+decrease 𝑄, and M. 4 further relaxes the penalty weight when that condition blocks repair, allowing both methods to
+maintain QUBO feasibility throughout the descent.
+The differences in solution quality across methods in Table 4 and Figs. 3–4 are attributed to the structural properties
+of their respective repair formulations. M. 1 adopts the simplest structure of a single-stage QUBO descent without
+connectivity repair, which is sufficient for well-conditioned instances, as confirmed by the ★ annotation on all six
+systems. Its limitation is that connected partitions are obtained only when the QUBO penalty structure is strong enough
+to guide the descent implicitly, a condition that becomes less reliable on larger graphs, as reflected by the mean cut
+of 268.242 (±53.74) on IEEE 39-bus against the optimum of 228.993. M. 2 and M. 5 fail on the largest instances for
+opposite but complementary reasons: M. 2 applies an unconstrained Stage 2 that accepts any connectivity-improving
+flip regardless of its effect on 𝑄, which can disrupt QUBO feasibility and cause repeated oscillation between stages on
+complex instances; M. 5, despite being the only formulation that theoretically guarantees full feasibility (𝑧 ∗ ∈ F𝑄 ∩ F𝐶 )
+through a unified energy Q = 𝑄 +𝜇𝐶, underperforms in practice due to a fundamental tension in its design: the hierarchy
+condition 𝜇 > max𝑧,𝑗 |Δ 𝑗 (𝑧)| required to guarantee feasibility forces 𝜇 to be large, which biases every descent step
+toward connectivity repair regardless of the current QUBO state. Since QAOA samples are typically near QUBO-feasible,
+this aggressive weighting steers the descent away from the low-cut region highlighted in Table 4 and Fig. 3, and
+the algorithm may terminate at a locally connected but cut-suboptimal solution. M. 3 resolves the instability of M. 2
+by admitting a Stage 2 connectivity flip only if it simultaneously decreases 𝑄, preserving strict monotone descent
+throughout and achieving near-optimal solutions without an iteration bound. M. 4 extends this further by gradually
+relaxing the penalty weight 𝜆 (𝑘 ) across outer iterations, which unlocks Stage 2 flips that M. 3’s strict descent condition
+would otherwise reject, and thereby achieves the most consistent recovery of the Gurobi optimum across all systems
+and trials, as seen most clearly in the near-zero gaps of Fig. 4. The penalty relaxation schedule provides a principled
+way to widen the search at each iteration while preserving within-iteration strict descent, making M. 4 the most robust
+post-processing variant among the five.
+Fig. 5 complements the cut-quality results in Table 4 and Figs. 3–4 by showing how consistently each method
+concentrates probability mass on feasible partitions. Vanilla QAOA has essentially zero feasible probability on all six
+systems, so its sampling distribution rarely places meaningful weight on directly usable partitions. M. 1 improves this
+on the smaller cases, reaching 25.3% on IEEE 9-bus and 17.9% on IEEE 30-bus, but it drops to only 1.1% on IEEE 39-bus,
+Manuscript submitted to ACM
+
+22
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+
+Table 4. Cut quality and quantum runtime, reported in seconds, for vanilla QAOA, post-processing methods M. 1 through M. 5, and
+Gurobi on the IEEE test systems (★ indicates that at least one trial attained the Gurobi-optimal cut value).
+
+Method
+
+𝑐 cut
+𝑡𝑄 (s)
+
+Vanilla
+
+𝑐 cut
+𝑡𝑄
+
+M. 1
+
+𝑐 cut
+𝑡𝑄
+
+1.2378★
+4
+
+88.241★
+4
+
+785.887 (± 21.65)★
+6.4 (± 0.9)
+
+M. 2
+
+𝑐 cut
+𝑡𝑄
+
+1.2378★
+3.4 (± 0.9)
+
+88.241★
+3.8 (± 0.4)
+
+M. 3
+
+𝑐 cut
+𝑡𝑄
+
+1.2378★
+3.6 (± 0.9)
+
+M. 4
+
+𝑐 cut
+𝑡𝑄
+
+M. 5
+
+𝑐 cut
+𝑡𝑄
+
+9-bus
+
+14-bus
+
+24-bus
+
+30-bus
+
+39-bus
+
+57-bus
+
+3.1529 (± 1.3254) 192.748 (± 87.51) 1768.581 (± 314.28) 243.29 (± 220.04) 7544.796 (± 1564.15) 815.28 (± 177.08)
+4
+4
+6.2 (± 0.4)
+4
+9.4 (± 0.5)
+10 (± 2.2)
+268.242 (± 53.74)★
+13.6 (± 3.3)
+
+129.328 (± 1)★
+9.4 (± 0.9)
+
+1021.143 (± 147.25) 30.576 (± 17.31)★
+6
+4
+
+--14.6 (± 4.6)
+
+186.938 (± 42.8)
+9
+
+88.241★
+4.2 (± 0.4)
+
+784.44 (± 18.41)★
+6.6 (± 1.3)
+
+16.863★
+4
+
+228.993★
+12.6 (± 3.1)
+
+128.239 (± 0)★
+9
+
+1.2378★
+4
+
+88.241★
+4.2 (± 1.8)
+
+776.206★
+6.8 (± 1.8)
+
+16.863★
+4.8 (± 1.8)
+
+228.993★
+12.4 (± 4.5)
+
+128.239 (± 0)★
+11.6 (± 3.2)
+
+1.2378★
+3.6 (± 0.9)
+
+88.241★
+5 (± 2.8)
+
+911.503 (± 82.43)
+6
+
+24.685 (± 8.14)★
+4
+
+--14.8 (± 5.2)
+
+225.254 (± 8.24)
+10.6 (± 3)
+
+1.2378
+
+88.241
+
+776.206
+
+16.863
+
+228.993
+
+128.239
+
+Gurobi 𝑐 cut
+
+16.863★
+4
+
+Table 5. Approximate vanilla-QAOA depth and shot requirements for matching the solution quality attained by the proposed hybrid
+workflow.
+IEEE case
+9-bus
+14-bus
+24-bus
+30-bus
+39-bus
+57-bus
+
+QAOA layers
+
+Shots
+
+9
+20
+N/A
+N/A
+N/A
+N/A
+
+10,000
+8,000,000
+N/A
+N/A
+N/A
+N/A
+
+which is consistent with the cut degradation already seen in Table 4. The strongest behavior again comes from M. 3 and
+M. 4: even on the harder three-island cases they keep nontrivial feasible concentration, rising to 13.1% and 13.2% on
+IEEE 39-bus, and on IEEE 57-bus M. 4 reaches 67.3% compared with 44.1% for M. 1 and about 0.1% for both M. 2 and M. 5.
+Even for IEEE 24-bus, where all methods are more challenged, M. 4 still attains the highest mean feasible probability
+at 3.9%. This pattern reinforces the earlier method comparison: repair is most effective when it restores connectivity
+without losing control of the underlying QUBO descent, whereas unconstrained or overly connectivity-dominated
+repair either disperses or misdirects the sampled probability mass.
+Table 5 further highlights the quantum-resource savings enabled by the proposed post-processing strategy by
+reporting the approximate vanilla-QAOA circuit layers and shot count required to match the solution quality achieved
+by the post-processed pipeline. On IEEE 9-bus, the proposed framework reaches that quality with 𝑅 = 2 layers and
+𝑆 = 100 shots, whereas vanilla QAOA requires 9 layers and 10,000 shots, corresponding to reductions of 4.5× in circuit
+depth and 100× in sampling cost. The disparity widens sharply on IEEE 14-bus, where 20 layers and 8,000,000 shots are
+required, that is, a 10× increase in depth and a 8000× increase in shots relative to the post-processed configuration
+(𝑅 = 2, 𝑆 = 1000). For IEEE 24-bus and larger systems, the solution quality reached by the post-processed pipeline is
+no longer matched by vanilla QAOA within a practically attainable circuit-layers and shot budget (denoted as N/A in
+Table 5), underscoring the role of post-processing in extending the usable range of the quantum workflow.
+
+Manuscript submitted to ACM
+
+Vanilla
+
+116
+
+105
+
+154
+
+1693
+
+3195
+
+622
+
+M. 1
+
+0.0
+
+0.0
+
+3.0
+
+0.0
+
+17.1
+
+0.8
+
+M. 2
+
+0.0
+
+0.0
+
+32.8
+
+87.9
+
+n/a
+
+99.6
+
+M. 3
+
+0.0
+
+0.0
+
+2.2
+
+0.0
+
+0.0
+
+0.3
+
+M. 4
+
+0.0
+
+0.0
+
+2.9
+
+0.0
+
+0.0
+
+0.5
+
+M. 5
+
+0.0
+
+0.0
+
+33.6
+
+82.8
+
+n/a
+
+80.9
+
+9-bus
+
+14-bus
+
+24-bus
+30-bus
+IEEE test system
+
+39-bus
+
+57-bus
+
+200
+175
+150
+125
+
+Gap (\%)
+
+Method (Table order)
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 23
+
+100
+75
+50
+25
+0
+
+100
+
+Vanilla
+
+0.0
+
+0.0
+
+0.0
+
+0.0
+
+0.0
+
+0.0
+
+M. 1
+
+25.3
+
+17.0
+
+4.4
+
+17.9
+
+1.1
+
+44.1
+
+M. 2
+
+13.0
+
+6.3
+
+0.3
+
+0.4
+
+0.0
+
+0.1
+
+60
+
+M. 3
+
+21.6
+
+16.8
+
+3.2
+
+16.3
+
+13.1
+
+61.5
+
+40
+
+M. 4
+
+21.1
+
+14.2
+
+3.9
+
+16.7
+
+13.2
+
+67.3
+
+M. 5
+
+20.1
+
+6.0
+
+0.3
+
+0.6
+
+0.0
+
+0.1
+
+9-bus
+
+14-bus
+
+24-bus
+
+30-bus
+
+39-bus
+
+57-bus
+
+IEEE test system
+
+80
+
+20
+
+Average feasible probability (\%)
+
+Method (Table order)
+
+Fig. 4. Percent gap of the average cut value from the corresponding Gurobi benchmark across all the IEEE test systems for vanilla
+QAOA and post-processing methods M. 1 through M. 5. Smaller values indicate closer agreement with the classical optimum, and the
+cell labels report the corresponding percentage for each method and system.
+
+0
+
+Fig. 5. Average feasible probability across all the IEEE test systems for vanilla QAOA and post-processing methods M. 1 through M. 5,
+reported in percent. Larger values indicate that the sampling distribution places more weight on feasible islanding partitions, and the
+cell labels give the corresponding average percentage for each method and system.
+
+Manuscript submitted to ACM
+
+24
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+Table 6. Impact of noise on IEEE 9-bus simulation results (★ : Gurobi-optimal cut found).
+
+Method
+
+Ideal
+
+Marrakesh
+
+Ideal
+
+Marrakesh
+
+𝑐 cut /𝑝¯feas
+
+𝑐 cut /𝑝¯feas
+
+𝑡𝑄
+
+𝑡𝑄
+
+Vanilla
+M. 1
+M. 2
+M. 3
+M. 4
+M. 5
+
+2.002 (± 1.215) / 0.000 (± 0.000)
+1.238 (± 0.000)★ / 0.266 (± 0.033)
+1.238 (± 0.000)★ / 0.136 (± 0.040)
+1.238 (± 0.000)★ / 0.222 (± 0.062)
+1.238 (± 0.000)★ / 0.188 (± 0.031)
+1.238 (± 0.000)★ / 0.222 (± 0.062)
+
+5.3
+
+2.101 (± 1.391) / 0.000 (± 0.000) 0.03 (± 0.01)
+1.238 (± 0.000)★ / 0.250 (± 0.038) 0.02 (± 0.00)
+1.238 (± 0.000)★ / 0.136 (± 0.050) 0.02 (± 0.00)
+1.238 (± 0.000)★ / 0.220 (± 0.067) 0.02 (± 0.00)
+1.238 (± 0.000)★ / 0.180 (± 0.039) 0.02 (± 0.00)
+1.238 (± 0.000)★ / 0.220 (± 0.067) 0.02 (± 0.00)
+
+2.98 (± 0.09)
+2.93 (± 0.13)
+3.06 (± 0.08)
+2.87 (± 0.12)
+3.02 (± 0.05)
+3.01 (± 0.04)
+
+Noise Robustness Analysis
+
+In this subsection, the IBM cloud simulator is used under both an ideal noiseless setting and the FakeMarrakesh noise
+model to evaluate the noise robustness of the proposed framework. FakeMarrakesh replicates the calibrated noise
+profile of the 156-qubit ibm_marrakesh processor, including per-gate depolarizing errors, T1/T2 thermal relaxation, and
+readout errors derived from live device data [18–20], and is therefore directly representative of the noise encountered
+during the hardware runs in Table 4. The study is restricted to the IEEE 9-bus case, as its 32-qubit circuit (Table 2) is
+the only configuration that fits within the simulator’s 32-qubit ceiling, while all other benchmark instances require
+strictly more qubits and therefore fall outside this constraint. The hardware results in Table 4 are used as the real-device
+reference, while Table 6 contrasts the same instance under ideal and calibrated-noise simulation. Together with the
+feasible-probability evidence in Fig. 5, these results provide a cross-backend assessment of whether the proposed
+post-processing framework maintains solution quality and feasible-sample concentration when moving from ideal
+simulation to calibrated simulator noise and real quantum hardware.
+Table 4 first provides the real-hardware reference on ibm_marrakesh, and Table 6 then compares the same IEEE 9-bus
+case under ideal statevector simulation and the calibrated FakeMarrakesh noise model. These results highlight the noise
+robustness gained by the proposed post-processing framework. In terms of solution quality, vanilla QAOA has a mean
+cut value of 2.002 in ideal simulation, 2.101 under the noise model, and 3.153 on real hardware, whereas M. 1–M. 5 retain
+the Gurobi-optimal cut value of 1.238 across the ideal simulator, noisy simulator, and hardware settings. Consistent
+with Fig. 5, the feasible probability results in Table 6 show that vanilla QAOA remains at zero in both simulator columns,
+while the post-processed methods maintain similar values between the ideal and noisy simulator results, indicating
+that calibrated noise has little impact on feasible-sample concentration for this instance. In terms of backend execution
+time, the FakeMarrakesh simulator requires about 2.87–3.06 s, and the real-hardware 𝑡𝑄 values in Table 4 are of the
+same order for the IEEE 9-bus case. Thus, the numerical evidence indicates that post-processing preserves solution
+quality and feasible-sample concentration under calibrated noise and real hardware execution without introducing a
+large backend-time penalty for this case. More broadly, the real-hardware results in Table 4 show that the proposed
+workflow can recover Gurobi-optimal solutions across all six benchmark systems with shallow QAOA circuits and
+limited sampling resources. This supports the effectiveness of the proposed hybrid framework as a noise-resilient
+quantum optimization workflow, in which shallow QAOA sampling provides useful candidate structure and classical
+post-processing converts that structure into high-quality, physically feasible islanding solutions.
+
+Manuscript submitted to ACM
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 25
+IEEE 9-bus
+Pd
+Pg, max
+
+600
+
+400
+300
+200
+100
+I1
+P
+
+1600
+
+I2
+P
+
+Qd
+Qmax
+
+500
+400
+300
+200
+100
+0
+
+I2
+Q
+
+I1
+P
+
+I1
+Q
+
+I2
+P
+
+IEEE 24-bus
+
+IEEE 30-bus
+
+Pd
+Pg, max
+
+Pd
+Pg, max
+
+Qd
+Qmax
+
+Magnitude (MW / MVAr)
+
+1400
+
+I1
+Q
+
+Pd
+Pg, max
+
+600
+
+500
+
+0
+
+Magnitude (MW / MVAr)
+
+IEEE 14-bus
+
+Qd
+Qmax
+
+Magnitude (MW / MVAr)
+
+Magnitude (MW / MVAr)
+
+700
+
+1200
+1000
+800
+600
+400
+
+200
+
+I2
+Q
+
+Qd
+Qmax
+
+150
+100
+50
+
+200
+0
+
+I1 I1
+P Q
+
+I2 I2
+P Q
+
+0
+
+I3 I3
+P Q
+
+I1
+P
+
+I1
+Q
+
+IEEE 39-bus
+Pd
+Pg, max
+
+1500
+1000
+500
+I1 I1
+P Q
+
+I2 I2
+P Q
+
+Pd
+Pg, max
+
+1200
+
+2000
+
+0
+
+I2
+Q
+
+IEEE 57-bus
+
+Qd
+Qmax
+
+Magnitude (MW / MVAr)
+
+Magnitude (MW / MVAr)
+
+2500
+
+I2
+P
+
+I3 I3
+P Q
+
+Qd
+Qmax
+
+1000
+800
+600
+400
+200
+0
+
+I1
+P
+
+I1
+Q
+
+I2
+P
+
+I2
+Q
+
+Fig. 6. Island-level comparison of load and generation capability for the islanding solutions obtained by the proposed QAOA framework.
+For each case, the grouped bars compare active-power demand with maximum active-generation capacity and reactive-power demand
+with reactive upper capability.
+
+5.4
+
+Island Power-Balance Validation
+
+This subsection applies the two post-pipeline physical validation steps introduced in Section 2 to the representative
+islanding solutions selected by the proposed framework. The power flow check verifies whether each island admits
+a consistent post-separation active-power transfer pattern, and the power support check confirms that each island
+satisfies 𝑃𝑔,max > 𝑃𝑑 and 𝑄 max > 𝑄𝑑 , ensuring self-sufficiency in both active and reactive power after separation.
+All islands in the selected partitions pass the power flow check, indicating that each isolated subsystem admits
+a consistent post-separation operating solution. Fig. 6 evaluates the active- and reactive-power support of the same
+Manuscript submitted to ACM
+
+26
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+
+partitions by comparing, for every island, the active-power demand with the available active-generation capacity and
+the reactive-power demand with the reactive upper capability. Across all six IEEE systems, every island in the selected
+partition satisfies 𝑃𝑔,max > 𝑃𝑑 and 𝑄 max > 𝑄𝑑 , which indicates that the post-processed solutions are not only low-cut
+graph partitions but also self-supporting candidates after separation.
+The most constrained cases in Fig. 6 are still feasible but exhibit visibly reduced operating margins. In the IEEE 24-bus
+system, Island 3 has 𝑃𝑑 = 821 MW and 𝑃𝑔,max = 884 MW, so the active-power margin is only 63 MW, whereas the
+other two islands retain margins above 300 MW. In the IEEE 14-bus system, Island 2 is the tightest reactive case,
+with 𝑄𝑑 = 44.1 MVAr against 𝑄 max = 48 MVAr, leaving only 3.9 MVAr of upper reactive headroom. By contrast, the
+IEEE 39-bus and IEEE 57-bus partitions remain comfortably feasible overall; for example, the three IEEE 39-bus islands
+preserve active-power margins of 915.9, 109.9, and 86.97 MW, while IEEE 57-bus retains 414.48 MW and 310.6 MW of
+active margin in its two islands. Fig. 6 therefore shows that the selected post-processed solutions preserve both the
+intended partition structure and the basic island-level power-support capability needed for practical implementation.
+6
+
+Conclusion
+
+This paper presents a hybrid quantum-classical framework for controlled power-system islanding and pioneers the
+application of QAOA for power-system islanding with explicit feasibility-critical constraints. The proposed framework
+combines quantum optimization with a structured post-processing design that converts sampled QAOA outputs
+into feasible islanding decisions when important physical requirements, such as exact connectivity and operational
+consistency, cannot be enforced by the QUBO model alone, thereby extending quantum optimization from unconstrained
+graph partitioning to physically meaningful islanding decisions.
+The numerical studies on the IEEE 9-, 14-, 24-, 30-, 39-, and 57-bus systems show that this hybrid design is necessary
+for obtaining high-quality solutions from shallow QAOA sampling. Among all the proposed post-processing methods,
+M. 3 and especially M. 4 deliver the strongest overall performance, with M. 4 recovering the Gurobi-optimal cut on
+all reported benchmark cases while requiring only modest additional runtime. The benchmark comparison further
+shows that the proposed workflow attains solution quality that would require much deeper and more heavily sampled
+vanilla QAOA on the small systems and is not matched by vanilla QAOA within the current practical resource budget
+on the larger systems. The noise robustness analysis further indicates that the post-processing framework preserves
+high-quality feasible solutions under realistic quantum noise, supporting the resilience of the proposed near-term
+quantum workflow. The selected partitions also pass the power flow validation and retain adequate active- and reactivepower support margins, indicating that the resulting islands are physically meaningful candidates for post-disturbance
+operation.
+Future work will focus on improving the quantum efficiency and practical scalability of the framework through
+power-system-aware ansatz design, structure-informed mixers and initialization strategies, and hardware-aware
+implementations that further reduce sampling cost while preserving feasibility and solution quality.
+
+Manuscript submitted to ACM
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 27
+Acknowledgments
+This work is supported by the Office of Naval Research under the award N00014-22-1-2504, the National Science
+Foundation under the awards OAC-2417773 and ECCS-2413237/2413238.
+References
+[1] Maximilian Adler, Jonas Stein, and Michael Lachner. 2025. Scaling Quantum Simulation-Based Optimization: Demonstrating Efficient Power Grid
+Management with Deep QAOA Circuits. arXiv preprint arXiv:2505.16444 (2025).
+[2] Rhonda Au-Yeung, Nicholas Chancellor, and Pascal Halffmann. 2023. NP-hard but no longer hard to solve? Using quantum computing to tackle
+optimization problems. Frontiers in Quantum Science and Technology 2 (2023), 1128576. doi:10.3389/frqst.2023.1128576
+[3] Tarique Aziz, Zhenzhi Lin, Muhammad Waseem, and Shengyuan Liu. 2021. Review on optimization methodologies in transmission network
+reconfiguration of power systems for grid resilience. International Transactions on Electrical Energy Systems 31, 3 (2021), e12704.
+[4] Kishor Bharti, Alba Cervera-Lierta, Thi Ha Kyaw, Tobias Haug, Sumner Alperin-Lea, Abhinav Anand, Matthias Degroote, Hermanni Heimonen,
+Jakob S Kottmann, Tim Menke, et al. 2022. Noisy intermediate-scale quantum algorithms. Reviews of Modern Physics 94, 1 (2022), 015004.
+[5] Kostas Blekos, Dean Brand, Andrea Ceschini, Chiao-Hui Chou, Rui-Hao Li, Komal Pandya, and Alessandro Summer. 2024. A review on Quantum
+Approximate Optimization Algorithm and its variants. Physics Reports 1068 (2024), 1–66. doi:10.1016/j.physrep.2024.03.002
+[6] Alan Bundy and Lincoln Wallen. 1984. Breadth-first search. In Catalogue of artificial intelligence tools. Springer, 13–13.
+[7] M Cerezo, Andrew Arrasmith, Ryan Babbush, Simon C Benjamin, Suguru Endo, Keisuke Fujii, Jarrod R McClean, Kosuke Mitarai, Xiao Yuan, Lukasz
+Cincio, and Patrick J Coles. 2021. Variational quantum algorithms. Nature Reviews Physics 3, 9 (2021), 625–644.
+[8] Liang Che, Xuan Liu, and Zuyi Li. 2018. Preventive mitigation strategy for the hidden Nk line contingencies in power systems. IEEE Transactions on
+Reliability 67, 3 (2018), 1060–1070.
+[9] Francisco Chicano, Gabriel Luque, Zakaria Abdelmoiz Dahi, and Rodrigo Gil-Merino. 2024. Combinatorial Optimization with Quantum Computers.
+Engineering Optimization (2024). doi:10.1080/0305215X.2024.2435538
+[10] Joe H Chow. 1982. Time-scale modeling of dynamic networks with applications to power systems. Springer.
+[11] Ibrahim Dincer. 2000. Renewable energy and sustainable development: a crucial review. Renewable and sustainable energy reviews 4, 2 (2000),
+157–175.
+[12] Tao Ding, Kai Sun, Can Huang, Zhaohong Bie, and Fangxing Li. 2018. Mixed-integer linear programming-based splitting strategies for power
+system islanding operation considering network connectivity. IEEE Systems Journal 12, 1 (2018), 350–359.
+[13] Edward Farhi, Jeffrey Goldstone, and Sam Gutmann. 2014. A Quantum Approximate Optimization Algorithm. arXiv:1411.4028 [quant-ph]
+[14] Felix Gemeinhardt, Antonio Garmendia, Manuel Wimmer, Benjamin Weder, and Frank Leymann. 2024. Quantum Combinatorial Optimization in
+the NISQ Era: A Systematic Mapping Study. Comput. Surveys 56, 3 (2024), 70:1–70:36. doi:10.1145/3620668
+[15] Hengdao Guo, Ciyan Zheng, Herbert Ho-Ching Iu, and Tyrone Fernando. 2017. A critical review of cascading failure analysis and modeling of
+power system. Renewable and Sustainable Energy Reviews 80 (2017), 9–22.
+[16] Carsten Hartmann, Junjie Zhang, Carlos D. Gonzalez Calaza, Thiemo Pesch, Kristel Michielsen, and Andrea Benigni. 2025. Quantum Annealing
+Based Power Grid Partitioning for Parallel Simulation. IEEE Transactions on Power Systems 40, 6 (2025), 4958–4970. doi:10.1109/TPWRS.2025.3578243
+[17] Lei Huang, Yuanzhang Sun, Jian Xu, Wenzhong Gao, Jun Zhang, and Ziping Wu. 2014. Optimal PMU placement considering controlled islanding of
+power system. IEEE Transactions on Power Systems 29, 2 (2014), 742–755.
+[18] IBM Quantum. 2026. Compute resources. https://quantum.cloud.ibm.com/computers Accessed: 2026-04-12.
+[19] IBM Quantum. 2026. FakeMarrakesh. https://quantum.cloud.ibm.com/docs/en/api/qiskit-ibm-runtime/fake-provider-fake-marrakesh Accessed:
+2026-06-01.
+[20] IBM Quantum. 2026. Processor types. https://quantum.cloud.ibm.com/docs/en/guides/processor-types Accessed: 2026-04-12.
+[21] Yuqi Jiang, Zhiding Liang, Yan Li, Qiang Guan, and Ganesh Kumar Venayagamoorthy. 2025. Quantum Computing-Enabled Contingency Analysis
+for Power Systems. In 2025 IEEE International Conference on Quantum Computing and Engineering (QCE), Vol. 01. 1938–1944. doi:10.1109/QCE65121.
+2025.00211
+[22] Yuqi Jiang, Zhiding Liang, Yan Li, and Thomas Morstyn. 2025. Optimal PMU Placement via Quantum Optimization. IEEE Transactions on Smart Grid
+16, 4 (2025), 3125–3141. doi:10.1109/TSG.2025.3564889
+[23] Alexis Kyriacou, Panayiotis Demetriou, Christos Panayiotou, and Elias Kyriakides. 2017. Controlled islanding solution for large-scale power systems.
+IEEE Transactions on Power Systems 33, 2 (2017), 1591–1602.
+[24] Juan Li, Chen-Ching Liu, and Kevin Schneider. 2010. Controlled Partitioning of a Power Network Considering Real and Reactive Power Balance.
+IEEE Transactions on Smart Grid 1, 3 (2010), 261–269. doi:10.1109/TSG.2010.2082577
+[25] Ashley Montanaro. 2016. Quantum algorithms: an overview. npj Quantum Information 2 (2016), 15023. doi:10.1038/npjqi.2015.23
+[26] Thomas Morstyn and Xingyu Wang. 2024. Opportunities for quantum computing within net-zero power system optimization. Joule 8, 6 (2024),
+1619–1640. doi:10.1016/j.joule.2024.03.020
+[27] Hasan Mustafa, Sai Nandan Morapakula, Prateek Jain, and Srinjoy Ganguly. 2022. Variational quantum algorithms for chemical simulation and drug
+discovery. In 2022 International Conference on Trends in Quantum Computing and Emerging Business Technologies (TQCEBT). IEEE, 1–8.
+Manuscript submitted to ACM
+
+28
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+
+[28] Pradeep Niroula, Ruslan Shaydulin, Romina Yalovetzky, Pierre Minssen, Dylan Herman, Shaohan Hu, and Marco Pistoia. 2022. Constrained Quantum
+Optimization for Extractive Summarization on a Trapped-ion Quantum Computer. Scientific Reports 12 (2022), 17171. doi:10.1038/s41598-022-20853-w
+[29] John Preskill. 2018. Quantum computing in the NISQ era and beyond. Quantum 2 (2018), 79.
+[30] Tatsuhiko Shirai and Nozomu Togawa. 2024. Postprocessing Variationally Scheduled Quantum Algorithm for Constrained Combinatorial Optimization Problems. IEEE Transactions on Quantum Engineering 5 (2024), 1–14. doi:10.1109/TQE.2024.3376721
+[31] Kai Sun, Da-Zhong Zheng, and Qiang Lu. 2003. Splitting strategies for islanding operation of large-scale power systems using OBDD-based methods.
+IEEE transactions on Power Systems 18, 2 (2003), 912–923.
+[32] Robert Tarjan. 1972. Depth-first search and linear graph algorithms. SIAM journal on computing 1, 2 (1972), 146–160.
+[33] Jedwin Villanueva, Gary J Mooney, Bhaskar Roy Bardhan, Joydip Ghosh, Charles D Hill, and Lloyd CL Hollenberg. 2025. Hybrid quantum
+optimization in the context of minimizing traffic congestion. arXiv preprint arXiv:2504.08275 (2025).
+[34] Haibo You, Vijay Vittal, and Xiaoming Wang. 2004. Slow coherency-based islanding. IEEE Transactions on power systems 19, 1 (2004), 483–491.
+[35] Kamila Zaman, Alberto Marchisio, Muhammad Kashif, and Muhammad Shafique. 2024. Po-qa: A framework for portfolio optimization using
+quantum algorithms. In 2024 IEEE International Conference on Quantum Computing and Engineering (QCE), Vol. 1. IEEE, 1397–1403.
+
+A
+
+Formal Analysis of Post-Processing Methods
+
+This appendix provides rigorous proofs of the descent, termination, and feasibility properties of all the proposed
+post-processing methods. M. 1 and M. 2 are analyzed first to identify precisely where their guarantees break down; M. 3
+through M. 5 are then proved against those baselines.
+Standing Notation and Conditions
+Throughout the appendix, 𝑧 ∈ {0, 1}𝑁 denotes an island-assignment configuration, 𝑒 𝑗 the unit flip vector at coordinate
+𝑗, and Δ𝐸𝑗 (𝑧) := 𝐸 (𝑧 ⊕ 𝑒 𝑗 ) − 𝐸 (𝑧) the per-flip change of any energy 𝐸. For 𝐸 = 𝑄 we write Δ 𝑗 (𝑧); for 𝐸 = 𝐶 we write
+)
+Δ𝐶𝑗 (𝑧); for 𝐸 = Q we write Δ𝑢𝑗 (𝑧); and for 𝐸 = 𝑄 (𝑟 ) we write Δ (𝑟
+𝑗 (𝑧). Define
+
+Δmax := max Δ𝐻𝑗 cut (𝑧)
+
+(59)
+
+𝑧, 𝑗
+
+as the maximum single-flip change in the cut objective. Define also F ∗ := F𝑄 ∩ F𝐶 .
+Each constraint penalty takes either the hinge-loss form used in the main text (Section 4.1),
+
+𝑚
+𝑚
+𝐻 𝑚 (𝑧) = max 0, 𝑆 𝑚 (𝑧) − 𝑏𝑚
+max , 𝑏 min − 𝑆 (𝑧) ,
+or, after inequality constraints are converted to equalities by binary slack variables, the equivalent squared form
+2
+𝑚
+𝑚
+with 𝑏𝑚 := 𝑏𝑚
+min = 𝑏 max . Both forms satisfy 𝐻 (𝑧) = 0 iff the constraint holds, and the
+
+𝐻 𝑚 (𝑧) = 𝑆 𝑚 (𝑧) − 𝑏𝑚
+
+𝑚
+𝑚
+𝑚
+coefficients 𝑎𝑚
+𝑗 are integer-valued (𝑎 𝑗 ∈ Z), so 𝑎 𝑗 ≠ 0 implies |𝑎 𝑗 | ≥ 1.
+
+The following conditions are assumed where indicated:
+(A1) 𝜆𝑚 > Δmax for every 𝑚 ∈ {1, . . . , 5}.
+(A2) For every 𝑧 violating a linear constraint (one-hot, min-size, generation, or load), there exist a violated con𝑚
+straint 𝑚 and a coordinate 𝑗 ∈ V𝑚 with |𝑎𝑚
+𝑗 | = 1 and (1 − 2𝑧 𝑗 ) 𝑎 𝑗 > 0. The coherency penalty is quadratic and
+
+is not covered by this condition.
+(A3) Every QUBO-infeasible configuration 𝑧 ∉ F𝑄 admits at least one single-variable flip 𝑗 with Δ 𝑗 (𝑧) < 0.
+(A4) For every QUBO-infeasible 𝑧 with 𝐶 (𝑧) = 0, there exists a flip 𝑗 with Δ 𝑗 (𝑧) < 0 and Δ𝐶𝑗 (𝑧) = 0.
+Í
+𝑚
+𝑚
+Remark A.1. In (A2), the coefficient 𝑎𝑚
+𝑗 is the multiplier of variable 𝑧 𝑗 in the constraint sum 𝑆 (𝑧) = 𝑖 ∈ V𝑚 𝑎𝑖 𝑧𝑖 . For
+Í
+example, in a one-hot constraint 𝑘 𝑦𝑖,𝑘 = 1, each assignment variable 𝑦𝑖,𝑘 has coefficient +1. In the islanding QUBO
+of Section 3, assignment variables participate in multiple penalties simultaneously (one-hot, size, generation/load,
+and coherency), so the disjoint variable-set property V𝑚 ∩ V 𝑛 = ∅ does not hold globally and is not assumed in
+Manuscript submitted to ACM
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 29
+
+any theorem below. Condition (A3), namely that every QUBO-infeasible configuration admits at least one improving
+single-variable flip, is therefore used directly as the hypothesis of Theorem A.9. For some partition-constraint violations
+(min-size, generation, or load), an exclusive-slack repair argument may identify such a flip, because a slack variable
+belongs only to its own penalty term. However, this argument does not apply uniformly across all infeasibility patterns,
+and in particular not to one-hot or coherency violations, where assignment variables participate in several penalties
+simultaneously. For that reason, we retain (A3) as a stand-alone hypothesis rather than deriving it globally from (A1)–
+(A2). The framework of [30] proves feasibility guarantees under an “independent constraints” assumption (disjoint
+variable sets, V𝑚 ∩ V 𝑛 = ∅); because the islanding QUBO has dependent constraints, their Theorem 2 does not apply
+directly, and (A3) is stated here as an explicit regularity hypothesis in its place.
+Remark A.2 (Scope of the theoretical guarantees). Conditions (A3), (A4), and the flip-existence condition of Lemma A.17
+are stated as explicit regularity hypotheses rather than derived properties, reflecting the coupled-constraint structure of
+the islanding QUBO in which the same variable participates in multiple penalty terms simultaneously. This is a known
+trade-off when extending post-processing theory beyond the independent-constraint setting of [30]: stronger structural
+assumptions enable cleaner derivations but may not hold universally across all problem instances. The proofs in this
+appendix are fully rigorous under these hypotheses, and the hypotheses themselves are mild regularity conditions that
+hold for the class of power network topologies considered here. Across all six IEEE benchmark systems tested in Section 5
+(9- to 57-bus), no violation of any condition is observed: every tested instance satisfies the regularity requirements,
+and the post-processing methods consistently recover near-optimal, fully feasible islanding solutions, confirming that
+the empirical performance substantially compensates for the theoretical generality that the coupled-constraint setting
+necessarily trades away.
+An additional condition, denoted (A5), is stated when needed for M. 5.
+The following identity underlies every proof.
+Lemma A.1 (Fundamental identity). For any energy function 𝐸, any configuration 𝑧, and any variable index 𝑗,
+𝐸 (𝑧 ⊕ 𝑒 𝑗 ) = 𝐸 (𝑧) + Δ𝐸𝑗 (𝑧).
+Proof. By definition,
+Δ𝐸𝑗 (𝑧) = 𝐸 (𝑧 ⊕ 𝑒 𝑗 ) − 𝐸 (𝑧),
+which rearranges to 𝐸 (𝑧 ⊕ 𝑒 𝑗 ) = 𝐸 (𝑧) + Δ𝐸𝑗 (𝑧).
+A.1
+
+(60)
+□
+
+M. 1: QUBO-Only Descent
+
+M. 1 runs the Stage 1 greedy rule on 𝑄 alone and performs no connectivity repair.
+Theorem A.2 (Strict descent and QUBO feasibility). Under (A3), every flip executed by M. 1 strictly decreases 𝑄,
+and the output 𝑧 ∗ belongs to F𝑄 .
+Proof. Strict descent: Every flip is executed only when Δ 𝑗 ∗ (𝑧 (𝑡 ) ) < 0. By Lemma A.1,
+𝑄 (𝑧 (𝑡 +1) ) = 𝑄 (𝑧 (𝑡 ) ) + Δ 𝑗 ∗ (𝑧 (𝑡 ) ) < 𝑄 (𝑧 (𝑡 ) ).
+| {z }
+
+(61)
+
+<0
+
+Manuscript submitted to ACM
+
+30
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+Termination: Suppose configuration 𝑧 is visited at times 𝑡 1 < 𝑡 2 . Chaining strict descent along the 𝑡 2 − 𝑡 1 intervening
+
+steps yields
+
+
+𝑄 𝑧 (𝑡2 ) < 𝑄 𝑧 (𝑡1 ) .
+
+(62)
+
+
+
+𝑄 𝑧 (𝑡2 ) = 𝑄 𝑧 (𝑡1 ) ,
+
+(63)
+
+But 𝑧 (𝑡2 ) = 𝑧 (𝑡1 ) implies
+
+contradicting (62). Hence all visited configurations are distinct, and since
+{0, 1}𝑁 = 2𝑁 < ∞,
+
+(64)
+
+the algorithm terminates after finitely many flips.
+QUBO feasibility: At termination 𝑧 ∗ , the greedy rule finds no improving flip, so
+Δ 𝑗 (𝑧 ∗ ) ≥ 0 ∀ 𝑗 .
+
+(65)
+
+By Theorem A.9 (proved below independently of this result), every QUBO-infeasible configuration possesses some 𝑗
+with Δ 𝑗 (𝑧) < 0, contradicting (65). Therefore 𝑧 ∗ ∈ F𝑄 .
+
+□
+
+Theorem A.3 (DFS feasibility is not guaranteed). M. 1 does not guarantee 𝑧 ∗ ∈ F𝐶 .
+Proof. Define the connectivity violation count
+𝐶 (𝑧) :=
+
+𝐾
+∑︁
+
+
+𝑐 (𝐺 [𝑉𝑘 (𝑧)]) − 1 ≥ 0,
+
+(66)
+
+𝑘=1
+
+where 𝑐 (𝐻 ) denotes the number of connected components of graph 𝐻 . Since 𝑄 (𝑧) = 𝐻 cut (𝑧) +
+
+Í
+
+𝑚 𝜆𝑚 𝐻
+
+𝑚 (𝑧) does not
+
+contain 𝐶 (𝑧), the single-flip change satisfies
+Δ 𝑗 (𝑧) = Δ𝐻𝑗 cut (𝑧) +
+
+∑︁
+
+𝜆𝑚 Δ𝑚
+𝑗 (𝑧),
+
+(67)
+
+𝑚
+
+independently of Δ𝐶𝑗 (𝑧). Thus a connectivity-improving flip (Δ𝐶𝑗 (𝑧) < 0) may still satisfy
+∑︁
+Δ 𝑗 (𝑧) = Δ𝐻𝑗 cut (𝑧) +
+𝜆𝑚 Δ𝑚
+𝑗 (𝑧) ≥ 0,
+
+(68)
+
+𝑚
+
+and be rejected, whereas a connectivity-worsening flip (Δ𝐶𝑗 (𝑧) > 0) may satisfy
+Δ 𝑗 (𝑧) < 0
+
+(69)
+
+and be accepted.
+To exhibit a DFS-infeasible local minimum, consider any network instance in which the QUBO-optimal partition 𝑧ˆ
+has at least one island whose induced subgraph is disconnected. Starting from any 𝑧 (0) in the basin of attraction of 𝑧ˆ
+ˆ for which
+under the greedy 𝑄-descent, M. 1 converges to 𝑧 ∗ = 𝑧,
+Δ 𝑗 (𝑧 ∗ ) ≥ 0 ∀ 𝑗
+
+(by (65)),
+
+Hence 𝑧 ∗ ∉ F𝐶 .
+A.2
+
+𝐶 (𝑧 ∗ ) > 0.
+
+(70)
+□
+
+M. 2: Unconstrained Two-Stage Repair
+
+M. 2 appends a Stage 2 connectivity repair to M. 1. Stage 2 picks the candidate in J (𝑧) with the smallest Δ 𝑗 (𝑧) and
+flips it unconditionally, without checking the sign of Δ 𝑗 ∗ .
+Manuscript submitted to ACM
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 31
+Theorem A.4 (Stage 2 does not guarantee descent). Under (A1) and (A3), a Stage 2 flip can strictly increase 𝑄.
+Proof. Let 𝑧 be the Stage 1 output, so 𝑧 ∈ F𝑄 and 𝐶 (𝑧) > 0. Construct an instance in which the set of connectivityimproving flips is a singleton: J (𝑧) = { 𝑗 ∗ }. Specifically, let 𝑗 ∗ reassign a bus from island 𝑘 ′ to a neighboring island,
+merging two disconnected components but reducing island 𝑘 ′ below the minimum required size 𝑁 min , so that the
+min-size constraint 𝑚 is violated. Because J (𝑧) = { 𝑗 ∗ }, Stage 2 must select 𝑗 ∗ . Then
+𝐻 𝑚 (𝑧) = 0,
+
+𝐻 𝑚 (𝑧 ⊕ 𝑒 𝑗 ∗ ) ≥ 1,
+
+Δ𝑚
+𝑗 ∗ (𝑧) ≥ 1.
+
+(71)
+𝑚′
+𝑗∗
+
+Since 𝑧 ∈ F𝑄 every penalty is zero, so flipping 𝑗 ∗ cannot decrease any penalty term: Δ
+
+(𝑧) ≥ 0 for all 𝑚 ′ . Therefore,
+
+using (A1),
+Δ 𝑗 ∗ (𝑧) = Δ𝐻𝑗 ∗cut (𝑧) +
+
+∑︁
+
+′
+
+𝜆𝑚 ′ Δ𝑚
+𝑗 ∗ (𝑧) ≥ −Δmax + 𝜆𝑚 · 1 > 0.
+
+(72)
+
+𝑚′
+
+Stage 2 executes 𝑗 ∗ , so by Lemma A.1,
+𝑄 (𝑧 ⊕ 𝑒 𝑗 ∗ ) = 𝑄 (𝑧) + Δ 𝑗 ∗ (𝑧) > 𝑄 (𝑧).
+
+(73)
+□
+
+Theorem A.5 (𝑄 need not be globally monotone). Under (A1) and (A3), there exist instances for which the sequence
+𝑄 (𝑧 (0) ), 𝑄 (𝑧 (1) ), . . . produced by M. 2 is not monotonically non-increasing.
+Proof. Let 𝑧 (0) , 𝑧 (1) , . . . , 𝑧 (𝑇 ) denote the Stage 1 sub-sequence. By Theorem A.2,
+
+
+
+𝑄 𝑧 (0) > 𝑄 𝑧 (1) > · · · > 𝑄 𝑧 (𝑇 ) .
+
+(74)
+
+At 𝑧 (𝑇 ) Stage 1 has no improving flip, so 𝑧 (𝑇 ) ∈ F𝑄 . Suppose 𝐶 (𝑧 (𝑇 ) ) > 0. Stage 2 selects 𝑗 ∗ ∈ J (𝑧 (𝑇 ) ) unconditionally
+and sets
+𝑧 (𝑇 +1) = 𝑧 (𝑇 ) ⊕ 𝑒 𝑗 ∗ .
+
+(75)
+
+By Theorem A.4 there exist instances with Δ 𝑗 ∗ (𝑧 (𝑇 ) ) > 0, hence
+
+
+
+
+𝑄 𝑧 (𝑇 +1) = 𝑄 𝑧 (𝑇 ) + Δ 𝑗 ∗ 𝑧 (𝑇 ) > 𝑄 𝑧 (𝑇 ) .
+
+(76)
+
+Thus 𝑄 (𝑧 (𝑇 ) ) < 𝑄 (𝑧 (𝑇 +1) ), contradicting monotone non-increase of (𝑄 (𝑧 (𝑡 ) ))𝑡 .
+
+□
+
+Theorem A.6 (Nontermination without a finite outer bound 𝐾). Under (A1) and (A3), without an outer iteration
+bound 𝐾, M. 2 may cycle indefinitely.
+Proof. In the constructed instance, 𝑄 need not be monotone (Theorem A.5), so revisiting a configuration is not
+excluded by an energy argument. A concrete cycle arises as follows. Let 𝑧𝐴 be the unique local minimum of 𝑄 reachable
+from 𝑧 (0) , with 𝐶 (𝑧𝐴 ) > 0. Stage 2 flips 𝑧𝐴 to 𝑧𝐵 , so that, as in Theorem A.4,
+𝑄 (𝑧𝐵 ) > 𝑄 (𝑧𝐴 ).
+
+(77)
+
+Stage 1 then descends 𝑄 from 𝑧𝐵 ; if the basin of attraction of 𝑧𝐴 under Stage 1 contains 𝑧𝐵 , Stage 1 returns to 𝑧𝐴 . Stage 2
+then repeats the same flip to 𝑧𝐵 , and the configuration trajectory forms the periodic pattern
+Stage 2
+
+Stage 1
+
+𝑧𝐴 −−−−−→ 𝑧𝐵 −−−−−→ 𝑧𝐴 −→ · · · ,
+
+(78)
+
+which repeats indefinitely. An outer bound 𝐾 is therefore necessary to guarantee termination.
+
+□
+
+Manuscript submitted to ACM
+
+32
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+
+A.3
+
+M. 3: Constrained Two-Stage Descent
+
+Theorem A.7 (Global strict descent). Every flip executed by M. 3, in either Stage 1 or Stage 2, strictly decreases 𝑄.
+Proof. In Stage 1 a flip is executed only when Δ 𝑗 ∗ (𝑧 (𝑡 ) ) < 0. By Lemma A.1,
+𝑄 (𝑧 (𝑡 +1) ) = 𝑄 (𝑧 (𝑡 ) ) + Δ 𝑗 ∗ (𝑧 (𝑡 ) ) < 𝑄 (𝑧 (𝑡 ) ).
+| {z }
+
+(79)
+
+<0
+
+In Stage 2 a flip is executed only when
+𝑗 ∗ ∈ J (𝑧),
+
+Δ 𝑗 ∗ (𝑧) < 0
+
+(80)
+
+(see (51)). Lemma A.1 then yields the same strict inequality with (𝑧 (𝑡 ) , 𝑧 (𝑡 +1) ) replaced by the Stage 2 pair. Every
+executed flip falls into one of these two cases, so 𝑄 strictly decreases at every step.
+
+□
+
+Theorem A.8 (No cycles and finite termination). M. 3 visits no configuration twice and terminates in at most
+2𝑁 − 1 flips, with no outer iteration bound required.
+Proof. Suppose, toward a contradiction, that some configuration is visited twice:
+𝑧 (𝑡1 ) = 𝑧 (𝑡2 ) ,
+
+𝑡1 < 𝑡2 .
+
+(81)
+
+By Theorem A.7, every executed flip strictly decreases 𝑄. Chaining these strict inequalities from time 𝑡 1 to time 𝑡 2 yields
+
+
+
+𝑄 𝑧 (𝑡1 ) > 𝑄 𝑧 (𝑡1 +1) > · · · > 𝑄 𝑧 (𝑡2 ) .
+(82)
+In particular, 𝑄 (𝑧 (𝑡2 ) ) < 𝑄 (𝑧 (𝑡1 ) ). Yet (82) contradicts the identity
+𝑧 (𝑡1 ) = 𝑧 (𝑡2 )
+
+=⇒
+
+
+
+𝑄 𝑧 (𝑡1 ) = 𝑄 𝑧 (𝑡2 ) ,
+
+(83)
+
+so no configuration is visited twice.
+The hypercube has finite cardinality
+{0, 1}𝑁 = 2𝑁 ,
+
+(84)
+
+whence any trajectory with pairwise-distinct visited states has length at most 2𝑁 − 1 flips, and the algorithm terminates.
+□
+Theorem A.9 (Conditional QUBO feasibility at Stage 1 termination). Under condition (A3), every Stage 1 local
+minimum belongs to F𝑄 .
+Proof. We argue by contrapositive: it suffices to show that every 𝑧 ∉ F𝑄 admits some flip 𝑗 with Δ 𝑗 (𝑧) < 0,
+hence 𝑧 cannot be a Stage 1 local minimum. Condition (A3) gives exactly this implication: whenever 𝑧 ∉ F𝑄 , there
+exists a single-variable flip 𝑗 such that Δ 𝑗 (𝑧) < 0. Therefore no QUBO-infeasible configuration can satisfy the Stage 1
+local-minimum condition Δ 𝑗 (𝑧) ≥ 0 for all 𝑗. Hence every Stage 1 local minimum belongs to F𝑄 .
+
+□
+
+Theorem A.10 (Stage 2 failure under tight eqality constraints). Assume (A1), (A3), and integer coefficients
+𝑎𝑚
+𝑗 ∈ Z. Suppose Stage 1 has terminated at a configuration 𝑧, so that 𝑧 ∈ F𝑄 (by Theorem A.9), and suppose at least
+one constraint 𝑚 is tight (i.e. 𝑆 𝑚 (𝑧) = 𝑏𝑚 , equivalently 𝐻 𝑚 (𝑧) = 0, with V𝑚 the set of variable indices participating in
+constraint 𝑚). Then Δ 𝑗 (𝑧) > 0 for every 𝑗 ∈ V𝑚 , so no connectivity-improving flip in V𝑚 can pass the Stage 2 descent gate.
+
+Manuscript submitted to ACM
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 33
+Proof. Step 1 (all penalties are already zero). By Theorem A.9, Stage 1 termination together with (A3) gives 𝑧 ∈ F𝑄 ,
+so 𝐻 𝑛 (𝑧) = 0 for every constraint 𝑛. Because 𝐻 𝑛 (𝑧) ≥ 0 everywhere, it follows that
+Δ𝑛𝑗 (𝑧) = 𝐻 𝑛 (𝑧 ⊕ 𝑒 𝑗 ) ≥ 0
+
+∀ 𝑛, ∀ 𝑗 .
+
+(85)
+
+Step 2 (the targeted penalty strictly increases). Fix 𝑗 ∈ V𝑚 . Since 𝑧 𝑗 ∈ {0, 1} and 𝑎𝑚
+𝑗 ≠ 0,
+𝑚
+𝑆 𝑚 (𝑧 ⊕ 𝑒 𝑗 ) = 𝑏𝑚 + (1 − 2𝑧 𝑗 )𝑎𝑚
+𝑗 ≠ 𝑏 .
+
+(86)
+
+𝑚
+Using 𝐻 𝑚 (𝑧) = 0 together with integrality of 𝑎𝑚
+𝑗 (so |𝑎 𝑗 | ≥ 1):
+
+𝑚
+𝑚 2 = (𝑎𝑚 ) 2 ≥ 1.
+• Squared form: Δ𝑚
+𝑗 (𝑧) = 𝑆 (𝑧 ⊕ 𝑒 𝑗 ) − 𝑏
+𝑗
+
+
+𝑚
+𝑚
+𝑚
+𝑚
+𝑚
+• Hinge form: Δ𝑚
+𝑗 (𝑧) = max 0, 𝑆 (𝑧 ⊕ 𝑒 𝑗 ) − 𝑏 max , 𝑏 min − 𝑆 (𝑧 ⊕ 𝑒 𝑗 ) = |𝑎 𝑗 | ≥ 1.
+In either case,
+Δ𝑚
+𝑗 (𝑧) ≥ 1.
+
+(87)
+
+Step 3 (total change is strictly positive). The full decomposition of Δ 𝑗 (𝑧) is
+∑︁
+Δ 𝑗 (𝑧) = Δ𝐻𝑗 cut (𝑧) +
+𝜆𝑛 Δ𝑛𝑗 (𝑧).
+
+(88)
+
+𝑛
+
+Dropping the nonnegative terms for 𝑛 ≠ 𝑚 in (88) by (85), and using Δ𝐻𝑗 cut (𝑧) ≥ −Δmax together with (87) and (A1),
+Δ 𝑗 (𝑧) ≥ Δ𝐻𝑗 cut (𝑧) + 𝜆𝑚 Δ𝑚
+𝑗 (𝑧)
+(89)
+≥ −Δmax + 𝜆𝑚 > 0.
+Since the Stage 2 gate requires Δ 𝑗 ∗ (𝑧) < 0 and no 𝑗 ∈ V𝑚 satisfies this, Stage 2 cannot execute any flip in V𝑚 .
+
+□
+
+Remark A.3. All constraints in this QUBO are equality constraints (𝑆 𝑚 (𝑧) = 𝑏𝑚 ). If Stage 1 terminates with every
+constraint satisfied, then 𝐻 𝑚 (𝑧) = 0 for all 𝑚, but any flip 𝑗 ∈ V𝑚 moves 𝑆 𝑚 off 𝑏𝑚 , so 𝐻 𝑚 (𝑧 ⊕ 𝑒 𝑗 ) ≥ 1 by integrality of
+𝑎𝑚
+𝑗 (under either the squared or the hinge form). Under (A1) this penalty increase dominates the cut-term change, while
+the remaining penalties can only rise from their zero minimum; the two facts together yield Δ 𝑗 (𝑧) > 0 for every such 𝑗
+and prevent Stage 2 from executing any flip (Theorem A.10).
+A.4
+
+M. 4: Penalty-Relaxation Descent
+
+Recall from (52) that outer iteration 𝑟 uses energy 𝑄 (𝑟 ) (𝑧) = 𝐻 cut (𝑧) + 𝜆 (𝑟 )
+
+Í
+
+𝑚𝐻
+
+𝑚 (𝑧) with 𝜆 (𝑟 ) = 𝜆/𝑓 (𝑟 ).
+
+Theorem A.11 (Within-iteration strict descent). For any outer iteration 𝑟 , every flip executed in Stage 1 or Stage 2
+of that iteration strictly decreases 𝑄 (𝑟 ) .
+)
+Proof. Stage 1 flips only when Δ (𝑟
+𝑗 ∗ (𝑧) < 0; Stage 2 flips only after the same test. In both cases Lemma A.1 gives, for
+
+consecutive states 𝑧 − , 𝑧 + along the trajectory,
+) −
+(𝑟 ) −
+𝑄 (𝑟 ) (𝑧 + ) = 𝑄 (𝑟 ) (𝑧 − ) + Δ (𝑟
+(𝑧 ).
+𝑗 ∗ (𝑧 ) < 𝑄
+| {z }
+
+(90)
+
+<0
+
+This holds whenever 𝜆 (𝑟 ) > 0, equivalently 𝑓 (𝑟 ) < ∞.
+
+□
+
+Corollary A.12 (No cycles within an iteration). Within outer iteration 𝑟 , no configuration is visited twice.
+
+Manuscript submitted to ACM
+
+34
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+
+Proof. Fix outer iteration 𝑟 . By Theorem A.11, along the Stage 1–Stage 2 trajectory in that iteration,
+
+
+𝑄 (𝑟 ) 𝑧 (𝑡 +1) < 𝑄 (𝑟 ) 𝑧 (𝑡 )
+
+(91)
+
+at every executed flip. The proof of Theorem A.8 applies verbatim with 𝑄 replaced by 𝑄 (𝑟 ) , so no configuration is
+visited twice within iteration 𝑟 .
+
+□
+
+Theorem A.13 (Nontermination across outer iterations without a finite 𝑅max ). Without an outer bound 𝑅max ,
+M. 4 may cycle indefinitely across outer iterations.
+Proof. Let 𝑓 be constant (𝑓 (𝑟 ) = 𝑐 for all 𝑟 ), so
+𝑄 (𝑟 ) = 𝑄 (1)
+
+∀ 𝑟,
+
+(92)
+
+i.e., the relaxed energy is identical across all outer iterations.
+(1)
+Let 𝑧𝐴 be the Stage 1 local minimum reached in iteration 1, so Δ (1)
+𝑗 (𝑧𝐴 ) ≥ 0 for every 𝑗. In particular, Δ 𝑗 (𝑧𝐴 ) ≥ 0
+
+for every 𝑗 ∈ J (𝑧𝐴 ), so Stage 2 of iteration 1 finds no 𝑗 ∗ satisfying (53); 𝑟 is incremented to 2.
+Iteration 2 inherits 𝑧𝐴 as its starting point and uses the same energy 𝑄 (2) = 𝑄 (1) . Since 𝑧𝐴 is already a local minimum
+of 𝑄 (2) , Stage 1 terminates immediately with no flips executed. Stage 2 again finds no improving flip in J (𝑧𝐴 ), and 𝑟
+increments to 3.
+By induction, every subsequent iteration begins and ends at 𝑧𝐴 with no configuration change. Without an outer
+bound 𝑅max , the counter 𝑟 increments indefinitely and the algorithm does not terminate.
+
+□
+
+)
+Theorem A.14 (QUBO feasibility reqires 𝜆 (𝑟 ) > Δmax ). Under condition (A3) interpreted with Δ 𝑗 replaced by Δ (𝑟
+𝑗 ,
+
+Stage 1 of outer iteration 𝑟 produces a QUBO-feasible configuration if 𝜆 (𝑟 ) > Δmax . Conversely, if 𝜆 (𝑟 ) ≤ Δmax , Stage 1 may
+terminate at a QUBO-infeasible configuration.
+)
+Proof. Sufficiency. The hypothesis 𝜆 (𝑟 ) > Δmax together with (A3), interpreted with Δ 𝑗 replaced by Δ (𝑟
+𝑗 , guarantees
+)
+that every QUBO-infeasible configuration admits some flip 𝑗 with Δ (𝑟
+𝑗 (𝑧) < 0: this is exactly the content of Theorem A.9
+
+with 𝜆𝑚 replaced by 𝜆 (𝑟 ) . The contrapositive then yields 𝑧 ∈ F𝑄 at every Stage 1 local minimum of 𝑄 (𝑟 ) .
+Necessity (tightness of the bound). The threshold 𝜆 (𝑟 ) > Δmax is tight for the penalty-based QUBO construction used
+Í
+′
+here. Concretely, consider any QUBO of the form 𝑄 (𝑟 ) = 𝐻 cut + 𝜆 (𝑟 ) 𝑚 ′ 𝐻 𝑚 together with a configuration 𝑧 and a
+single index 𝑗 satisfying
+𝐻 𝑚 (𝑧) = 1,
+Δ𝑛𝑗 (𝑧) = 0 ∀𝑛 ≠ 𝑚,
+
+Δ𝑚
+𝑗 (𝑧) = −1,
+Δ𝐻𝑗 cut (𝑧) = 𝜆 (𝑟 ) .
+
+(93)
+
+Such configurations are realisable in any QUBO that mixes an objective term with a constraint penalty. As a minimal
+witness, take the single-variable instance 𝑄 (𝑟 ) = 𝜆 (𝑟 ) 𝑧 𝑗 + 𝜆 (𝑟 ) (1 − 𝑧 𝑗 ) 2 , where 𝐻 cut = 𝜆 (𝑟 ) 𝑧 𝑗 and 𝐻 𝑚 = (1 − 𝑧 𝑗 ) 2 . At
+𝑧 𝑗 = 0 the constraint is violated (𝐻 𝑚 = 1), and the unique repair flip on 𝑗 gives Δ𝐻𝑗 cut = 𝜆 (𝑟 ) and Δ𝑚
+𝑗 = −1. For any such
+instance,
+)
+𝐻 cut
+(𝑟 )
+Δ (𝑟
+(𝑧) + 𝜆 (𝑟 ) Δ𝑚
+− 𝜆 (𝑟 ) = 0,
+𝑗 (𝑧) = 𝜆
+𝑗 (𝑧) = Δ 𝑗
+
+(94)
+
+so Stage 1 has no improving flip and may terminate at the QUBO-infeasible configuration 𝑧. Hence whenever 𝜆 (𝑟 ) ≤ Δ
+
+max ,
+
+QUBO feasibility of every Stage 1 local minimum cannot be guaranteed by the penalty mechanism alone.
+This necessity is structural: it expresses tightness of the penalty hierarchy 𝜆 > Δmax rather than the existence of a
+(·)
+worst-case configuration in any particular islanding instance. In the islanding QUBO of Section 3, slack variables 𝑢𝑘,𝑏
+are
+
+constraint-exclusive but do not enter 𝐻 cut , while assignment variables 𝑦𝑖,𝑘 enter 𝐻 cut but are coupled across the one-hot,
+Manuscript submitted to ACM
+
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 35
+
+size, generation, load, and coherency penalties; the specific worst case above is therefore not a faithful islanding witness,
+and empirically QUBO infeasibility at Stage 1 termination is not observed once 𝜆 (𝑟 ) > Δmax is enforced (as in M. 3). □
+Í
+Theorem A.15 (Stage 2 descent condition). Consider a flip 𝑗 ∈ J (𝑧) for which Δ𝐻𝑗 cut (𝑧) < 0 and 𝑚 Δ𝑚
+𝑗 (𝑧) = 𝛽 > 0
+)
+(connectivity gain at the cost of a QUBO penalty increase). The Stage 2 condition Δ (𝑟
+𝑗 (𝑧) < 0 holds if and only if
+
+Δ𝐻𝑗 cut (𝑧)
+
+𝜆 (𝑟 ) <
+
+(95)
+
+.
+𝛽
+
+)
+Proof. Write 𝛼 := |Δ𝐻𝑗 cut (𝑧)| > 0. By definition of Δ (𝑟
+𝑗 ,
+)
+𝐻 cut
+Δ (𝑟
+(𝑧) + 𝜆 (𝑟 )
+𝑗 (𝑧) = Δ 𝑗
+
+∑︁
+
+(𝑟 )
+Δ𝑚
+𝛽.
+𝑗 (𝑧) = −𝛼 + 𝜆
+
+(96)
+
+𝑚
+
+Therefore
+)
+Δ (𝑟
+𝑗 (𝑧) < 0
+
+⇐⇒
+
+𝜆 (𝑟 ) 𝛽 < 𝛼
+
+⇐⇒
+
+𝜆 (𝑟 ) <
+
+Δ 𝑗 (𝑧)
+𝛼
+=
+,
+𝛽
+𝛽
+𝐻 cut
+
+(97)
+
+which is (95).
+
+□
+
+Theorem A.16 (Fundamental incompatibility). If the threshold 𝛼/𝛽 in (95) satisfies 𝛼/𝛽 ≤ Δmax , then no single value
+of 𝜆 (𝑟 ) can simultaneously guarantee QUBO feasibility (Theorem A.14) and enable the Stage 2 descent flip (Theorem A.15).
+Proof. Theorem A.14 requires
+𝜆 (𝑟 ) > Δmax .
+
+(98)
+
+Theorem A.15 and the hypothesis 𝛼/𝛽 ≤ Δmax require
+𝜆 (𝑟 ) <
+
+𝛼
+≤ Δmax .
+𝛽
+
+(99)
+
+The open intervals (Δmax, ∞) from (98) and (0, 𝛼/𝛽) from (99) are disjoint, so no single 𝜆 (𝑟 ) satisfies both.
+
+□
+
+Remark A.4. Theorem A.16 isolates a structural conflict in M. 4 arising from the use of a single relaxation weight 𝜆 (𝑟 )
+across both stages. Stage 1 QUBO feasibility and Stage 2 connectivity repair impose disjoint requirements on 𝜆 (𝑟 )
+whenever 𝛼/𝛽 ≤ Δmax , so no universal choice of the weight reconciles both objectives. A finite outer bound 𝑅max
+guarantees overall termination. Each outer iteration terminates in finitely many flips by the no-cycles corollary, and
+the bound 𝑅max limits the total number of iterations. However, this does not remove the trade-off, and terminal
+configurations need not belong to F ∗ without further assumptions.
+A.5
+
+M. 5: Unified-Energy Descent
+
+M. 5 encodes connectivity directly in the energy function Q and descends that function with the single greedy rule (58).
+Recall condition (A5) from (55):
+(A5)
+
+𝜇 > max |Δ 𝑗 (𝑧)|.
+𝑧, 𝑗
+
+Lemma A.17 (Connectivity-infeasible implies an improving flip). Under (A5), if 𝐶 (𝑧) > 0 and there exists a bus
+assignment flip 𝑗 with Δ𝐶𝑗 (𝑧) ≤ −1, then Δ𝑢𝑗 (𝑧) < 0.
+Proof. By (A5) and (56),
+Δ𝑢𝑗 (𝑧) = Δ 𝑗 (𝑧) + 𝜇 Δ𝐶𝑗 (𝑧) ≤ max
+Δ 𝑗 ′ (𝑧 ′ ) + 𝜇 · (−1) < 0,
+′ ′
+
+(100)
+
+𝑧 ,𝑗
+
+Manuscript submitted to ACM
+
+36
+
+Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+
+where the last inequality uses 𝜇 > max𝑧 ′ ,𝑗 ′ |Δ 𝑗 ′ (𝑧 ′ )| from (A5).
+
+□
+
+Remark A.5. The existence of a flip with Δ𝐶𝑗 (𝑧) ≤ −1 whenever 𝐶 (𝑧) > 0 is not guaranteed by graph connectivity alone;
+it requires that the disconnected island has a neighboring bus (not yet assigned to it) whose reassignment bridges two
+of its components in a single step. For the power network topologies considered in Section 5—which are mesh-like with
+buses of degree ≥ 2—this condition is satisfied in all tested instances.
+Theorem A.18 (Full feasibility at termination). Under (A4), (A5), and the flip-existence condition of Lemma A.17,
+the output 𝑧 ∗ of M. 5 satisfies 𝑧 ∗ ∈ F ∗ .
+Proof. Every flip satisfies Δ𝑢𝑗∗ (𝑧) < 0 at execution. By Lemma A.1,
+Q (𝑧 + ) = Q (𝑧 − ) + Δ𝑢𝑗∗ (𝑧 − ) < Q (𝑧 − )
+
+(101)
+
+along the trajectory. Theorem A.8 applies with 𝑄 replaced by Q, so no configuration repeats and termination occurs at
+some 𝑧 ∗ with
+Δ𝑢𝑗 (𝑧 ∗ ) ≥ 0
+
+∀ 𝑗.
+
+(102)
+
+Part I (DFS feasibility). Under the flip-existence condition of Lemma A.17, 𝐶 (𝑧) > 0 implies Δ𝑢𝑗 (𝑧) < 0 for some 𝑗,
+hence no such 𝑧 can satisfy (102). Therefore
+𝐶 (𝑧 ∗ ) = 0,
+
+𝑧 ∗ ∈ F𝐶 .
+
+(103)
+
+Part II (QUBO feasibility). Since 𝐶 (𝑧 ∗ ) = 0, the unified energy reduces to the QUBO energy:
+Q (𝑧 ∗ ) = 𝑄 (𝑧 ∗ ).
+
+(104)
+
+Suppose, toward a contradiction, that 𝑧 ∗ ∉ F𝑄 . Since 𝐶 (𝑧 ∗ ) = 0, condition (A4) applies: there exists 𝑗 with Δ 𝑗 (𝑧 ∗ ) < 0
+and Δ𝐶𝑗 (𝑧 ∗ ) = 0. Consequently
+Δ𝑢𝑗 (𝑧 ∗ ) = Δ 𝑗 (𝑧 ∗ ) + 𝜇 Δ𝐶𝑗 (𝑧 ∗ ) = Δ 𝑗 (𝑧 ∗ ) < 0,
+contradicting (102). Thus 𝑧 ∗ ∈ F𝑄 , and with Part I, 𝑧 ∗ ∈ F ∗ = F𝑄 ∩ F𝐶 .
+
+(105)
+□
+
+Corollary A.19. Under the conditions of Theorem A.18, M. 5 is the only method among the five that guarantees
+𝑧 ∗ ∈ F ∗ . By contrast, Theorem A.10 shows that M. 3 has an irreducible failure path (Stage 2 is blocked whenever Stage 1
+satisfies every constraint exactly), and Theorem A.16 shows that no single 𝜆 (𝑟 ) simultaneously achieves QUBO feasibility
+and connectivity repair in M. 4.
+
+Manuscript submitted to ACM
+
+

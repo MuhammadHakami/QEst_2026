@@ -1,0 +1,220 @@
+                                                        Scaling Quantum Optimization for Unit
+                                                      Commitment via Pauli Correlation Encoding
+                                                                                    Kien X. Nguyen∗‡ , Ilya Safro∗† , Xiaoyuan Liu‡
+                                                           ∗ Department of Computer and Information Sciences, University of Delaware, Newark, DE, USA
+                                                                  † Department of Physics and Astronomy, University of Delaware, Newark, DE, USA
+                                                                    ‡ Quantum Computing Lab, Fujitsu Research of America, Santa Clara, CA, USA
+
+                                                                                      {kxnguyen, isafro}@udel.edu, xliu@fujitsu.com
+arXiv:2605.17145v1 [quant-ph] 16 May 2026
+
+
+
+
+                                               Abstract—Unit commitment is an important optimization               been proposed as promising candidates to tackle NP-hard
+                                            problem in power system operations, classified as NP-hard. This        optimization problems including some versions of the unit
+                                            paper presents a hybrid quantum–classical method for the unit          commitment [13], [14].
+                                            commitment problem with time-dependent constraints, where
+                                            decisions must be made about which generators to turn on/off              Despite growing interest in quantum optimization, applying
+                                            and how much power they should produce over a planning                 quantum algorithms to realistic UC problems remains largely
+                                            horizon. We use a hybrid quantum-classical optimization pro-           unexplored. Existing studies usually focus on simplified for-
+                                            cedure to determine the on/off schedules of the generating units       mulations or small benchmark instances due to hardware
+                                            and the corresponding power dispatch that satisfies operational        limitations and encoding challenges. For example, Koretsky
+                                            constraints such as load balance, generator limits, ramping,
+                                            and reserve requirements. We frame the optimization loop as            et al. [15] apply QAOA to a unit commitment formulation
+                                            a leader–follower structure, where the quantum optimizer leads         with a single time period. Aboumrad et al. [14] extend the
+                                            to give the on/off decisions, and the classical optimizer follows to   setting to multiple periods, but still solve each time period in-
+                                            produce the power level schedule. Leveraging Pauli-Correlation         dependently, thereby ignoring inter-temporal constraints such
+                                            Encoding, our method scales to horizon-wide unit commitment            as generator ramping limits [16].
+                                            schedules by encoding the binary variables with far fewer qubits.
+                                            By combining these components, the method can handle multi-               Recently, Salgado et al. [13] applied QAOA to a UC
+                                            period settings while using far fewer qubits than straightforward      formulation that incorporates minimum up and down time
+                                            quantum encodings that allocate one qubit per decision variable        constraints and spinning reserve requirements, resulting in
+                                            as in prior approaches. We evaluate the approach on both               a more realistic setting. However, their experiments remain
+                                            small- and large-scale instances, up to 312 binary variables, and      limited (up to 12 generating units and 3 time periods) due to
+                                            show that it reliably produces feasible schedules with competitive
+                                            operating costs.                                                       the computational restrictions of quantum circuit simulations.
+                                               Index Terms—Unit Commitment, Hybrid Quantum-Classical               A key challenge in applying quantum optimization to the unit
+                                            Optimization, Pauli Correlation Encoding                               commitment problem is scaling the formulation to realistic
+                                                                                                                   power system sizes, where practical instances often involve
+                                                                   I. I NTRODUCTION                                tens to hundreds of generating units across multiple time
+                                               Unit commitment (UC) is a fundamental optimization prob-            periods, resulting in a large number of binary commitment
+                                            lem in power system operations, which aims to determine                variables. In conventional quantum formulations, each binary
+                                            which generating units should be on or off and at what                 variable is mapped to a logical qubit, causing the required
+                                            power levels they should operate over a planning horizon               number of qubits, and consequently the cost of quantum
+                                            while satisfying demand and operational constraints [1]. UC is         simulation, to grow rapidly with system size.
+                                            typically formulated as a mixed-integer optimization problem              Our      contribution:      We       introduce    a    hybrid
+                                            that combines binary commitment decisions with continuous              quantum–classical approach for scalable, time-dependent
+                                            power levels. The complexity of the best known algorithm               unit commitment that overcomes one of the main bottlenecks
+                                            grows exponentially with the system size [2], which renders            in quantum optimization for power systems: the qubit cost
+                                            the problem NP-hard [3], and large-scale instances may in-             of encoding large multi-period commitment decisions. Our
+                                            volve thousands of decision variables and constraints.                 central idea is to use Pauli Correlation Encoding (PCE) [17]
+                                               Although modern mixed-integer programming solvers have              to represent the full commitment schedule with far fewer
+                                            achieved impressive performance [4]–[9], computational chal-           qubits, making it possible to optimize the problem across
+                                            lenges remain for large systems, stochastic formulations, and          the entire planning horizon at once. Unlike prior quantum
+                                            real-time operations. Recent advances in quantum computing             approaches that simplify or decouple time periods, our
+                                            have sparked interest in applying quantum algorithms to                framework directly incorporates inter-temporal constraints,
+                                            combinatorial optimization problems in such areas as finance           including ramping, within the optimization loop.
+                                            [10], network science [11], and drug discovery [12] (to menion            We further couple this compressed quantum representation
+                                            just a few). Variational quantum algorithms, such as the               with a leader–follower hybrid architecture, where the quantum
+                                            Quantum Approximate Optimization Algorithm (QAOA), have                model (that acts as a leader) generates on/off schedules over
+full horizon and a classical dispatch optimizer (acts as a         are the up- and down-ramping limits of unit i. Hence we have
+follower) computes the corresponding dispatch by choosing          the T -period UC model as follows:
+power levels that best satisfy load balance and operational
+                                                                                    T X
+                                                                                      N
+constraints. This separation mirrors how UC is typically struc-                     X
+                                                                              min              Fi (yit , pti )                      (6)
+tured in practice, where discrete commitment decisions define                 y,p
+                                                                                   t=1 i=1
+the feasible operating region, and dispatch is optimized within                     N
+that region. The resulting method scales beyond the small
+                                                                                   X
+                                                                              s.t.      pti = Lt , ∀t,                              (7)
+settings typically studied in prior work, and delivers feasible                    i=1
+schedules with competitive costs on benchmark instances.                           pmin  t     t    max t
+                                                                                    i yi ≤ pi ≤ pi yi ,   ∀i, t,                    (8)
+In this sense, our work is a concrete step toward practical                          t+1     t     up t
+quantum optimization for realistic energy applications.                            pi − pi ≤ Ri yi , ∀i, ∀t < T,                    (9)
+                                                                                    |   {z      }
+                                                                                     up change
+                II. P ROBLEM F ORMULATION                                           pi − pt+1
+                                                                                     t
+                                                                                           i   ≤ Ridn yit+1 ,        ∀i, ∀t < T,   (10)
+                                                                                    |   {z      }
+A. Single-period Unit Commitment                                                    down change
+                                                                                    N
+   The Unit Commitment (UC) problem contains N generator
+                                                                                    X
+                                                                                             t   t   t
+                                                                                        pmax
+                                                                                         i yi ≥ L + S , ∀t                         (11)
+units. Each unit may be turned on or off, given by a binary                         i=1
+variable yi ∈ {0, 1}. When yi = 1, the power level of the unit                      pti ∈ R,        yit ∈ {0, 1}, ∀i, t,           (12)
+pi is a continuous real value constrained to pmin
+                                              i   ≤ pi ≤ pmax
+                                                          i .
+When yi = 0, pi = 0. Together, these restrictions give an          where Eq. (9) and (10) are the up and down ramping con-
+inequality constraint:                                             straints, S t denotes the spinning reserve for time period t. Note
+                                                                   that the ramping constraints shown here are in simplified form
+                     pmin          max
+                      i yi ≤ pi ≤ pi yi .                          and will be expanded and explained in more detail in Sec. IV.
+The solution aims at (1) deciding which units to be turned
+                                                                                          III. BACKGROUND
+on/off and (2) setting their corresponding power levels, so that
+the system satisfies a predefined load or demand, denoted as       A. Pauli Correlation Encoding
+L.
+                                                                      Pauli Correlation Encoding (PCE) aims to compress nv
+   Each power unit has a corresponding production cost func-       variables into nq qubits, where nv ≫ nq [17]. PCE maps
+tion F (yi , pi ), which specifies the cost of turning on unit i   the variables in optimization problems to multi-body Pauli-
+and for generating a certain amount of power pi . This cost        matrix correlations, resulting in a polynomial compression of
+function is quadratic for UC:                                      the problem’s space requirements. By employing PCE, the
+                                                                   number of qubits needed for encoding is reduced, making
+               F (yi , pi ) = Ai yi + Bi pi + Ci p2i         (1)
+                                                                   it particularly advantageous for near-term quantum devices
+where Ai , Bi , Ci ∈ R are constant. A is the fixed cost           with limited qubit resources. Furthermore, it is analytically
+coefficient that a unit necessarily incurs when it is turned on,   demonstrated that PCE inherently mitigates barren plateaus,
+regardless of the power it contributes. B and C are the linear     offering super-polynomial resilience against this phenomenon.
+and quadratic coefficients, respectively, and contribute to the    This built-in feature enables unprecedented performance in
+unit’s cost based on its power level. The objective for single-    quantum optimization solvers and has been applied to several
+period unit commitment is defined as follows:                      constrained combinatorial optimization problems [18]–[20].
+
+                         N
+                         X                                         B. Mixed-Integer Quadratic Bilevel Optimization
+                  min          Fi (yi , pi )                 (2)
+                  y,p
+                         i=1
+                                                                      Mixed-integer quadratic bilevel optimization (MIQBLO)
+                          N                                        models hierarchical decisions where an upper-level mixed-
+                         X
+                  s.t.        pi = L,                        (3)   integer choice parameterizes a lower-level convex quadratic
+                         i=1                                       program (QP) [21]–[23]. Unit commitment fits this template,
+                         pmin ≤ pi yi ≤ pmax                       where binary commitments define the operating region, and
+                          i              i , ∀i              (4)
+                                                                   power dispatch is optimized by a quadratic program, giving
+                         pi ∈ R, yi ∈ {0, 1}, ∀i.            (5)
+                                                                   us the power level generation schedule that has the least cost.
+                                                                   Rather than solving MIQBLO exactly, we use a heuristic-
+B. Time-dependent Unit Commitment
+                                                                   guided bilevel approach in which a variational quantum circuit
+   In order to more realistically model the UC problem, we         proposes commitments and a classical QP solver computes the
+must forbid units from turning on and shutting down abruptly       corresponding dispatch; circuit parameters are trained using
+for consecutive time periods [13]. We introduce a ramping          bilevel sensitivities from the QP and gradients of quantum
+mechanism using two predefined values Riup and Ridn , which        expectations [17], [24], [25].
+    Qubit 4                    Qubit 3                                                                               …
+                                                    |0⟩      𝑈(𝜃1 )                       𝑈(𝜃8 )                                                𝑦෤1
+   𝑍                𝑦3                 𝑍                                   𝑈(𝜃5 )
+        𝑋           𝑦7             𝑋                |0⟩      𝑈(𝜃2 )                       𝑈(𝜃9 )                     …                          𝑦෤2
+            𝑌       𝑦11       𝑌                                                                         𝑈(𝜃12 )
+                                                                                                                     …
+
+
+
+
+                                                                                                                                                …
+                                                    |0⟩      𝑈(𝜃3 )                       𝑈(𝜃10 )
+   𝑦4 𝑦8 𝑦12                 𝑦10 𝑦6 𝑦2                                     𝑈(𝜃6 )
+                                                    |0⟩      𝑈(𝜃4 )                       𝑈(𝜃11 )                    …                          𝑦෤𝑁𝑇
+            𝑌        𝑦9       𝑌
+        𝑋            𝑦5            𝑋
+    𝑍                𝑦1                𝑍                                    Update 𝜃
+                                                                                                     Duals
+                                                                  𝜕
+    Qubit 1                    Qubit 2                    ∇𝜃 ℒ =              ෥)
+                                                                    min QP(𝒑; 𝒚                                          Dispatch QP
+                                                                 𝜕𝒚෥ 𝒑
+     Pauli Correlation Encoding                                                                     𝒑∗ (𝒚
+                                                                                                        ෥(𝜃))
+
+Fig. 1. Overview of our heuristic-assisted differentiable bilevel optimization on a 12-variable problem, which is encoded into 4 qubits. The quantum circuit
+produces PCE correlators that decode to a soft commitment schedule ỹ. A classical QP computes the dispatch p∗ (and dual variables), which defines the
+training loss. Gradients are obtained by combining QP dual sensitivities with parameter-shift derivatives, and circuit parameters are updated with the Adam
+optimizer. After training, a threshold sweep produces a hard schedule and a final dispatch.
+
+
+
+                             IV. M ETHOD                                            a) PCE observables and capacity: Let nq be the number
+A. Overview                                                                    of qubits and let k be the correlation order. PCE constructs
+                                                                               a library of k-body Pauli strings by placing the same Pauli
+   UC naturally admits a leader–follower structure: the leader
+                                                                               operator on a k-subset of qubits and identity elsewhere. In
+chooses the binary commitment schedule y, and the follower
+                                                                               particular, we form three commuting families
+chooses a feasible dispatch p by solving a convex economic
+dispatch problem given y. Instead of solving the mixed-                              Π(X) = {Xa1 · · · Xak },
+integer problem directly, we adopt a heuristic-assisted bilevel
+                                                                                     Π(Y ) = {Ya1 · · · Yak },
+approach: (i) a variational quantum circuit proposes a (soft)
+schedule ỹ(θ) ∈ [0, 1]N ×T using PCE, and (ii) a classical                          Π(Z) = {Za1 · · · Zak }, 1 ≤ a1 < · · · < ak ≤ nq ,               (13)
+convex solver computes a dispatch p⋆ (ỹ). We then update                      so that the total number of available correlators is
+circuit parameters θ using a bilevel gradient that combines sen-                                                  
+sitivities of the classical subproblem [26]–[28] with parameter-                                                  nq
+                                                                                                     Mmax = 3          .                               (14)
+shift derivatives of quantum expectations [25], [29].                                                              k
+   First, we introduce Pauli Correlation Encoding (PCE) and                    We choose the minimal nq such that Mmax ≥ N T and select
+describe the modifications required to represent time-indexed                  a subset of Pauli strings
+commitment decisions in our setting. We then derive the lower-
+level objective used to compute the dispatch solution (power                                     {Oj }N T
+                                                                                                      j=1 ⊆ Π
+                                                                                                             (X)
+                                                                                                                 ∪ Π(Y ) ∪ Π(Z)
+levels) given a commitment schedule. Finally, we derive the
+                                                                               to represent all time dependent unit commitments. Each ob-
+upper-level objective that couples the PCE-generated commit-
+                                                                               servable is assigned to a unique unit-time index via a fixed
+ments with the dispatch subproblem and is used to optimize
+                                                                               bijection φ(j) = (i, t).
+the variational quantum circuit parameters.
+                                                                                    b) From correlators to soft commitments: The three
+B. Pauli-Correlation Encoding for Commitment Variables                         families Π(X) , Π(Y ) , Π(Z) are each simultaneously measurable
+   The conventional QAOA-style encoding would require one                      using a single measurement basis (global X, Y , or Z basis,
+qubit per binary commitment variable yit , leading to N T qubits               respectively). Thus, all X-type correlators are estimated from
+for a system with N generating units over a horizon of T                       measurements in the X basis (and similarly for Y and Z),
+time periods. This linear scaling in both spatial and temporal                 requiring only three global measurement settings per evalua-
+dimensions quickly becomes impractical, as even moderately                     tion of the commitment schedule. Given an ansatz U (θ) on
+sized unit commitment instances lead to qubit requirements                     nq qubits, we estimate the correlator expectations
+that exceed the capabilities of near-term quantum hardware.                      ej (θ) = ⟨0|U (θ)† Oj U (θ)|0⟩,             for j = 1, . . . , N T. (15)
+We therefore adopt Pauli Correlation Encoding (PCE), which
+represents a larger number of logical binary variables using                   In the original PCE definition, a hard logical bit is obtained
+expectation values of multi-qubit Pauli correlations.                          by the sign rule sgn(ej ) ∈ {−1, +1}. To enable continuous
+

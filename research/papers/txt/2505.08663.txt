@@ -1,0 +1,247 @@
+                                                                     Runtime Quantum Advantage with Digital Quantum Optimization
+
+                                                                        Pranav Chandarana ,1, 2, ∗ Alejandro Gomez Cadavid ,1, 2, ∗ Sebastián V.
+                                                                   Romero ,1, 2, ∗ Anton Simen ,1, 2, ∗ Enrique Solano ,1, † and Narendra N. Hegade                          1, ‡
+
+                                                                                1
+                                                                               Kipu Quantum GmbH, Greifswalderstrasse 212, 10405 Berlin, Germany
+                                                       2
+                                                           Department of Physical Chemistry, University of the Basque Country UPV/EHU, Apartado 644, 48080 Bilbao, Spain
+                                                                                                        (Dated: June 3, 2025)
+                                                                We demonstrate experimentally that the bias-field digitized counterdiabatic quantum optimization (BF-
+                                                             DCQO) algorithm on IBM’s 156-qubit devices can outperform simulated annealing (SA) and CPLEX in time-
+                                                             to-approximate solutions for specific higher-order unconstrained binary optimization (HUBO) problems. We
+                                                             suitably select problem instances that are challenging for classical methods, running in fractions of minutes
+                                                             even with multicore processors. On the other hand, our counterdiabatic quantum algorithms obtain similar or
+                                                             better results in at most a few seconds on quantum hardware, achieving runtime quantum advantage. Our anal-
+arXiv:2505.08663v1 [quant-ph] 13 May 2025
+
+
+
+
+                                                             ysis reveals that the performance improvement becomes increasingly evident as the system size grows. Given
+                                                             the rapid progress in quantum hardware, we expect that this improvement will become even more pronounced,
+                                                             potentially leading to a quantum advantage of several orders of magnitude. Our results indicate that avail-
+                                                             able digital quantum processors, when combined with specific-purpose quantum algorithms, exhibit a runtime
+                                                             quantum advantage even in the absence of quantum error correction.
+
+
+                                                                    I.   INTRODUCTION                                driving [25–31]. CD techniques aim to suppress non-adiabatic
+                                                                                                                     transitions, enabling more accurate and efficient quantum evo-
+                                               Combinatorial optimization problems arise in diverse do-              lution toward optimal solutions.
+                                            mains such as logistics, manufacturing, finance and chemistry,              In this work, we experimentally demonstrate that the re-
+                                            where finding optimal or near-optimal solutions is computa-              cently proposed bias-field digitized counterdiabatic quantum
+                                            tionally intensive. In the worst case, the runtime on classical          optimization (BF-DCQO) algorithm [32–34], when executed
+                                            hardware grows exponentially with problem size. These prob-              on IBM quantum hardware [35], can potentially yield faster
+                                            lems are commonly tackled with both domain-specific solvers              approximate solutions than classical solvers for specific prob-
+                                            and general-purpose algorithms such as simulated annealing               lem classes. Given hardware constraints, including restricted
+                                            (SA) [1], CPLEX [2], and Gurobi [3]. However, these meth-                qubit connectivity and finite coherence times, we develop an
+                                            ods struggle with increasingly complex instances. Quantum                instance-generation strategy that enables efficient implemen-
+                                            computing has therefore emerged as a promising alternative               tation of relatively dense HUBO instances on current quantum
+                                            for advancing the state of the art in optimization. Early con-           hardware. Guided by our experimental findings, we identify
+                                            nections between combinatorial optimization and disordered               signatures of a runtime advantage using BF-DCQO. Particu-
+                                            systems such as spin glasses [4] inspired the application of             larly, we benchmark against SA and CPLEX using up to 48
+                                            statistical physics techniques, particularly the mapping of op-          cores and 10 threads, respectively.
+                                            timal solutions to ground states of Ising models [5]. Build-                The remainder of this article is organized as follows. Sec-
+                                            ing on this framework, quantum algorithms such as adiabatic              tion II describes the procedure for generating challenging
+                                            quantum optimization (AQO) [6] and the quantum approx-                   HUBO instances and classifies them into two distinct types.
+                                            imate optimization algorithm (QAOA) [7], provide new ap-                 Section III details the benchmarking methodology for eval-
+                                            proaches to these demanding problems [8].                                uating solver performance. Section IV presents the experi-
+                                               As quantum hardware improves, recent experiments sug-                 mental implementation of BF-DCQO on IBM hardware and
+                                            gest that quantum devices may soon outperform classical                  analyzes its performance relative to classical solvers. Finally,
+                                            solvers on specific families of optimization problems. A va-             Section V summarizes our conclusions, and the Appendices
+                                            riety of quantum-enhanced strategies have been proposed to               provide additional remarks and extended results.
+                                            accelerate optimization, providing both theoretical speedups
+                                            and encouraging empirical results [9–16].
+                                               One particularly complex class of problems is higher-order                   II.   HIGHER-ORDER BINARY OPTIMIZATION
+                                            unconstrained binary optimization (HUBO). Proof-of-concept
+                                            implementations on current quantum devices have used AQO                   Many academic and industrial optimization problems can
+                                            and QAOA [17–24]. However, high noise levels in these                    be formulated as HUBO problems, characterized by a cost
+                                            devices still limit scalability. To overcome this challenge,             function of the form
+                                            researchers have increasingly adopted counterdiabatic (CD)
+                                                                                                                                             d
+                                                                                                                                             X         X
+                                                                                                                                    F(x) =                          T i1 ···ik xi1 · · · xik ,   (1)
+                                                                                                                                             k=1 (i1 ,...,ik )∈Gk
+                                            ∗ These authors contributed equally to this work.
+                                            † enr.solano@gmail.com
+                                                                                                                     where xi ∈ {0, 1}, d is the maximum interaction order, and the
+                                            ‡ narendrahegade5@gmail.com
+                                                                                                                     coupling coefficients T i1 ···ik are sampled from an appropriate
+                                                                                                                                                                            2
+
+probability distribution. Here, G = V, {Gk }dk=1 is a hyper-
+                                                      
+                                                                                                         Algorithm 1 Instance layout generation strategy
+graph with V the set of vertices and Gk the set of k-vertex
+                                                                                              Require: Number of Swap layers n; initial hardware coupling map
+hyperedges. The complexity of a HUBO instance is governed                                         C0 ; function GraphColoring(C) that returns sets P2q and P3q of
+by four factors: the number of variables N, the interaction co-                                   two- and three-qubit interactions executable in parallel respec-
+efficients T i1 ···ik [36], the maximum interaction order d, and the                              tively, given a coupling map C; function SwapRegister(C, I) that
+density imposed by the hypergraph connectivity.                                                   swaps a set of pairs I in the coupling map C, and returns the
+   We consider systems up to N = 156 qubits on IBM’s su-                                          swapped coupling map.
+perconducting quantum processors [35]. We restrict d = 3                                       1: Initialize G2q ← {∅} and G3q ← {∅}
+to facilitate the experimental demonstrations. After mapping                                   2: Set C ← C0
+                                                       1−σz                                    3: for i = 1 to n do
+each binary variable xi to a spin variable via xi = 2 i , Eq. (1)                              4:      (P2q , P3q ) ← GraphColoring(C)
+takes the form of a p-spin glass Hamiltonian [37],                                             5:      Select S 2q subsets from P2q and append them to G2q
+                                                                                               6:      Select S 3q subsets from P3q and append them to G3q
+        N
+        X                   X                          X                                       7:      if i < n then
+ Hp =          hi σzi +              Jmn σzm σzn +                K pqr σzp σzq σzr , (2)
+                                                                                                                                      
+                                                                                               8:           C ← SwapRegister C, P(1)2q
+         i=1              (m,n)∈G2                   (p,q,r)∈G3                                9:      end if
+                                                                                              10: end for
+whose ground state is the optimal solution of F(x). In the                                    11: return G2q , G3q
+following sections, we describe procedures to generate these
+graphs and coefficients to construct classically hard instances
+that embed efficiently in quantum hardware.                                                          6     (64,439)      (180,439)        (288,439)
+                                                                                                                                                             800
+
+                                                                                                     5     (64,357)      (180,357)        (288,357)
+                            A.   Instance generation                                                                                                         700
+
+
+
+
+                                                                                                                                                                   Total terms
+                                                                                                     4     (64,292)      (180,292)        (288,292)
+  We generate classically hard instances by jointly construct-                                                                                               600
+                                                                                               S3q
+
+
+
+ing the interaction graphs and selecting coupling coefficients.
+                                                                                                     3     (64,222)      (180,222)        (288,222)
+We start from empty graphs G2 = ∅ and G3 = ∅ and
+an initial coupling map C0 that encodes the hardware con-                                                                                                    500
+nectivity. Using graph-coloring [38], we identify all sets                                           2     (64,147)      (180,147)        (288,147)
+of nearest-neighbor two- and three-body terms that can be                                                                                                    400
+applied nin parallel on oC0 . We denote      n (1)these collections       as
+                                                                    o                                1      (64,73)      (180,73)          (288,73)
+P2q = P(1)  2q , · · · , P(M2 )
+                          2q    and  P3q  =   P3q  , · · · , P(M3 )
+                                                              3q     , where
+                                                                                                                                                             300
+M2 (M3 ) is the maximum number of two- (three-) body sets.                                                     1             2                  3
+Additionally, we define the integers S 2q , (S 3q ) as the number                                                           S2q
+of sets nfrom o P2q (P3q ) to include in G2q (G3q ),n i.e.         o G2q ←
+G2q ∪ P(l)                 . Similarly, G    ←   G        ∪   P(l)
+                                                                           .                  FIG. 1. Number of two- and three-qubit interactions arranged as a
+                                          3q         3q
+           2q   l=1,··· ,S 2q                                  3q             l=1,··· ,S 3q   tuple, for all the possible values of S 2q and S 3q with n = 1 on a 156-
+Next, we use the first two-body set P(1)
+                                       2 as a swap layer, which
+                                                                                              qubit heavy-hexagonal architecture.
+permutes the qubit positions in C0 and yields an updated cou-
+pling map C1 . The process is iteratively repeated for n swap
+                                                                                              This distribution is characterized by the density function
+layers applied to the first set of P2q , see Algorithm 1. For
+all experiments, we choose C0 to be the 156-qubit heavy-                                                                              1
+hexagonal lattice of IBM’s Heron architecture [39]. Figure 1                                                            f (ξ) =            .                       (3)
+                                                                                                                                  π 1 + ξ2
+shows the total number of Hamiltonian terms (one-, two-, and
+three-body interactions) as a function of S 2q and S 3q for n = 1.                            Since its distribution has no finite moments at any order,
+As expected, increasing S 2q and S 3q raises the total interaction                            it is unsuitable for moment-based analysis. Nevertheless,
+count from roughly 300 to 800.                                                                its heavy-tailed nature often produces outlier-prone behavior,
+   After generating the interaction sets, we sample coupling                                  making it useful in robust statistics, signal processing, and
+coefficients from two heavy-tailed distributions: the Cauchy                                  noise modeling [43, 44].
+distribution and a variant of the Pareto distribution. Heavy-                                    Pareto distribution.—We draw the couplings from a sym-
+tailed distributions frequently produce large-magnitude coeffi-                               metrized Pareto distribution, T i1 ···ik ∼ SymmetricPareto(1, α).
+cients, increasing the energy landscape’s ruggedness and mak-                                 This distribution is characterized by the density function
+ing the combinatorial optimization problem harder to solve.                                                                 α
+                                                                                                                                       !
+Such heavy-tailed behavior is observed in real-world scenar-                                                      f (ξ) = α+1 + 1 (−1)y ,                   (4)
+                                                                                                                          ξ
+ios involving financial modeling [40–42].
+   Cauchy distribution.—We draw the couplings from the                                        where ξ ≥ 1, and y ∈ {0, 1} is a Bernoulli variable with
+standard Cauchy distribution, namely T i1 ···ik ∼ Cauchy(0, 1).                               50% probability. The term α/ξα+1 corresponds to the standard
+                                                                                                                                                                 3
+
+
+                                                                                                             Maximum                                    241.3s
+                                                                                                             Mean
+         102                                                                                                                           130.1s
+
+
+
+
+                                                                            TTS (seconds)
+                                                                                                 2
+                                                                                            10                                                          78.4s
+                                                                                                                    58.0s
+ Count
+
+
+
+
+                                                                                                                                        38.2s
+
+                          0.990
+                                                                                                     16.2s
+              1           0.995                                                                                     12.0s
+         10
+                          0.999                                                             10   1
+                                                                                                     6.2s
+                          1.000
+
+                  80     90    100   110   120   130   140   150   160                                80       90     100   110       120   130   140    150
+                                                                                                                                  N
+                                           N
+                                                                           FIG. 3. Maximum and mean TTS of CPLEX for 250 randomly gen-
+FIG. 2. Number of instances where SA with nsweep = 20000 and
+                                                                           erated instances as a function of the system size N. The instances fol-
+nruns = 100 yield a solution within a given R for different system sizes
+                                                                           low the symmetrized Pareto distribution with α = 2, n = 1, S 2q = 1,
+N between 80 and 156. The instances follow the Cauchy distribution
+                                                                           and S 3q = 6.
+with n = 1, S 2q = 1 and S 3q = 4.
+
+
+Pareto distribution. This construction results in a heavy-tailed           Metropolis-Hastings criterion. After nsweep sweeps, we record
+distribution centered at zero. For α = 2, the mean exists and is           the lowest-energy configuration. We perform nruns indepen-
+finite, while the variance is undefined. This distribution pro-            dent runs and return the best result. For all cases, SA is par-
+duces occasional large-magnitude coupling coefficients, in-                allelized across all available CPU cores, see Table. I, to maxi-
+creasing the ruggedness and complexity of the optimization                 mize computational efficiency (see Table I). Defining E as the
+landscape.                                                                 lowest-energy valued sample and EGS the most optimal so-
+                                                                           lution obtained using CPLEX, Figure 2 shows how many in-
+                                                                           stances out of 250 achieve an approximation ratio R = E/EGS
+                       III.   SA, CPLEX, AND BF-DCQO                       between 0.99 and 1.00 as a function of system size N ranging
+                                                                           from 80 to 156, and using nsweep = 20000 and nruns = 100.
+                                                                           For reference, the total runtime of SA is computed using the
+   To benchmark the performance of BF-DCQO, we con-
+                                                                           expression T CPU = nsweep nruns · 0.6 · 10−5 s, where 0.6 · 10−5 s
+sider two solvers: a heuristic classical solver based on the
+                                                                           denotes the time per sweep, obtained by extrapolating the av-
+Metropolis-Hastings criterion [45, 46], SA [1]; an exact com-
+                                                                           erage runtimes of zero-temperature SA across a range of 104
+mercial solver, IBM CPLEX [2]. In this section, we provide a
+                                                                           to 107 sweeps, see Appendix D.We find that smaller S 2q in-
+detailed description of the usage and implementation of each
+                                                                           creases problem difficulty (see Appendix B 2).
+solver in detail.
+                                                                              Based on this observation, we set S 2q = 1 and S 3q = 4
+                                                                           for our subsequent analysis. This choice generates compact
+                         A.   Simulated Annealing (SA)                     circuits while preserving problem difficulty for experimental
+                                                                           implementations. We sample the coupling coefficients from
+                                                                           a Cauchy distribution with values constrained to the range
+   SA is a heuristic optimization technique inspired by the                [−7, 7]. As N grows, fewer instances reach high approxima-
+physical annealing process. The algorithm iteratively explores             tion ratios R, indicating increased problem hardness and mak-
+the solution space, accepting both energy-lowering and, with               ing it more difficult for SA to reach close-to-optimal solutions
+a certain probability, energy-increasing moves to escape lo-               (see Appendix B 2). Here, we also observed that CPLEX (de-
+cal minima. As the algorithm progresses, the acceptance of                 tailed in the next section) can solve these instances within a
+higher energy moves decreases, guiding convergence toward                  few seconds on average. Therefore, we use CPLEX results as
+near-optimal solutions.                                                    the baseline for comparing SA and BF-DCQO.
+   In this work, we apply SA directly from the HUBO for-
+mulation of Eq. 2. We initialize all spins randomly and inde-
+pendently compute the upper bound of the maximum energy
+change from any spin-flip i, namely ∆E max = maxi ∆Eimax .                                                             B.   CPLEX
+This sets the initial temperature, T init = ∆E max , and we choose
+the final temperature as T final = 0.01 T init . A geometric cool-            CPLEX is a commercial solver owned by IBM that targets
+ing schedule is generated between these bounds, assigning                  mixed-integer linear and quadratic programming. It is widely
+one temperature per sweep. Each SA run consists of nsweep                  used in large-scale optimization and serves as a robust clas-
+sweeps. In each sweep, we randomly permute the spin in-                    sical benchmark. All results were obtained using the soft-
+dices and visit them in that order. For each spin, we com-                 ware specifications in Table I. To solve our HUBO problems
+pute the exact energy change ∆E upon flipping and apply the                using CPLEX, we convert each instance to a mixed-integer
+

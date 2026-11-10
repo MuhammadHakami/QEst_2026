@@ -1,0 +1,143 @@
+                                            REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for
+                                            Physics-Constrained Power System Islanding
+
+                                            YUQI JIANG, Pennsylvania State University, USA
+                                            YUQI ZHANG, Kent State University, USA
+                                            ZHIDING LIANG, Rensselaer Polytechnic Institute, USA
+                                            QIANG GUAN, Kent State University, USA
+                                            YAN LI, Pennsylvania State University, USA
+arXiv:2606.15083v2 [quant-ph] 28 Jun 2026
+
+
+
+
+                                            GANESH KUMAR VENAYAGAMOORTHY, Clemson University, USA and University of Pretoria, South Africa
+                                            Quantum computing has rapidly emerged as a powerful paradigm for tackling computationally demanding problems. In particular,
+                                            quantum optimization shows strong promise for hard combinatorial problems in power systems, where increasing distributed energy
+                                            penetration heightens the need for intentional islanding to maintain grid reliability and resilience. However, power system islanding
+                                            is an NP-hard combinatorial optimization problem that becomes computationally prohibitive for classical solvers as network size
+                                            grows, motivating the use of quantum computing as a promising alternative pipeline. This study develops a resource-efficient hybrid
+                                            QAOA islanding framework that brings physics-constrained power-system partitioning into the quantum optimization workflow.
+                                            The framework combines coherency-informed graph reduction, physics-aware constraint modeling, and structured post-processing
+                                            to efficiently convert shallow-circuit QAOA samples into high-quality feasible islanding decisions without deep circuits or large
+                                            shot budgets. The proposed framework is validated on the standard IEEE benchmark systems (9-, 14-, 24-, 30-, 39-, and 57-bus),
+                                            demonstrating that the hybrid workflow achieves Gurobi-optimal solution quality with a clear quantum resource advantage over
+                                            vanilla QAOA, while the resulting islanding solutions satisfy all physical feasibility requirements after network separation. This study
+                                            establishes QAOA-based islanding as a viable quantum approach for critical infrastructure, with structured post-processing as the key
+                                            enabler of quantum resource efficiency.
+
+                                            CCS Concepts: • Hardware → Quantum computation; • Mathematics of computing → Combinatorial optimization; • Applied
+                                            computing → Engineering.
+
+                                            Additional Key Words and Phrases: Power system islanding, Quantum Approximate Optimization Algorithm (QAOA), post-processing
+
+                                            1   Introduction
+                                            Recent advances in quantum hardware and algorithms have intensified interest in applying near-term quantum
+                                            computing to structured optimization and simulation problems [25, 29]. In the noisy intermediate-scale quantum (NISQ)
+                                            setting, hybrid quantum-classical methods are especially attractive because they combine parameterized quantum
+                                            circuits with classical outer-loop optimization while avoiding the requirement of full fault tolerance [4, 7]. Among these
+                                            approaches, variational quantum algorithms have emerged as a leading framework for exploring practical quantum
+                                            advantage in scientifically and technologically relevant applications [7].
+                                                Among the engineering domains that can benefit from such hybrid quantum optimization, power systems are
+                                            especially compelling because many power grid operation decisions are inherently large-scale combinatorial problems
+                                            Authors’ Contact Information: Yuqi Jiang, Pennsylvania State University, Department of Electrical Engineering, University Park, Pennsylvania, USA;
+                                            Yuqi Zhang, Kent State University, Department of Computer Science, Kent, Ohio, USA; Zhiding Liang, Rensselaer Polytechnic Institute, Department of
+                                            Computer Science, Troy, New York, USA; Qiang Guan, Kent State University, Department of Computer Science, Kent, Ohio, USA; Yan Li, yql5925@psu.edu,
+                                            Pennsylvania State University, Department of Electrical Engineering, University Park, Pennsylvania, USA; Ganesh Kumar Venayagamoorthy, Clemson
+                                            University, Real-Time Power and Intelligent Systems Laboratory, Holcombe Department of Electrical and Computer Engineering, Clemson, South
+                                            Carolina, USA and University of Pretoria, Pretoria, South Africa.
+
+
+                                            Manuscript submitted to ACM                                                                                                                      1
+2                    Yuqi Jiang, Yuqi Zhang, Zhiding Liang, Qiang Guan, Yan Li, and Ganesh Kumar Venayagamoorthy
+
+
+defined on network topologies. Tasks such as topology reconfiguration [3], contingency mitigation [8], and controlled
+islanding [23] require operators to search over many discrete operating configurations while simultaneously satisfying
+physical and operational constraints. These topology-constrained decision problems are often NP-hard and can become
+computationally prohibitive for classical methods as network size and operational uncertainty increase, particularly
+when high-quality decisions are needed under stressed operating conditions [2]. This computational structure makes
+modern power grids a natural application area for quantum optimization methods [26].
+    Large-scale integration of distributed energy resources has made resilient power system operation more challenging
+by introducing new sources of uncertainty [11]. The intermittent output of renewable energy resources such as wind
+and solar can cause significant fluctuations, making it challenging to maintain the balance between supply and demand.
+If not properly managed, these imbalances can propagate through the interconnected grid and escalate into cascading
+failures [15]. As a result, protection schemes are often required to adopt more conservative settings to preserve security
+margins. This motivates the necessity of intentional islanding as a system-level resilience measure: by deliberately
+separating a stressed power network into multiple self-sustained islands, operators can confine disturbances, preserve
+critical loads, and create sustainable operating regions while restoration is initiated [12].
+    However, practical islanding is fundamentally a combinatorial decision-making problem under tight operational
+constraints [12]. This combinatorial optimization problem is NP-hard, which requires substantial classical computing
+resources and implementation time to obtain near-optimal results. In power system studies, classical optimization
+methods is the main idea for solving this problem. Prior work has approached controlled islanding using Linear
+Programming [23], Ordered Binary Decision Diagrams [31], and Binary Integer Programming [17]. These classical
+approaches can become computationally prohibitive and less adaptable as system size and uncertainty grow, limiting
+their ability to deliver high-quality islanding decisions. Although quantum computing has been applied to power grid
+partitioning problems related to islanding [16], these approaches model the problem as a graph-theoretic decomposition
+and do not enforce the operational constraints that practical islanding requires. The quantum annealing formulation in
+[16] optimizes only topological objectives such as cut cost and sub-network size balance, while omitting power balance
+and the connectivity of the resulting sub-networks, leaving solutions potentially infeasible as operational islands.
+    The recent progress of quantum computing has provided a new pipeline to solve the combinatorial optimization
+problems [9]. It leverages quantum superposition and interference to lead the search toward high-quality solutions,
+potentially altering the effective optimization landscape relative to classical procedures [14]. The Quantum Approximate
+Optimization Algorithm (QAOA) has been studied in a wide range of optimization problems [13]. Recent studies have
+applied QAOA to financial portfolio optimization [35], chemical simulation and drug discovery [27], and traffic flow
+optimization [33]. In the context of power system applications, QAOA has also been used for the OPP problem [22],
+unit commitment benchmarking [1], and power system contingency analysis [21].
+    A central challenge in applying QAOA to constrained problems is that quantum measurement produces raw bitstring
+samples, which are not guaranteed to satisfy the problem’s feasibility requirements [28]. Post-processing addresses this
+gap by applying classical procedures after quantum measurement to convert these raw samples into feasible, high-quality
+solutions, for instance, by repairing constraint violations, selecting the best sample among the measured outcomes,
+or applying local search corrections [5, 30]. Despite being a necessary step in any constrained quantum optimization
+pipeline, post-processing remains only sparsely studied. Prior work has shown that quadratic unconstrained binary
+optimization (QUBO)-based greedy post-processing can map quantum-device outputs to constraint-satisfying solutions
+while preserving monotone descent of a selected energy [30]. That framework, however, assumes that constraints
+are independent in the sense that each decision variable appears in at most one constraint penalty. While this holds
+Manuscript submitted to ACM
+REGRID-QAOA: A Resource-Efficient Hybrid QAOA Framework for Physics-Constrained Power System Islanding 3
+
+
+for simple combinatorial benchmarks, many real-world optimization applications, including power system islanding,
+involve operationally coupled constraints in which the same variable simultaneously governs multiple requirements,
+violating the independence assumption and placing such problems outside the scope of existing post-processing theory.
+In addition, the previous QUBO-based post-processing method does not cover feasibility requirements that must be
+evaluated outside the QUBO penalty model. Power system islanding post-processing is distinguished from both of
+the preceding settings in that its feasibility conditions are simultaneously operationally coupled and only partially
+representable within the QUBO penalty model.
+  In this study, an end-to-end QAOA framework is developed for the power system islanding problem, which aims to
+minimize the mismatch of the power flow during islanding operations. This paper pioneers the study of QAOA for
+the full power system islanding solution pipeline. Beyond the quantum modeling and optimization stages, the paper
+also develops post-processing as a central part of the solution framework, proposed for settings where part of the
+feasible structure lies outside standard QUBO encodings and where constraints are operationally coupled, extending
+principled post-processing beyond the independent-constraint settings addressed by prior work. The paper therefore
+also studies a broader methodological question for quantum computing in real-world optimization: how sampled
+quantum outputs can be systematically converted into feasible, high-quality decisions when the governing constraints
+combine QUBO-encodable penalties with application-level structure that must be checked or repaired classically. The
+proposed framework is validated on six IEEE benchmark systems, 9-, 14-, 24-, 30-, 39-, and 57-bus using real IBM
+Quantum processors ibm_marrakesh, demonstrating that principled post-processing consistently recovers near-optimal,
+fully feasible islanding partitions across all tested instances with modest circuit resources. A complementary noise
+study further indicates that the workflow remains resilient under realistic quantum noise, supporting its practicality for
+near-term quantum hardware. The main contributions of this paper can be summarized as:
+    • This study develops a resource-efficient hybrid QAOA framework for physics-constrained power system islanding,
+      advancing quantum islanding beyond purely topological graph partitioning. The formulation jointly represents
+      the objective of minimizing disrupted active power flow across severed lines and the operational feasibility
+      requirements needed for valid islands. A coherency-based graph reduction further lowers qubit count before
+      circuit execution without compromising solution quality.
+    • This study provides a comprehensive post-processing study for constrained quantum optimization applied to
+      islanding, systematically designing and comparing multiple repair strategies that convert raw QAOA samples
+      into fully feasible islanding decisions under both QUBO-encodable and operationally coupled constraints. The
+      study specifically addresses the challenge of enforcing exact graph connectivity, which lies outside standard
+      QUBO encodings and must be handled classically, alongside the algebraic operational constraints. Unlike existing
+      post-processing approaches, the proposed methods and their guarantees remain applicable when constraints are
+      operationally coupled and the independence assumption of prior theory does not hold, directly broadening the
+      reach of principled post-processing to practical applications beyond simple benchmarks.
+    • The framework is validated on six IEEE benchmark systems (9- to 57-bus) using real IBM Quantum processors.
+      The coherency-based reduction demonstrably reduces the required qubit count across the benchmark cases
+      without altering solution optimality. The post-processing stage substantially improves both solution quality
+      and feasibility over vanilla QAOA sampling, with the best method recovering the Gurobi-optimal cut on all
+      benchmarks using few QAOA circuit layers and modest shot budgets while producing fully feasible islanding
+
+
+
+                                                                                                 Manuscript submitted to ACM
+

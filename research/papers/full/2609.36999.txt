@@ -1,0 +1,2342 @@
+Date of publication xxxx 00, 0000, date of current version xxxx 00, 0000.
+Digital Object Identifier
+
+arXiv:2609.36999v1 [quant-ph] 29 Sep 2026
+
+Towards Scalable Quantum Unit
+Commitment in Power Systems:
+Encoding and Complexity Reduction
+Techniques
+MARC CARRILLO-MUÑOZ1 , SERGIO MARTÍNEZ-HERMIDA1 , SARA BARJA-MARTÍNEZ1 ,
+ANTONIO E. SALDAÑA GONZÁLEZ1 , and MÒNICA ARAGÜÉS-PEÑALBA1,2
+1
+2
+
+Dpt. Enginyeria Elèctrica, CITCEA-UPC, Universitat Politècnica de Catalunya, Barcelona, Spain
+Senior Member IEEE
+
+Corresponding author: Marc Carrillo-Muñoz (email: marc.carrillo.munoz@upc.edu).
+The authors thankfully acknowledge the computer resources at Quantum-Blue and Quantum-Red and the technical support provided by
+Barcelona Supercomputing Center (BSC) and Finisterrae-QMIO-Qulacs, supported by the Centro de Supercomputación de Galicia
+(CESGA) under activity IM-2025-3-0029 "Quantum and hybrid quantum-classical algorithms for power system applications". This work
+was part of the I+D+i project OPERA (Operation and Planning tools for Enabling Renewable distribution systems Acceleration based on
+emerging technologies for sustainable computing) with reference PID2024-160822OB-I00 funded by the Ministerio de Ciencia,
+Innovación y Universidades from Spain. The work from Mònica Aragüés was supported by the ICREA Academia Program.
+
+ABSTRACT This paper develops a Quantum optimisation Unit Commitment (UC) framework that benefits
+from Pauli Correlation Encoding (PCE) as a qubit reduction preprocessing technique and Sample-based
+Quantum Diagonalisation (SQD) as a hybrid post-processing refinement method. The UC problem is
+formulated in binary form, then transformed into a QUBO problem and mapped onto an Ising representation
+suitable for adiabatic quantum evolution within the Qibo framework. This study analyses the how PCE and
+SQD techniques affect qubit scalability, computational effort, feasibility, and probability of recovering the
+optimal solution as the number of generators increases. The results show that PCE reduces the effective
+size of the encoded problem, SQD improves the concentration of probability on feasible and optimal
+solutions, and their combined application provides the best overall behaviour in several scalable case studies,
+achieving more reliable solutions with lower effective computational cost than the unreduced formulation.
+The repository is available open source in Github (link is not yet available until work is published. However,
+if requested by the reviewers, we can make it open for a scific time window, if requested)
+INDEX TERMS Pauli Correlation Encoding, Quantum Computing Power Systems, Sample-based Quantum Diagonalisation, Unit Commitment.
+
+Main notation used in the proposed quantum UC workflow.
+Sets, indices and UC data
+G, g
+Set and index of generating units
+T,t
+Set and index of UC time periods
+D, i
+Set and index of demand/load contributions
+N
+Number of original logical variables/qubits
+Pg [MW]
+Available power of generator g in the commitment based model
+min
+max
+Pg , Pg
+[MW]Minimum and maximum generation limits
+Dt , D [MW]
+Demand at time t and simplified single period demand
+di,t [MW]
+Demand contribution of load i at time t
+cg
+Generation cost coefficient of unit g
+Cggen (·)
+Generation cost function
+Cgsu
+Start-up cost coefficient
+UC, QUBO and Ising formulation
+ug,t , ug
+yg,t
+VOLUME 4, 2016
+
+Binary commitment status of generator g
+Binary start-up indicator of generator g at time t
+
+pg,t [MW]
+Dispatch power of generator g at time t
+x ∈ {0, 1}N
+Binary optimisation vector
+xi
+Binary variable associated with logical qubit i
+zi , zg ∈ {−1, +1}Classical spin variable associated with a binary commitment variable
+Zi , Zg
+Pauli-Z operator associated with a logical spin
+A
+Raw QUBO penalty factor
+Q(x)
+QUBO objective function
+αC
+Cost normalisation factor
+αP [MW]
+Power-balance normalisation factor
+c̃g , P̃g , D̃t
+Normalised cost, power and demand
+λauto
+Automatic penalty baseline
+λ, η
+Penalty coefficient and dimensionless multiplier
+λmin
+Minimum penalty required to preserve the optimal feasible QUBO
+ground state
+hi , Jij
+Ising local fields and pairwise couplings
+E0
+Constant energy shift in the Ising Hamiltonian
+1
+
+Author et al.: Marc Carrillo i Muñoz
+
+H1 ≡ HIsing
+Original UC problem Hamiltonian
+PCE parameters and variables
+m
+Number of reduced/effective qubits, m < N
+s ∈ {−1, +1}m Reduced spin assignment
+sq
+Reduced spin variable associated with reduced qubit q
+k
+Allowed PCE correlation orders
+kmax
+Maximum correlation order allowed by k
+Si
+Reduced-qubit support set encoding logical operator Zi
+|Si |
+Support size of the Pauli string encoding Zi
+Πi
+Pauli string replacing logical operator Zi
+fPCE (·)
+Map from reduced spin assignments to logical spin assignments
+ẑi
+Decoded logical spin after PCE
+HPCE
+PCE-compressed Hamiltonian
+Cfeas
+Feasible-state coverage of the selected representable or retained
+subspace
+w(u)
+Weight assigned to feasible UC configuration u during PCE
+encoding selection
+λcost
+PCE cost-prioritisation weight used during encoding selection
+Adiabatic evolution and sampling
+neff
+Effective number of qubits used in the quantum evolution
+H0
+Transverse-field driver Hamiltonian
+Xq
+Pauli-X operator acting on qubit q
+Hproblem
+Hamiltonian evolved by the quantum solver
+H(t)
+Time-dependent adiabatic Hamiltonian
+T
+Final adiabatic evolution time
+∆t
+Simulation time step
+τ
+Adiabatic schedule/evolution scaling parameter
+|ψ⟩0
+Initial equal-superposition state
+|ψ⟩opt
+Target optimal/low-energy final state
+b
+Computational-basis bitstring
+f (b)
+Measurement frequency of bitstring b
+Ω
+Set of distinct observed bitstrings
+d = 2neff
+Effective Hilbert-space dimension
+U = |Ω|
+Number of distinct measured bitstrings
+SQD post-processing
+ρSQD
+Target retained fraction for SQD subspace size
+Ktarget
+Target SQD subspace size
+SSQD , S
+Sampled subspace retained by SQD
+M , |SSQD |
+Number of bitstrings retained by SQD
+ρeff
+Realised retained fraction, M/d
+rSQD
+Realised SQD dimensional reduction
+β
+SQD auxiliary-Hamiltonian mixing parameter
+H ∗ (β)
+SQD auxiliary Hamiltonian
+Hsub
+SQD projected Hamiltonian in the sampled subspace
+v0 , e 0
+Ground eigenvector and eigenvalue of Hsub
+v0,j
+Amplitude of sampled state b(j) in the SQD ground eigenvector
+SQD
+|Ψ⟩
+SQD-refined state in the sampled subspace
+Decoding and evaluation
+D(·)
+Decoding map to the original UC space
+x̂
+Decoded binary UC schedule
+ûg , ûg,t
+Decoded binary generator commitment decision
+û
+Decoded UC commitment schedule
+û⋆
+Best feasible decoded schedule
+Peff (b)
+Effective probability before decoding
+PUC (x̂)
+Aggregated probability of decoded UC schedule
+F
+Set of feasible decoded schedules
+O
+Set of optimal or best-known decoded schedules
+r(û) [MW]
+Demand-balance residual of decoded schedule
+C(û)
+Cost of decoded UC schedule
+⋆
+C , Cbest
+Reference optimal cost and best recovered cost
+Pfeas
+Probability mass assigned to feasible schedules
+Popt
+Probability mass assigned to optimal or best-known schedules
+Rq [%]
+Relative qubit reduction
+gap [%]
+Relative optimality gap
+Reported computational metrics
+Ttot [s]
+Total measured runtime of the selected workflow
+TPCE [s]
+PCE preprocessing or compressed-model construction time
+TAE [s]
+Adiabatic-evolution execution time
+TSQD [s]
+SQD post-processing time
+AE
+Pfeas
+Feasible probability after direct adiabatic evolution
+AE
+Popt
+Optimal/best probability after direct adiabatic evolution
+SQD
+Pfeas
+Feasible probability after SQD post-processing
+SQD
+Popt
+Optimal/best probability after SQD post-processing
+PCE
+Pfeas
+Feasible probability after PCE-based adiabatic evolution
+PCE
+Popt
+Optimal/best probability after PCE-based adiabatic evolution
+PCE+SQD
+Pfeas
+Feasible probability after PCE and SQD
+PCE+SQD
+Popt
+Optimal/best probability after PCE and SQD
+2
+
+I. INTRODUCTION
+
+Quantum computing (QC) is increasingly being explored as
+an engineering paradigm for encoding and solving computationally demanding optimisation problems. A central challenge is to design quantum workflows that map real applications into suitable Hamiltonians, reduce the required number
+of qubits, and recover valid solutions after measurement
+and decoding. Power systems operation provides a relevant
+benchmark domain because problems such as AC Optimal
+Power Flow (AC-OPF), Optimal Transmission Switching
+(OTS), stochastic or security-constrained Unit Commitment
+(UC), and large scale planning combine physical constraints,
+discrete decisions, and rapidly growing problem dimensions.
+Among them, UC is especially suitable for quantum optimisation because its binary commitment structure can be
+naturally mapped to QUBO and Ising formulations, while its
+feasibility constraints make solution recovery non-trivial. Recent studies have reviewed the opportunities of QC in power
+systems, while also highlighting the hardware, algorithmic,
+and scalability limitations that still restrict its practical deployment [1], [3]. The growing availability of quantum simulators, software frameworks, and cloud-accessible platforms
+is now enabling more systematic evaluation of end-to-end
+quantum optimisation pipelines.
+Within power systems, optimisation has become one of the
+main areas of interest for quantum methods [2]. DC Optimal
+Power Flow (DC-OPF), power flow models, and related economic dispatch problems have been used as early test cases
+because they can be reformulated in binary or quadratic form
+[4]–[6]. However, these problems are often treated as proof
+of concept benchmarks and do not always reflect the full
+combinatorial structure of operational planning. In parallel,
+peer-to-peer (P2P) energy trading and energy communities
+have also attracted attention because of their market-based
+and decentralised decision layers [7], [8]. These studies are
+relevant, but they are usually centred on transaction allocation or local coordination rather than on the qubit-scaling
+limitations of large constrained objective functions. UC, on
+the other hand, provides a more challenging benchmark as
+a combinatorial problem; the on/off scheduling of generating units must satisfy demand and operational constraints
+while minimising operating cost [9], [10]. Its binary and
+constrained structure makes it a useful test case for analysing
+whether quantum optimisation methods can recover feasible
+and high-quality solutions as the problem size increases.
+A key limitation of current quantum optimisation is the
+restricted number of available qubits, together with the cost
+of simulating or executing large Hamiltonians. This issue
+is particularly relevant in power systems problems, where
+the number of binary variables can grow quickly with the
+number of assets, time periods, and constraints. To address
+this limitation, recent works have proposed qubit-efficient
+and hybrid strategies. In UC, for instance, decomposition
+and qubit-efficient formulations have been studied to reduce
+the size of the problem or adapt it to quantum annealing
+resources [11], [12]. These approaches are valuable, but
+VOLUME 4, 2016
+
+Author et al.: Towards Scalable Quantum Unit Commitment: Encoding and Complexity Reduction Techniques
+
+they do not directly investigate a gate-based Hamiltoniancompression strategy in which the original logical variables
+of the UC problem are encoded into a smaller correlatedqubit representation before the Adiabatic Quantum Evolution
+(AQE), that evaluates the evolution of the states through the
+Hamiltonian.
+More broadly, qubit-reduction methods such as Pauli Correlation Encoding (PCE) have shown promise in constrained
+optimisation and combinatorial problems by representing
+logical variables in a reduced Pauli-correlation space [13],
+[14]. However, these studies are not focused on UC, and
+they do not examine how the compressed Hamiltonian affects
+the recovery of feasible UC schedules after the quantum
+evolution. In parallel, Sample-based Quantum Diagonalisation (SQD) has been proposed as a hybrid quantum-classical
+post-processing method that refines solutions from a sampled
+subspace without requiring a new quantum evolution [15].
+Still, SQD has not been systematically combined with a PCEreduced UC Hamiltonian to assess whether post-processing
+can recover useful probability mass or compensate for feasibility losses introduced by aggressive qubit reduction.
+The gap addressed in this paper is therefore the absence of
+an integrated, UC-oriented framework that jointly analyses
+qubit reduction, quantum evolution, post-processing, decoding, and evaluation in the original problem space. Existing
+quantum UC studies mainly focus on QUBO reformulations,
+decomposition strategies, or annealing-based implementations. At the same time, PCE + SQD have mostly been studied outside the UC context or as independent techniques. As a
+result, it remains unclear whether a PCE-compressed Hamiltonian can preserve the feasible and near-optimal structure
+of the original UC problem, and whether SQD can further
+improve the quality of the decoded solutions obtained from
+the reduced quantum dynamics. This distinction is important
+because reducing the number of qubits is not sufficient on
+its own: the reduced model must also retain the solution
+structure that matters for the original UC problem.
+In power systems, quantum optimisation studies have
+mainly followed three directions. First, QUBO problem is defined solved through Ising formulation method, and QAOAbased formulations have been explored for UC, economic
+dispatch, OPF-related problems, and decentralised energy
+applications, providing early demonstrations of how operational constraints can be embedded into quantum-compatible
+objective functions [4]–[6], [8]–[10]. Second, qubit-efficient
+and decomposition-based approaches have been proposed to
+reduce the size of large scheduling problems and adapt them
+to current quantum-annealing or hybrid quantum-classical
+resources [11], [20]–[22], [24]. Third, recent encoding and
+post-processing techniques such as PCE and SQD aim to
+reduce the effective Hamiltonian dimension or refine the
+sampled solution space after quantum evolution [13], [14],
+[16]–[19]. However, these techniques have not yet been
+jointly analysed as a complete UC-oriented workflow in
+which qubit reduction, adiabatic evolution, SQD refinement,
+decoding, and original-space evaluation are studied together.
+VOLUME 4, 2016
+
+This paper studies how PCE together with SQD can be
+used as encoding and post-processing tools to reduce the effective complexity of quantum optimisation while preserving
+the ability to recover feasible UC solutions. The analysis
+focuses on scalable UC instances, where the number of
+generators, and therefore the number of qubits, increases
+progressively. The main contributions are:
+To formulate the UC problem as a binary optimisation
+model and map it to a QUBO/Ising Hamiltonian tailored
+for adiabatic quantum evolution within the Qibo [36]
+framework, enabling its direct use in a quantum optimisation pipeline.
+• To analyse PCE as a qubit-reduction preprocessing strategy for solving the UC problem with AQC tehniques,
+assessing whether the compressed Hamiltonians preserve feasible and near-optimal schedules of the original
+problem.
+• To incorporate SQD as a hybrid post-processing step
+after the quantum evolution, evaluating its effect on
+feasibility, optimality, and the final probability assigned
+to relevant decoded UC solutions.
+• To demonstrate that the combined PCE+SQD workflow
+can improve the robustness of quantum UC solutions
+while requiring fewer effective qubits than the unreduced formulation. To the best knowledge of the authors, this is the first framework that combines PCE
+preprocessing and SQD post-processing for quantum
+optimisation in power systems UC.
+•
+
+II. METHODOLOGY
+
+This section describes the proposed quantum optimisation
+procedure for the UC problem. The proposed methodology
+is detailed in Fig. 1. The figure separates the stages that are
+always required from those that are not necessary to run the
+AQE but mandatory in order to reduce the complexity of the
+problem, which makes it easier to compare the baseline adiabatic approach with the PCE-only, SQD-only, and combined
+PCE + SQD configurations used in the case-study section.
+The methodology is organised as an end-to-end quantum
+UC pipeline that starts from the classical UC formulation
+and finishes with the evaluation of decoded schedules in
+the original problem space. The first stage, common to all
+configurations, formulates the UC problem in binary form,
+maps it into a QUBO model, and obtains the corresponding
+Ising Hamiltonian.
+From this common formulation, the workflow allows different configurations to be analysed under the same evaluation criteria. If PCE is activated, the original Hamiltonian
+is compressed before the quantum evolution and the solver
+acts on a reduced m-qubit representation. If PCE is not
+used, the original N -qubit Hamiltonian is evolved directly.
+After the adiabatic evolution and sampling stage, SQD can
+optionally be applied as a post-processing method to refine
+the probability distribution over the sampled states. Finally,
+all measured or refined states are decoded into UC schedules
+3
+
+Author et al.: Marc Carrillo i Muñoz
+
+A. UC formulation and Ising mapping
+1. Inputs: generator costs/capacities and demand
+2. Decision variables:
+
+Generators
+
+Demand
+
+3. Objective & constraints: cost minimization,
+power balance, operating limits
+4. QUBO with penalties
+
+Ising mapping:
+
+€
+
+B. PCE for qubit reduction
+1. Define spins: Logical spins (N) and
+reduced spins (m)
+
+and evaluated using the original objective and feasibility
+constraints.
+This structure allows four configurations to be compared
+consistently: the direct adiabatic baseline, PCE-only, SQDonly, and the combined PCE+SQD workflow. The rest of this
+section follows the order of Fig. 1. Subsection II-A presents
+the UC formulation and Ising mapping. Subsection II-B
+describes the PCE-based qubit reduction. Subsection II-C
+introduces the adiabatic evolution and sampling stage. Subsection II-D presents the SQD post-processing method. Subsection II-E explains the decoding of quantum states into UC
+schedules. Last section also defines the evaluation criteria in
+the original UC space.
+A. UNIT COMMITMENT FORMULATION AND ISING
+MAPPING
+
+2. Encode correlations: Using
+Pauli Correlation Encoding
+
+⋮
+
+Unit Commitment (UC) is a fundamental operational shortterm planning problem in power systems. Its objective is to
+decide which generators should be turned on or off over a
+given time horizon in order to supply demand at minimum
+operating cost while satisfying the relevant operational constraints.
+Figure 2 provides a representation of a generic electrical grid, its generators, delivering pg,t its loads consuming
+di,t and their interconnectors. Generators are grid connected
+when ug,t is 1 and disconnected when ug,t is 0.
+
+⋮
+
+3. Build compressed Hamiltonian
+
+C. Adiabatic quantum evolution and sampling
+1. Initial state: Equiprobability
+between all the solutions
+
+H
+H1
+
+2. Adiabatic evolution:Trotter steps to
+simulate continuos evolution
+
+H0
+
+3. Measurement and sampling: Frequency
+distribution of solutions
+
+0
+
+0.5
+
+τ
+
+1
+
+d2,t
+pg,n
+
+Gn
+
+D. Sample-based quatum diagonalization
+pg,1
+
+1. Sample subspace: Select
+top-K measured states
+
+P
+
+eig()
+
+2. Projection: Build and project
+H*(β) onto S
+
+d4,t
+
+di,t
+
+...
+
+pg,2
+
+...
+...
+
+G2
+
+E. Decode, recover and evaluate UC solutions
+
+FIGURE 2. Generic electrical representation of the Unit Commitment problem.
+
+1. Input state: Measured or SQD-refined
+state
+2. Decode variables: if PCE is used,
+map reduced spins to logical variables
+
+Recover commitment schedule:
+
+3. Recover UC schedule: Convert Ising to
+binary mapping
+
+Proposed
+compressing
+methods
+
+The general UC objective minimises operating costs over
+the time horizon, including production and start-up costs.
+min
+u,p
+
+4. Evaluate: Objective, feasibility, probability,
+qubit reduction, and computational scalability
+
+Quantum
+Domain
+
+FIGURE 1. Methodology flowchart of the proposed quantum UC workflow.
+
+
+XX
+Cggen (pg,t ) + Cgsu yg,t ,
+
+(1)
+
+t∈T g∈G
+
+Cggen is the generation cost function, Cgsu is the startup cost coefficient, and yg,t ∈ {0, 1} is a binary start-up
+indicator. The demand-balance constraint is imposed at every
+time step as
+X
+g∈G
+
+4
+
+d5,t
+
+d1,t
+
+3. Classical diagonalization:
+Obtain refined amplitudes
+
+Classical
+Domain
+
+d3,t
+
+G1
+
+pg,t =
+
+X
+
+di,t = Dt ,
+
+∀t ∈ T ,
+
+(2)
+
+i∈⌈
+VOLUME 4, 2016
+
+Author et al.: Towards Scalable Quantum Unit Commitment: Encoding and Complexity Reduction Techniques
+
+where Dt is the total demand at time t. Commitment
+and dispatch are coupled through minimum and maximum
+generation limits,
+Pgmin ug,t ≤ pg,t ≤ Pgmax ug,t ,
+
+∀g ∈ G, t ∈ T .
+
+(3)
+
+The classical UC formulation introduces binary commitment variables
+ug,t ∈ {0, 1},
+
+∀g ∈ G, t ∈ T ,
+
+(4)
+
+where ug,t = 1 indicates that generator g is committed
+at time t, and ug,t = 0 otherwise. In addition, continuous
+dispatch variables
+pg,t ≥ 0,
+
+∀g ∈ G, t ∈ T ,
+
+(5)
+
+represent the generated power of each unit when active.
+These constraints ensure that a generator can only produce
+power when it is committed and that its output remains within
+its operating range.
+In this work, the UC problem is cast into a binary optimisation form suitable for quantum methods. Continuous dispatch
+decisions can be represented either by discretising pg,t into
+binary variables or by considering a simplified commitmentbased UC formulation in which the main decision variable is
+the commitment vector ug,t . In the latter case, each committed unit contributes an available power Pg , and the demandbalance condition is expressed directly in terms of the binary
+commitment variables. Furthermore, as ramp costs are not
+taken into account, the problem is solved independently at
+each time step, so the index t is no longer required. The UC
+problem then becomes
+X
+cg ug
+min
+ug
+
+s.t.
+
+g∈G
+
+X
+
+(6)
+Pg ug = D.
+
+g∈G
+
+The resulting binary model is transformed into a Quadratic
+Unconstrained Binary Optimisation (QUBO) problem by incorporating the demand-balance constraint as a penalty term,
+
+
+2 
+X
+X
+
+
+min 
+cg ug + A 
+Pg u g − D  
+(7)
+ug
+
+g∈G
+
+g∈G
+
+where A is a factor that scales the penalty of the non-feasible
+solutions over the optimisation function. This parameter is
+dependent on the problem, and its value is usually calculated
+with heuristic techniques. To make the formulation less sensitive to the numerical scale of the input costs and powerdemand data, a normalised penalty model is used instead. The
+normalisation factors are defined as
+αC =
+
+X
+g∈G
+
+VOLUME 4, 2016
+
+cg ,
+
+(8)
+
+αP = gcd ({Pg }g∈G , D)
+
+(9)
+
+C
+
+where the factor α normalises the cost term, while αP
+expresses the demand-balance mismatch in the smallest common discrete power unit of the instance, measured by the
+greatest common divisor between the powers offered by the
+generation units and the total demand. The corresponding
+normalised coefficients are
+Pg
+Dt
+cg
+P̃g = P ,
+D̃t = P .
+(10)
+c̃g = C ,
+α
+α
+α
+The effective penalty coefficient is constructed in two
+stages. First, the minimum penalty value required to preserve
+the optimal feasible solution as the ground state of the QUBO
+is denoted by λmin . An automatic instance-dependent baseline is then defined as
+
+
+1
+,
+(11)
+λauto = 2λmin 1 +
+N
+where N = |G| is the number of binary variables, and
+therefore the number of logical qubits. The factor (1 + 1/N )
+introduces a small dimension-dependent safety margin. Its
+effect is slightly larger for low-dimensional instances, where
+the penalty calibration is more sensitive, and progressively
+decreases as the number of qubits increases, avoiding excessive penalisation in larger problems.
+Then, a dimensionless multiplier η is introduced, yielding
+λ = η λauto .
+
+(12)
+
+The same value of η is used for all UC instances. In this
+work, η = 0.5, and therefore the effective penalty becomes
+
+
+1
+λ = λmin 1 +
+.
+(13)
+N
+This construction provides a penalty coefficient with a
+consistent interpretation across UC instances with different
+power and cost scales, while introducing a smooth correction
+with the dimensionality of the problem.
+Using these definitions, the normalised QUBO form for a
+commitment-based UC instance can be written as
+
+2 
+
+X
+X
+
+min 
+P̃g ug − D̃  .
+(14)
+c̃g ug + λ 
+ug
+
+g∈G
+
+g∈G
+
+Once the QUBO formulation is obtained, one step is
+needed before changing the problem to a quantum form. A
+change of variables is applied to express the problem in spin
+form,
+zg = 1 − 2ug ,
+
+ug ∈ {0, 1},
+
+zg ∈ {+1, −1}. (15)
+
+This transformation leads to the following minimisation
+problem:
+
+
+2 
+
+
+
+
+X
+X
+1 − zg
+1 − zg
+
+
+min 
+c̃g
++ λ
+P̃g
+− D̃  .
+zg
+2
+2
+g∈G
+
+g∈G
+
+(16)
+5
+
+Author et al.: Marc Carrillo i Muñoz
+
+To obtain the corresponding quantum formulation, the classical spin variables zg are promoted to Pauli-Z operators Zg ,
+
+
+1 0
+zg −→ Zg ,
+Zg =
+,
+(17)
+0 −1
+whose eigenvalues in the computational basis are {+1, −1}.
+Since one binary commitment variable is assigned to each
+generating unit, the number of logical qubits is equal to the
+number of generators, i.e.,
+N = |G|.
+
+(18)
+
+Therefore, an arbitrary but fixed ordering of the generating
+units can be introduced as G = {g1 , g2 , . . . , gN }. Under this
+ordering, each generator spin operator Zg can be relabelled
+as a logical qubit operator,
+Zi ≡ Zgi ,
+
+i = 1, . . . , N.
+
+HIsing =
+
+i=1
+
+hi Zi +
+
+X
+
+Ji,j Zi Zj + E0 ,
+
+(20)
+
+i<j
+
+where hi contains the coefficients of the linear spin terms,
+Ji,j contains the pairwise interaction coefficients generated
+by the quadratic penalty, and E0 is a constant energy offset.
+The indices i and j therefore denote logical qubits associated
+with the ordered generating units. This Hamiltonian is in the
+required form to be used as the problem Hamiltonian in the
+subsequent adiabatic quantum evolution, unless the optional
+PCE compression stage is applied.
+B. PCE-BASED QUBIT REDUCTION
+
+Pauli Correlation Encoding (PCE) is used in this work as
+a qubit-compression pre-processing stage. It constructs a
+reduced Hamiltonian acting on m < N effective qubits from
+an original Ising Hamiltonian defined on N logical spin variables. The objective is not to obtain a lossless representation
+of the complete 2N search space, but to restrict the quantum
+evolution to a structured subset of logical configurations generated by correlations among the m reduced spins. Therefore,
+PCE introduces a compressed representation trade-off where
+the problem dimension is reduced from 2N to at most 2m ,
+but only the logical solutions representable by the selected
+encoding can be recovered.
+In this work, we use a simple Z reduction PCE configuration, consistent with the implemented Hamiltonian representation. Each original logical spin operator Zi , associated
+with the logical spin value zi , is replaced by a product of
+Pauli-Z operators acting on the reduced qubit register. This
+produces a reduced Hamiltonian that remains diagonal in
+the computational basis and can therefore be used within
+6
+
+s = (s0 , . . . , sm−1 ),
+
+sq ∈ {−1, +1}.
+
+(21)
+
+The value of m controls the compression level. Smaller
+values of m provide stronger qubit reduction but also restrict
+the number of original UC schedules that can be represented
+after decoding.
+Instead of assigning each original logical spin to one
+reduced spin, PCE assigns each logical spin Zi to a Pauli-Z
+string over a support set Si ⊆ {0, . . . , m − 1}:
+Y
+Zi 7−→ Πi =
+Zq .
+(22)
+q∈Si
+
+(19)
+
+After expanding the quadratic penalty term in (16), collecting
+linear, quadratic, and constant contributions, and replacing
+the classical spin variables by the corresponding operators,
+the resulting Hamiltonian is formally equivalent to an Ising
+Hamiltonian:
+N
+X
+
+the same adiabatic-evolution framework as the original Ising
+formulation.
+Let the original Ising Hamiltonian (HIsing ) be defined over
+N logical spin variables. PCE introduces a reduced register
+of m < N spin variables,
+
+Equivalently, for a reduced computational-basis assignment
+s ∈ {−1, +1}m , the decoded logical spin is
+Y
+ẑi =
+sq ,
+i = 1, . . . , N.
+(23)
+q∈Si
+
+Thus, PCE defines a mapping
+fPCE : {−1, +1}m → {−1, +1}N ,
+
+(24)
+
+from reduced spin assignments to logical assignments in the
+original UC space.
+The support size |Si | is controlled by the selected correlation orders. In the implementation, these orders are defined
+through the parameter k. For example, k=(1,2) means that
+each logical spin can be encoded either as a single reduced
+Z operator or as a product of two reduced Z operators.
+This parameter controls the expressiveness of the encoding,
+although it does not directly impose the locality of the final
+reduced Hamiltonian.
+Given the original Ising Hamiltonian (Eq. 20), the PCEreduced Hamiltonian is obtained by substituting each logical
+operator Zi with its encoded Pauli string Πi :
+HPCE = H(Π1 , . . . , ΠN ).
+
+(25)
+
+After this substitution, a linear term hi Zi becomes the Pauli
+string hi Πi , while a quadratic term Jij Zi Zj becomes
+Jij Zi Zj 7−→ Ji,j Πi Πj .
+
+(26)
+
+Therefore, even if the original Ising Hamiltonian is
+quadratic, the PCE substitution can generate higher-order
+Pauli-Z products in the reduced Hamiltonian. This is, nevertheless, a direct consequence of encoding each logical spin
+as a correlation of reduced qubits. In this sense, PCE can
+transform the original QUBO Ising model into an effective HUBO (High-order Unconstrained Binary Optimisation)
+reduced formulation on fewer variables. The optimisation
+is performed in this compressed encoded space, and the
+resulting reduced bitstrings are then decoded back into assignments of the original UC variables. Thus, the interaction
+VOLUME 4, 2016
+
+Author et al.: Towards Scalable Quantum Unit Commitment: Encoding and Complexity Reduction Techniques
+
+order may increase during the reduction, but the recovered
+candidate solutions are still interpreted in the original problem space.
+In the implemented UC workflow, the support sets Si are
+not imposed manually. Instead, they are selected through
+a demand-shell-guided search. Since the system demand is
+known beforehand, the demand-balance constraint provides
+a natural way of identifying feasible configurations that are
+relevant to the compressed representation. The feasible configurations contained in the target shell are then weighted according to their generation cost during the encoding-selection
+stage, so that candidate encodings are evaluated not only by
+the feasible states they preserve, but also by the relevance
+of those states for the UC objective. This weighting is used
+only to select the compressed representation; the subsequent
+adiabatic evolution is performed on the resulting PCE Hamiltonian.
+The feasible configurations in the target shell are assigned
+an objective-informed weight according to their generation
+cost,
+w(u) ∝ exp [−λcost C(u)] ,
+(27)
+where C(u) is the original UC cost and λcost controls the
+strength of the prioritisation. Candidate PCE encodings are
+evaluated according to the weighted fraction of the target
+shell that remains representable. In this way, the search gives
+preference to compressed representations that preserve lowcost feasible regions, reducing the chance that relevant schedules are discarded during qubit reduction. The weighting is
+used only to select the PCE encoding; once the encoding is
+fixed, the adiabatic evolution is performed on the resulting
+reduced Hamiltonian obtained by substituting Zi 7→ Πi .
+C. ADIABATIC QUANTUM EVOLUTION AND SAMPLING
+
+Once the problem Hamiltonian has been constructed, the next
+stage consists of solving the optimisation problem through
+adiabatic quantum evolution.
+|ψ⟩0 |{z}
+−→ |ψ⟩opt
+
+(28)
+
+AE
+
+If PCE is not applied, the evolution is performed on the
+original N -qubit Ising Hamiltonian . If PCE is applied, the
+evolution is performed on the reduced m-qubit Hamiltonian
+H PCE . For generality, let neff denote the number of qubits of
+the space where the quantum evolution is executed:
+(
+N, without PCE,
+neff =
+(29)
+m, with PCE.
+Accordingly, the problem Hamiltonian used by the quantum
+solver is
+(
+HIsing , without PCE,
+Hproblem =
+(30)
+HPCE , with PCE.
+The optimal solution is defined by the eigenstate related
+with the lowest eigenvalue of Hproblem . To get this state at
+the end of the process, it is necessary to define an easy initial
+VOLUME 4, 2016
+
+Hamiltonian whose lowest-value state is known. This easy
+Hamiltonian is defined as:
+
+
+neff
+X
+0 1
+Heasy = −
+Xq , X =
+.
+(31)
+1 0
+q=1
+
+whose lowest-energy state is defined as:
+X
+1
+|b⟩
+|ψ⟩0 = √
+n
+eff
+2
+b∈{0,1}neff
+
+(32)
+
+where |b⟩ is a bitstring of the computational basis.
+H0 is also known as driver Hamiltonian because it is
+interpolated with the problem Hamiltonian to transform this
+easy initial state to the final optimal one through the adiabatic
+path:
+
+
+t
+t
+Heasy + Hproblem
+(33)
+H(t) = 1 −
+T
+T
+where the boundary conditions are
+H(0) = Heasy
+
+,
+
+H(T ) = Hproblem .
+
+(34)
+
+The continuous evolution is numerically approximated using
+discrete evolution steps controlled by the final evolution time
+T and the time step ∆t. These parameters affect both the
+quality of the adiabatic approximation and the computational
+cost of the simulation. In this work, the evolution is implemented using Qibo, and the same evolution settings are used
+when comparing original and PCE-compressed Hamiltonians
+in order to isolate the effect of the encoding.
+After the evolution, the final quantum state is measured
+repeatedly in the computational basis. This produces a frequency distribution over measured bitstrings,
+f (b),
+
+b ∈ {0, 1}neff .
+
+(35)
+
+The most probable bitstrings represent the candidate solutions generated by the quantum evolution. The measured
+distribution can be passed directly to the decoding stage, or
+it can be refined first using the optional SQD post-processing
+stage described in Subsection II-D.
+D. SQD POST-PROCESSING
+
+Sample-based Quantum Diagonalisation (SQD) is incorporated as an optional hybrid post-processing stage. Its role
+is to refine the information already obtained from the quantum evolution without requiring a new quantum simulation.
+Rather than exploring the full Hilbert space again, SQD
+builds a reduced subspace using the bitstrings observed in the
+measurements, projects an auxiliary Hamiltonian onto that
+subspace, and diagonalises it classically.
+If PCE is used, SQD acts on the reduced m-qubit space.
+Otherwise, it acts on the original N -qubit space. Therefore,
+SQD is always defined over the same effective space where
+the adiabatic quantum evolution has been executed.
+Let the set of distinct observed states be
+Ω = {b ∈ {0, 1}neff : f (b) > 0} .
+
+(36)
+7
+
+Author et al.: Marc Carrillo i Muñoz
+
+The full effective Hilbert-space dimension is
+neff
+
+d=2
+
+,
+
+(37)
+
+and the number of different measured bitstrings is
+U = |Ω|.
+
+(38)
+
+The sampled subspace is built from the most relevant measured bitstrings using a single target retained fraction, ρSQD .
+This parameter directly sets the desired SQD subspace size
+relative to the full effective Hilbert space:
+Ktarget = ρSQD d.
+
+(39)
+
+The measured bitstrings are then sorted in decreasing order
+of frequency, and the SQD subspace is defined by retaining
+the most frequent measured configurations:
+o
+n
+S = b(1) , b(2) , . . . , b(M ) , M = min (Ktarget , U ) .
+(40)
+Therefore, the SQD subspace is always constructed only
+from states that were actually observed in the measurement
+stage. The target retained fraction ρSQD controls the intended
+dimensional reduction, while the realised retained fraction is
+M
+|S|
+=
+.
+d
+d
+Equivalently, the realised SQD reduction is
+ρeff =
+
+(41)
+
+rSQD = 1 − ρeff .
+
+(42)
+
+If the adiabatic evolution samples fewer distinct states than
+the target SQD dimension, the subspace is naturally capped
+by the observed set Ω. This is not an additional usercontrolled reduction parameter, but a consequence of the
+sample-guided construction of the SQD subspace. This strategy restricts the refinement to the most representative sampled configurations while keeping the classical diagonalisation tractable.
+Once the sampled subspace has been selected, SQD constructs an auxiliary Hamiltonian
+H ∗ (β) = (1 − β)
+
+neff
+X
+
+Xi + βHproblem ,
+
+(43)
+
+The off-diagonal entries come from the transverse-field contribution. Since a Pauli-X operator flips one qubit, two sampled bitstrings are coupled only if they differ in exactly one
+bit. In that case, the coupling weight is (1−β). As a result, the
+projected matrix preserves both the energy of each sampled
+state and the local one-bit-flip connectivity between sampled
+configurations.
+Finally, SQD solves the reduced eigenvalue problem
+Hsub v0 = e0 v0 ,
+
+(46)
+
+and keeps its ground-state eigenpair. The obtained eigenvector provides a refined amplitude distribution over the sampled
+states contained in S, defining the SQD-refined state
+|Ψ⟩SQD =
+
+M
+X
+
+v0,j |b(j) ⟩.
+
+(47)
+
+j=1
+
+SQD does not modify the optimisation problem itself and
+cannot introduce configurations outside the sampled subspace S. Its quality therefore depends on the ability of
+the adiabatic evolution and measurement stage to generate
+representative candidate states. When the sampled set already
+contains feasible or near-optimal configurations, SQD provides a low-cost mechanism to sharpen the final probability
+distribution before decoding.
+E. DECODE AND RECOVER UC SOLUTIONS
+
+The decoding stage is needed in all configurations, with or
+without SQD. Its role is to translate the output of the quantum
+procedure into binary UC variables that can be evaluated in
+the original problem space. Depending on the workflow, the
+input to this stage is either the measured distribution obtained
+after the adiabatic evolution or the probability distribution
+refined by SQD.
+When SQD is not used, the probability assigned to each
+measured bitstring is obtained directly from its sampling
+frequency:
+f (b)
+.
+(48)
+Peff (b) = P
+′
+b′ f (b )
+
+i=1
+
+where H problem is the Ising Hamiltonian used in the adiabatic evolution and β ∈ (0, 1] controls the balance between
+the transverse-field contribution and the original problem
+Hamiltonian. Values of β close to one favour the low-energy
+sampled states according to the original problem Hamiltonian, whereas smaller values increase the influence of onebit-flip couplings between sampled configurations.
+The auxiliary Hamiltonian is projected onto the sampled
+subspace, producing a reduced matrix
+Hsub ∈ RM ×M .
+
+(44)
+
+The diagonal entries are obtained from the problem energy
+of each sampled state:
+D
+E
+[Hsub ]j,j = β b(j) Hproblem b(j) .
+(45)
+8
+
+When SQD is applied, the probability of each retained sampled state is instead computed from the refined eigenvector
+amplitudes:
+ 
+2
+Peff b(j) = |v0,j | ,
+b(j) ∈ S.
+(49)
+If PCE is not applied, the measured bitstrings already
+represent the original logical variables of the UC formulation.
+In this case, the corresponding spin variables are recovered
+directly from the binary variables as
+zi = 1 − 2xi .
+
+(50)
+
+When PCE is used, the measured or SQD-refined states belong to the reduced m-qubit space. Therefore, each reduced
+bitstring is first converted into a reduced spin assignment s,
+VOLUME 4, 2016
+
+Author et al.: Towards Scalable Quantum Unit Commitment: Encoding and Complexity Reduction Techniques
+
+and the original logical spins are then reconstructed through
+the PCE correlation map:
+Y
+sq ,
+i = 1, . . . , N.
+(51)
+ẑi =
+q∈Si
+
+The decoded spins are finally converted back into binary UC
+variables:
+1 − ẑi
+.
+(52)
+x̂i =
+2
+The resulting binary vector x̂ is interpreted as a UC
+commitment schedule. In the commitment-based formulation
+considered here, this corresponds to the on/off decisions ûg,t
+of the generators for the analysed time step or time horizon.
+Since different reduced states may decode into the same
+original UC schedule, their probabilities are aggregated:
+X
+PUC (x̂) =
+Peff (b),
+(53)
+b: D(b)=x̂
+
+where D(·) denotes the decoding map from the effective
+quantum space to the original binary UC space. This aggregation is particularly relevant when PCE is active, because
+the reduced representation may assign several effective states
+to the same decoded schedule.
+The output of this stage is therefore a probability distribution over UC schedules expressed in the original decisionvariable space. These decoded schedules are then used in the
+final evaluation step.
+After decoding the results, the last stage evaluates the
+decoded schedules using the original UC formulation. This
+evaluation is independent of how the candidate solutions
+were obtained: direct adiabatic evolution, PCE preprocessing, SQD post-processing, or the combined PCE+SQD workflow. In all cases, feasibility and optimality are assessed
+with respect to the original UC objective and constraints,
+rather than only through the Hamiltonian explored during the
+quantum evolution.
+For a decoded schedule û, the demand-balance residual at
+time t is computed as
+X
+Pg ûg − D.
+(54)
+r(û) =
+
+The total probability assigned to feasible schedules is then
+computed as
+X
+PUC (x̂),
+(56)
+Pfeas =
+x̂∈F
+
+where F denotes the set of feasible decoded UC schedules.
+Similarly, if O is the set of optimal or best-known schedules,
+the probability assigned to optimal solutions is
+X
+PUC (x̂).
+(57)
+Popt =
+x̂∈O
+
+The resource advantage provided by PCE is quantified
+through the relative qubit reduction. If the original Ising
+formulation requires N logical qubits and the quantum evolution is performed with neff effective qubits, the reduction
+is
+neff
+.
+(58)
+N
+For unreduced runs, neff = N , and therefore Rq = 0. For
+PCE-compressed runs, neff = m < N , which leads to a
+positive reduction.
+In addition to qubit reduction, the computational cost
+of each workflow is quantified through the total measured
+runtime. This KPI includes the quantum-evolution time and,
+when applicable, the extra time required by the PCE construction and SQD post-processing stages:
+Rq = 1 −
+
+Ttot = TPCE + TAE + TSQD ,
+
+(59)
+
+where TAE is the adiabatic-evolution time, TPCE is the PCE
+preprocessing time, and TSQD is the SQD post-processing
+time. This definition allows the direct AE, PCE-only, SQDonly, and PCE+SQD configurations to be compared using the
+same time metric.
+The final evaluation combines three complementary aspects: feasibility and objective value in the original UC problem, probability assigned to feasible and optimal schedules,
+and the qubit reduction achieved by the encoding. Using
+the same evaluation criteria for all configurations makes it
+possible to compare the baseline, PCE-only, SQD-only and
+PCE + SQD workflows under a common framework.
+
+g∈G
+
+A schedule is considered feasible when this residual satisfies
+the demand-balance condition and the remaining operational
+constraints are fulfilled. In the simplified commitment-based
+instances used in this work, feasibility is mainly determined
+by satisfying the power-balance condition at the natural discrete resolution of the problem.
+Each decoded schedule is also evaluated according to
+the original UC cost function. For the commitment-based
+formulation, this cost is given by
+X
+C(û) =
+cg ûg ,
+(55)
+g∈G
+
+or by the corresponding generation-cost expression when dispatch variables or discretised production levels are explicitly
+included.
+VOLUME 4, 2016
+
+III. CASE STUDIES AND RESULTS
+
+This section evaluates the proposed pre- and post-processing
+techniques for the UC problem across different system sizes.
+PCE and SQD are first analysed independently in Sections III-A and III-B, respectively, before both techniques
+are combined in Section III-C. The objective is to evaluate
+their impact on KPI (Key Performance Indicators) such as
+scalability, computational cost, feasible-state probability, and
+optimal-solution probability as the number of generators, and
+consequently the number of qubits, increases.
+The analysed UC instances range from N = 4 to N = 20
+generators, with each case built on the same base system by
+progressively adding new generating units. Each generator is
+represented by one binary commitment variable and is characterised by a fixed available power Pg and a corresponding
+9
+
+Author et al.: Marc Carrillo i Muñoz
+
+Algorithm 1 Hybrid quantum UC workflow with optional
+PCE and SQD
+1: Input: UC data {cg , Pg , Dt }; penalty parameter η; AQE parameters T ,
+∆t, τ ; optional PCE parameters (m, k_list); optional SQD parameters (ρSQD , β).
+2: Output: Decoded distribution PUC (x̂), best feasible schedule û⋆ , and
+metrics Pfeas , Popt , Rq .
+3: UC-to-Ising mapping: normalise the UC data, set λ = ηλauto , build
+the QUBO, and map binary variablesP
+to spins through
+P zi = 1 − 2xi .
+4: Obtain the Ising Hamiltonian H1 = i hi Zi + i<j Jij Zi Zj + E0 .
+5: if PCE then
+6:
+Build the demand-guided feasible shell, apply the cost-based weighting, select supports Si from m and k_list, and apply Zi 7→ Πi =
+Q
+q∈Si Zq .
+7:
+Set Hproblem ← H1PCE and neff ← m.
+8: else
+9:
+Set Hproblem ← H1 and neff ← N .
+10: end if
+11: AQE and sampling: evolve the initial equal-superposition state towards
+Hproblem through H(t) using T , ∆t, and τ .
+12: Measure the final state and obtain bitstring frequencies f (b), with b ∈
+{0, 1}neff .
+13: if SQD then
+14:
+Retain the most frequent sampled states in SSQD according to
+ρSQD .
+15:
+Project H ∗ (β) onto SSQD , diagonalise Hsub , and set Peff (b(j) ) =
+|v0,j |2 .
+16: else
+P
+17:
+Set Peff (b) = f (b)/ b′ f (b′ ).
+18: end if
+19: Decoding: for each sampled
+Q state, decode it into the original UC space.
+If PCE is active, use ẑi = q∈Si sq ; otherwise decode directly.
+20: Convert decoded spins into binary schedules x̂, aggregate repeated
+decoded states into PUC (x̂).
+21: Evaluation: evaluate all decoded schedules with the original UC cost
+and feasibility constraints.
+22: Compute Pfeas , Popt , and Rq = 1 − neff /N .
+23: Select û⋆ as the best feasible decoded schedule.
+
+commitment cost. The power values are integer quantities
+expressed in MW and remain within the range considered
+for the constructed case-study family. For each instance, the
+commitment vector must satisfy the power balance constraint
+X
+min
+cg ug
+ug
+
+s.t.
+
+g∈G
+
+X
+
+(60)
+Pg ug = D.
+
+g∈G
+
+where ug ∈ {0, 1} represents the commitment status of
+generator g and D is the system demand.
+The case study family is constructed progressively, so
+that larger instances extend the smaller ones by adding new
+generators while preserving the previously defined units.
+This provides a controlled benchmark in which the number
+of binary variables, and consequently the original Hilbertspace dimension, increases with the system size, allowing
+the proposed techniques to be evaluated under progressively
+larger UC instances.
+Unless otherwise stated, all adiabatic simulations are performed with time step ∆t = 0.1, and total evolution time
+10
+
+T = 100 for comparing the scalability on the cases with
+reliable results and no much time spent in the evolution.
+For the normalised UC Hamiltonian, the penalty term is
+parameterised as λ = ηλauto , where λauto denotes the
+instance-dependent penalty scaling introduced during the UC
+to QUBO transformation and η is a dimensionless multiplier,
+set as η = 0.5, used for the experiments reported in this
+section in order to maintain the same penalty configuration
+across the analysed case-study family. For PCE, the correlation orders are fixed to k = (1, 2, 3, 4), using 3000
+trials per reduced dimension with a fixed random seed of 0.
+The demand shell contains the feasible UC configurations
+and uses a cost-prioritisation factor of λcost = 0.20. The
+reduced dimension m is varied during the calibration study
+and subsequently fixed to the selected value for each system
+size.
+The direct AE and AE+SQD configurations are evaluated
+up to N = 12, since the classical state-vector simulation of
+the original Hamiltonian becomes increasingly demanding as
+2N grows. PCE-based approaches are instead evaluated up to
+N = 20, since the original N -qubit problem is compressed
+into an m-qubit Hamiltonian before the adiabatic evolution.
+A. PCE BASED UC
+
+As described in Section II-B, PCE compresses the original
+N -qubit Ising Hamiltonian into a reduced representation
+acting on m < N effective qubits. The purpose of this
+reduction is to decrease the Hilbert-space dimension evolved
+during the adiabatic simulation while preserving a subset
+of configurations that contains relevant feasible and high
+quality UC schedules. The performance of PCE depends
+on the selected reduced dimension m and on the encoding
+constructed for that dimension. For this reason, several values
+of m are evaluated for each original system size.
+Table 1 summarises the selected PCE configuration for
+each UC instance overall the possible values from:
+N
+≤ m ≤ N − 1 or 12
+(61)
+2
+The best reduced dimension is selected according to the
+highest probability assigned to the optimal or best feasible
+decoded schedule, denoted by Popt . The table also reports
+the total feasible probability Pfeas , the feasible state coverage
+Cfeas , the PCE pre-processing time, and the evolution time of
+the selected reduced Hamiltonian.
+The results show that PCE can significantly reduce the
+number of evolved qubits while still preserving useful feasible and optimal configurations. The selected reduction ranges
+from 40% to 60%, depending on the instance. However, the
+results also indicate that the relationship between compression and solution quality is not linear. A larger reduction
+does not necessarily imply a poorer probability distribution,
+and conversely, a relatively moderate reduction does not
+guarantee high optimal probability.
+Figure 3 provides a visual summary of the selected configurations. The bars represent the fraction of feasible schedules
+VOLUME 4, 2016
+
+Author et al.: Towards Scalable Quantum Unit Commitment: Encoding and Complexity Reduction Techniques
+
+N
+4
+5
+6
+8
+10
+12
+14
+16
+18
+20
+
+Tested m
+{2, 3}
+{2, 3, 4}
+{3, 4, 5}
+{4, 5, 6, 7}
+{5, 6, 7, 8, 9}
+{6, 7, 8, 9, 10, 11, 12}
+{7, 8, 9, 10, 11, 12}
+{8, 9, 10, 11, 12}
+{9, 10, 11, 12}
+{10, 11, 12}
+
+Feasible
+3
+4
+5
+9
+11
+13
+16
+20
+24
+28
+
+Best m
+2
+2
+3
+4
+6
+6
+8
+8
+9
+10
+
+Red. (%)
+50.0
+60.0
+50.0
+50.0
+40.0
+50.0
+42.9
+50.0
+50.0
+50.0
+
+PCE T (s)
+0.89
+6.10
+2.08
+5.36
+8.28
+42.01
+60.57
+25.03
+35.23
+123.86
+
+Evol. T (s)
+5.81
+12.13
+14.07
+28.56
+107.40
+297.50
+474.71
+387.92
+559.74
+1067.77
+
+Popt
+0.778
+0.807
+0.414
+0.343
+0.591
+0.625
+0.709
+0.590
+0.890
+0.906
+
+Pfeas
+0.977
+1.000
+0.935
+0.539
+0.905
+0.771
+0.944
+0.915
+0.999
+0.906
+
+Cfeas
+2/3
+2/4
+3/5
+4/9
+4/11
+2/13
+3/16
+2/20
+2/24
+2/28
+
+TABLE 1. Summary of the selected PCE configurations for the UC case studies. The column “Feasible” reports the total number of feasible configurations of each
+original UC instance. The PCE time corresponds to the pre-processing time required to construct the reduced model, while the evolution time includes circuit
+construction and execution. Cfeas denotes the number of feasible configurations represented by the selected PCE encoding relative to the total number of feasible
+configurations of the original UC problem.
+
+80
+60
+40
+20
+0
+
+10
+9
+8
+7
+6
+5
+4
+3
+2
+
+Reduced qubits, m
+
+Percentage (%)
+
+100
+
+4
+
+5
+
+6
+
+8
+
+10 12 14 16 18 20
+Original system size, N (qubits)
+Pfeas, PCE
+Popt, PCE
+Feasible coverage
+
+FIGURE 3. Best PCE configuration for each UC case study. Bars represent
+the feasible-state coverage Cfeas of the selected reduced representation.
+Circular markers show the total feasible probability Pfeas , while triangular
+markers show the optimal or best feasible probability Popt . The colour scale
+indicates the reduced number of qubits m.
+
+Overall, PCE achieves substantial dimensionality reductions, while maintaining high feasible and optimal probabilities for most UC instances. The results also show that
+feasible-state coverage alone does not determine performance: for example, the N = 18 and N = 20 cases retain
+only 2/24 and 2/28 feasible configurations, respectively, yet
+achieve Popt = 0.890 and 0.906. Conversely, lower performance is observed for N = 8, despite retaining 4/9 feasible
+states. This indicates that PCE performance depends more
+on preserving the most relevant feasible configurations and
+on the resulting reduced Hamiltonian than on maximising
+feasible state coverage itself.
+B. SQD UC
+
+This subsection evaluates SQD as a post-processing stage
+applied to the direct UC adiabatic simulations. Unlike PCE,
+VOLUME 4, 2016
+
+SQD does not modify the Hamiltonian before the quantum
+evolution, but instead refines the measured distribution by
+constructing and diagonalising a reduced sampled subspace.
+The selected SQD operating point uses β = 1.0 and a
+target retained fraction ρSQD = 18 . The realised subspace size
+can differ from this nominal value depending on the number
+of distinct sampled configurations. Table 2 summarises the
+SQD results for the direct UC cases from N = 4 to N = 12.
+Figure 4 visualises the same operating point, comparing
+the feasible and optimal probabilities before and after SQD.
+Selected SQD operating point: = 1.00, SQD = 1/8
+
+100
+
+Percentage (%)
+
+preserved by the selected reduced representation, while the
+markers show the feasible and optimal probabilities obtained
+after PCE-based adiabatic evolution. The colour scale represents the selected reduced dimension m.
+
+80
+60
+40
+20
+0
+
+4
+
+5
+
+6
+
+8
+
+System size (qubits)
+Popt, AE
+Feasible coverage
+Pfeas, AE
+
+Pfeas, SQD
+
+10
+
+12
+Popt, SQD
+
+FIGURE 4. Selected SQD operating point for the direct UC case studies with
+β = 1.0 and ρSQD = 1/8. Bars show the feasible-state coverage Cfeas .
+AE
+Markers show the feasible and optimal probabilities before SQD, Pfeas
+and
+SQD
+SQD
+AE
+and Popt
+.
+Popt
+, and after SQD, Pfeas
+
+SQD consistently concentrates the sampled distribution on
+SQD
+SQD
+the optimal schedule: Popt
+= 1.0 and Pfeas
+= 1.0 for
+every analysed case, despite the direct AE optimal probabilities ranging only from 0.123 to 0.368. At the same time,
+the retained subspace becomes proportionally much smaller
+as N increases, reaching a 98.9% dimensional reduction
+for N = 12, while still retaining the optimal state. The
+additional SQD computational cost is negligible relative to
+AE, remaining below 0.02 s in all cases.
+
+11
+
+Author et al.: Marc Carrillo i Muñoz
+
+N
+4
+5
+6
+8
+10
+12
+
+|S|
+8
+8
+8
+32
+35
+45
+
+ρeff
+0.500
+0.250
+0.125
+0.125
+0.034
+0.011
+
+Red. (%)
+50.0
+75.0
+87.5
+87.5
+96.6
+98.9
+
+AE T (s)
+15.50
+25.57
+31.34
+54.84
+80.62
+268.28
+
+SQD T (s)
+0.002
+0.002
+0.001
+0.002
+0.004
+0.019
+
+AE
+Popt
+0.368
+0.251
+0.219
+0.123
+0.195
+0.146
+
+SQD
+Popt
+1.0
+1.0
+1.0
+1.0
+1.0
+1.0
+
+AE
+Pfeas
+0.470
+0.517
+0.412
+0.218
+0.361
+0.328
+
+SQD
+Pfeas
+1.0
+1.0
+1.0
+1.0
+1.0
+1.0
+
+Cfeas
+2/3
+4/4
+4/5
+3/9
+7/11
+10/13
+
+TABLE 2. Summary of the selected SQD operating point for the UC case studies. The table reports the effective retained fraction ρeff , retained subspace size |S|,
+dimensional reduction, feasible-state coverage Cfeas , feasible and optimal probabilities before and after SQD, and the corresponding AE and SQD computational
+times. The feasible-state coverage is reported as the number of feasible states retained in the SQD subspace divided by the total number of feasible states. All
+cases use β = 1.0, ρSQD = 0.125, T = 100, ∆t = 0.1, η = 0.5, and τ = 1.
+
+C. PCE+SQD UC
+
+This subsection evaluates the complete PCE+SQD workflow.
+PCE first compresses the original N -qubit Hamiltonian into
+an m-qubit representation, after which the adiabatic evolution is performed in the reduced space. SQD is then applied
+to the sampled reduced distribution. For each system size, m
+is fixed to the configuration selected in Section III-A, while
+SQD uses β = 1.0 and ρSQD = 1/8.
+Figure 5 summarises the combined results. The bars indicate the feasible-state coverage of the retained SQD subspace. Empty markers show the feasible and optimal probabilities after PCE-based adiabatic evolution, while filled
+markers show the corresponding probabilities after SQD
+post-processing.
+
+Percentage (%)
+
+80
+60
+
+6
+
+40
+20
+0
+
+4
+
+5
+
+6
+
+8
+
+10 12 14 16 18 20
+
+Original system size, N (qubits)
+Popt, PCE
+Feasible coverage
+Pfeas, PCE
+
+Pfeas, PCE + SQD
+
+4
+3
+2
+
+Reduced qubits, m
+
+10
+9
+8
+
+100
+
+Popt, PCE + SQD
+
+FIGURE 5. Combined PCE+SQD results for the UC case studies. Bars
+represent the feasible-state coverage of the retained SQD subspace. Empty
+markers show the feasible and optimal probabilities after PCE-based adiabatic
+evolution, while filled markers show the corresponding probabilities after SQD
+post-processing. The colour scale indicates the reduced number of qubits m.
+
+The combined workflow consistently refines the PCE distribution, with SQD recovering Popt = 1.0 and Pfeas = 1.0
+for all analysed instances from N = 4 to N = 20. This
+is achieved even when the PCE probabilities are moderate
+or low, showing that the optimal configuration remains represented in the reduced sampled space. At the same time,
+the retained feasible state coverage decreases with problem
+size, confirming that full feasible coverage is not required for
+successful recovery of the optimum. Overall, PCE provides
+12
+
+the dimensional reduction required to extend the adiabatic
+simulations to larger UC instances, while SQD acts as an effective low-cost refinement stage for the compressed solution
+distribution.
+IV. DISCUSSION
+
+The results obtained across the four analysed workflows
+highlight the complementary roles of PCE and SQD in the
+proposed quantum UC framework. Direct AE provides the
+reference behaviour of the original N -qubit formulation,
+PCE reduces the dimension of the Hamiltonian before the
+adiabatic evolution, and SQD refines the information contained in the resulting sampled distribution. The two techniques therefore address different limitations of the direct
+formulation.
+The PCE results demonstrate that substantial qubit reductions can be achieved without systematically degrading solution quality. The selected configurations reduce the
+evolved dimension by approximately 40%-60%, while Popt
+remains between 0.343 and 0.906 across the analysed cases.
+In particular, the larger N = 18 and N = 20 instances
+achieve Popt = 0.890 and 0.906, respectively, despite a 50%
+qubit reduction. The feasible probability also remains high
+for most cases, although the N = 8 instance shows that the
+performance of the compressed evolution remains instancedependent.
+Feasible-state coverage provides an additional indication
+of the selectivity introduced by PCE. High probability performance does not require preservation of the complete feasible
+set: for N = 18 and N = 20, only 2/24 and 2/28
+feasible schedules are represented, respectively, while the
+optimal probability remains close to 0.9. This confirms that
+the quality of the reduced representation depends primarily on retaining relevant feasible configurations and on the
+structure of the resulting reduced Hamiltonian, rather than
+on maximising feasible-state coverage itself.
+SQD exhibits a different advantage. For the direct AE
+cases, the resulting distributions contain only moderate feasiAE
+ble and optimal probability, with Pfeas
+ranging from 0.218
+AE
+to 0.517 and Popt from 0.123 to 0.368. After SQD, both
+probabilities reach 1.0 for every analysed instance. This
+VOLUME 4, 2016
+
+103
+
+100
+
+AE
+AE + SQD
+PCE
+PCE + SQD
+
+80
+60
+
+102
+
+40
+20
+
+101
+4
+
+5
+
+6
+
+8
+
+10
+
+12
+
+14
+
+Original system size, N (qubits)
+
+16
+
+18
+
+20
+
+0
+
+Optimal probability, Popt (%)
+
+Total computational time (s)
+
+Author et al.: Towards Scalable Quantum Unit Commitment: Encoding and Complexity Reduction Techniques
+
+FIGURE 6. Comparison of total computational time and optimal-solution probability for direct AE, AE+SQD, PCE, and PCE+SQD as the original UC problem size
+increases.
+
+improvement is achieved while retaining only a fraction of
+the original Hilbert space, with reductions increasing up to
+98.9% for N = 12. Therefore, SQD is able to identify and
+concentrate the relevant solution even when only a reduced
+subset of the sampled configurations is retained.
+The computational overhead introduced by SQD is negligible compared with the adiabatic evolution. Its postprocessing time remains below 0.02 s in all direct cases,
+whereas the AE time increases from approximately 15 s for
+N = 4 to more than 260 s for N = 12. SQD should
+therefore be interpreted as a refinement mechanism rather
+than a technique for reducing the cost of the preceding
+quantum evolution.
+Combining both techniques preserves these two advantages. PCE first reduces the number of qubits that must be
+evolved and extends the study to original systems up to
+N = 20, while SQD subsequently concentrates the reduced
+sampled distribution. Across all analysed system sizes, the
+combined approach reaches Popt = 1.0 and Pfeas = 1.0.
+Consequently, PCE provides the dimensional reduction required for scalability, while SQD improves the reliability of
+the final extracted solution.
+Figure 6 provides a joint comparison of computational
+time and optimal probability for the four workflows.
+The runtime results further distinguish the roles of the
+two techniques. Direct AE and AE+SQD are restricted to
+N ≤ 12 in the present emulator because 2N -dimensional
+state vectors surpass memory limits. PCE changes this scaling by performing the adiabatic evolution on an m-qubit
+Hamiltonian, enabling the N = 14, 16, 18, and 20 cases to
+be evaluated in the same environment. The measured PCE
+runtime is not strictly monotonic with N , since it depends
+on both the selected value of m and the complexity of
+the encoded Hamiltonian. SQD adds almost no additional
+VOLUME 4, 2016
+
+runtime to either the direct or compressed workflow.
+The considered KPIs capture different aspects of the workflow performance. Qubit reduction measures the dimensional
+benefit provided by PCE, feasible-state coverage characterises the information retained by the reduced representations, sampled-subspace reduction, Pfeas and Popt quantify
+the quality of the resulting distributions, and computational
+time reflects the practical cost of the simulated workflow. Figure 7 summarises these complementary behaviours, showing
+how PCE primarily contributes dimensional reduction and
+scalability, SQD improves solution concentration, and their
+combination provides the most balanced performance across
+the analysed indicators. Considering these indicators jointly,
+PCE and SQD are therefore better interpreted as complementary stages: PCE addresses dimensional complexity, whereas
+SQD improves the quality of the solution extracted from the
+available samples.
+For visual comparison, the indicators in Fig. 7 are normalised to a common 0-100 scale. Runtime efficiency is
+evaluated over the common cases up to N = 12, while
+scalability reflects the largest original problem size addressed
+by each workflow relative to N = 20.
+The reported computational times should nevertheless be
+interpreted within the limitations of the classical emulator.
+The restriction of direct AE beyond N = 12 results from the
+exponential memory requirements of state-vector simulation
+and does not directly represent the behaviour of a physical quantum processor. Likewise, the computational benefit
+of PCE reflects the reduction of the state space that must
+be simulated classically. Evaluation on quantum hardware
+will therefore be required to determine how the observed
+reductions translate into practical resource and executiontime advantages.
+
+13
+
+Author et al.: Marc Carrillo i Muñoz
+
+FIGURE 7. Comparative representation of the main performance indicators
+for the four analysed UC quantum workflows.
+
+V. CONCLUSIONS AND FUTURE WORK
+
+This work has presented a quantum optimisation workflow
+for the Unit Commitment problem based on adiabatic quantum evolution and two complementary complexity-reduction
+techniques: Pauli Correlation Encoding as a pre-processing
+stage and Sample-based Quantum Diagonalisation as a postprocessing stage. Four configurations were analysed: direct
+AE, AE+SQD, PCE+AE, and the complete PCE+SQD workflow, using UC instances ranging from N = 4 to N = 20.
+The PCE results show that the evolved Hamiltonian can be
+reduced by approximately 40%–60% while retaining useful
+feasible and optimal configurations. The largest cases maintain high optimal probabilities after compression, reaching
+Popt = 0.890 and 0.906 for N = 18 and N = 20,
+respectively. The results also confirm that high feasible-state
+coverage is not a prerequisite for good performance, since
+the most relevant configurations can be preserved even when
+only a small fraction of the feasible space is encoded.
+SQD provides a complementary improvement. In the direct cases, the AE distributions exhibit moderate feasible
+and optimal probabilities, while SQD increases both Pfeas
+and Popt to 1.0 for every analysed instance. This refinement
+is obtained using strongly reduced sampled subspaces and
+introduces a negligible computational overhead relative to the
+adiabatic evolution.
+The combined PCE+SQD workflow consequently provides the most complete behaviour among the evaluated
+configurations. PCE reduces the number of qubits required
+during the evolution and permits original UC systems up to
+N = 20 to be treated in the present simulation environment,
+while SQD consistently recovers a fully concentrated feasible
+and optimal solution from the compressed samples. The two
+techniques therefore address different aspects of scalability
+and solution quality and should be regarded as complementary rather than competing approaches.
+Future work will investigate the sensitivity and scalability
+of the proposed workflow with respect to the structure of
+the feasible space, including variations in the number and
+14
+
+distribution of feasible commitment schedules for a fixed
+problem size. This analysis will help determine how feasiblestate density influences both the PCE representation and the
+effectiveness of the subsequent SQD refinement. The selection of the reduced dimension and the spectral characteristics
+of the encoded Hamiltonians will also be studied in greater
+detail.
+The UC formulation will additionally be extended towards
+more realistic operational conditions, including multi-period
+constraints and additional generator characteristics. Finally,
+implementation on quantum annealing or gate-based quantum hardware will be required to assess whether the dimensional reductions and sample-based refinement observed
+under classical emulation translate into practical reductions
+in quantum resources and execution time.
+VI. APPENDIX
+A. DERIVATION OF THE AUTOMATIC PENALTY
+BASELINE
+
+This appendix summarises the penalty construction used in
+the normalised UC QUBO formulation. For a binary commitment vector u, let
+X
+f˜(u) =
+c̃g ug
+(62)
+g∈G
+
+be the normalised UC cost, and let
+
+2
+X
+ν(u) = 
+P̃g ug − D̃
+
+(63)
+
+g∈G
+
+be the squared normalised demand-balance violation. The
+unconstrained objective is then
+HQUBO (u) = f˜(u) + λν(u).
+
+(64)
+
+Let u⋆ denote the minimum-cost feasible schedule, so that
+ν(u⋆ ) = 0. For any infeasible schedule u with a lower
+unpenalised cost than u⋆ , preserving the feasible optimum
+as the QUBO ground state requires
+f˜(u⋆ ) < f˜(u) + λν(u).
+
+(65)
+
+Therefore, the limiting penalty associated with an infeasible
+competitor is
+λ(u) =
+
+f˜(u⋆ ) − f˜(u)
+,
+ν(u)
+
+ν(u) > 0.
+
+(66)
+
+The minimum penalty that removes all lower-cost infeasible
+competitors is taken as
+(
+)
+f˜(u⋆ ) − f˜(u)
+λmin = max 0,
+.
+(67)
+ν(u)
+u∈F
+/
+To obtain a common automatic scaling across the analysed
+instances, the baseline used in this work is
+
+
+1
+λauto = 2λmin 1 +
+,
+(68)
+N
+VOLUME 4, 2016
+
+Author et al.: Towards Scalable Quantum Unit Commitment: Encoding and Complexity Reduction Techniques
+
+where the factor (1+1/N ) introduces a dimension-dependent
+safety margin that is larger for small problems and approaches one as the number of logical qubits increases. The
+effective penalty is finally defined as
+λ = ηλauto .
+
+(69)
+
+Using the common value η = 0.5 adopted in the case studies
+gives
+
+
+1
+λ = λmin 1 +
+,
+(70)
+N
+which places the effective penalty above the limiting value
+λmin while avoiding an excessive increase with problem
+dimension. This is the same penalty construction used in the
+numerical experiments reported in the main text.
+REFERENCES
+[1] P. A. Ganeshamurthy, K. Ghosh, C. O’Meara, G. Cortiana, J. SchiefelbeinLach, and A. Monti, “Next generation power system planning and operation with quantum computation,” IEEE Access, vol. 12, pp. 182 673–
+182 692, 2024.
+[2] H. Liu and W. Tang, “Quantum computing for power systems: Tutorial,
+review, challenges, and prospects,” Electric Power Systems Research, vol.
+223, p. 109530, 2023.
+[3] M. H. Ullah, R. Eskandarpour, H. Zheng, and A. Khodaei, “Quantum
+computing for smart grid applications,” IET Generation, Transmission &
+Distribution, vol. 16, no. 21, pp. 4239–4257, 2022.
+[4] F. Amani, R. Mahroo, and A. Kargarian, “Quantum-enhanced DC optimal
+power flow,” in 2023 IEEE Texas Power and Energy Conference (TPEC),
+2023, pp. 1–6.
+[5] M. Carrillo-Muñoz, S. Martinez-Hermida, S. Barja-Martinez, A. E.
+Saldaña-González, and M. Aragüés Peñalba, “Quantum optimization approach based on Qibo framework for DC-OPF,” in 2025 IEEE PES
+Innovative Smart Grid Technologies Conference Europe (ISGT Europe),
+2025, pp. 1–5.
+[6] J. Liu, H. Zheng, M. Hanada, K. Setia, and D. Wu, “Quantum power flows:
+From theory to practice,” Quantum Machine Intelligence, vol. 6, no. 2,
+p. 55, 2024.
+[7] D. Bucher, D. Porawski, B. Wimmer, J. Nüßlein, C. O’Meara, G. Cortiana,
+and C. Linnhoff-Popien, “Grid cost allocation in peer-to-peer electricity
+markets: Benchmarking classical and quantum optimization approaches,”
+in Proceedings of the 17th International Conference on Agents and Artificial Intelligence – Volume 1: QAIO. SciTePress, 2025, pp. 751–762.
+[8] C. O’Meara, M. Fernández-Campoamor, G. Cortiana, and J. BernabéMoreno, “Quantum software architecture blueprints for the cloud:
+Overview and application to peer-2-peer energy trading,” in 2023 IEEE
+Conference on Technologies for Sustainability (SusTech), 2023, pp. 191–
+198.
+[9] N. Nikmehr, P. Zhang, and M. A. Bragin, “Quantum distributed unit
+commitment: An application in microgrids,” IEEE Transactions on Power
+Systems, vol. 37, no. 5, pp. 3592–3603, 2022.
+[10] S. Koretsky, P. Gokhale, J. M. Baker, J. Viszlai, H. Zheng, N. Gurung,
+R. Burg, E. A. Paaso, A. Khodaei, R. Eskandarpour, and F. T. Chong,
+“Adapting quantum approximation optimization algorithm (QAOA) for
+unit commitment,” in 2021 IEEE International Conference on Quantum
+Computing and Engineering (QCE), 2021, pp. 181–187.
+[11] J. Ling, Q. Zhang, G. Geng, and Q. Jiang, “Hybrid quantum annealing
+decomposition framework for unit commitment,” Electric Power Systems
+Research, vol. 238, p. 111121, 2025.
+[12] W. Hong, W. Xu, and F. Teng, “Qubit-efficient quantum annealing for
+stochastic unit commitment,” 2025.
+[13] V. P. Soloviev and M. Krompiec, “Large-scale portfolio optimization using
+pauli correlation encoding,” 2025.
+[14] J. Padín-Martínez, V. P. Soloviev, A. Borrallo-Rentero, A. RodríguezOtero, R. Alfonso-Rodríguez, and M. Krompiec, “Pauli correlation encoding for budget-constrained optimization,” 2026.
+[15] Q. Wang, M. Motta, R. D’Cunha, K. J. Sung, M. R. Hermes, T. Gujarati,
+Y. Kawashima, Y.-y. Ohnishi, G. O. Jones, and L. Gagliardi, “Samplebased quantum diagonalization as parallel fragment solver for the localized
+active space self-consistent field method,” 2025.
+VOLUME 4, 2016
+
+[16] M. Sciorilli, L. Borges, T. L. Patti, D. García-Martín, G. Camilo,
+A. Anandkumar, and L. Aolita, “Towards large-scale quantum optimization solvers with few qubits,” Nature Communications, vol. 16, p. 476,
+2025.
+[17] J. Robledo-Moreno, M. Motta, H. Haas, A. Javadi-Abhari, P. Jurcevic,
+W. Kirby, S. Martiel, K. Sharma, S. Sharma, T. Shirakawa, I. Sitdikov, R.Y. Sun, K. J. Sung, M. Takita, M. C. Tran, S. Yunoki, and A. Mezzacapo,
+“Chemistry beyond the scale of exact diagonalization on a quantum-centric
+supercomputer,” Science Advances, vol. 11, no. 25, p. eadu9991, 2025.
+[18] D. S. Kaliakin, A. Shajan, F. Liang, and K. M. J. Merz, “Implicit solvent
+sample-based quantum diagonalization,” The Journal of Physical Chemistry B, 2025.
+[19] A. Shajan, D. S. Kaliakin, A. Mitra, J. Robledo-Moreno, Z. Li, M. Motta,
+C. Johnson, A. A. Saki, S. Das, I. Sitdikov, A. Mezzacapo, and K. M. J.
+Merz, “Toward quantum-centric simulations of extended molecules:
+Sample-based quantum diagonalization enhanced with density matrix
+embedding theory,” Journal of Chemical Theory and Computation, vol. 21,
+no. 14, pp. 6801–6810, 2025.
+[20] B. Tan, M.-A. Lemonde, S. Thanasilp, J. Tangpanitanon, and D. G.
+Angelakis, “Qubit-efficient encoding schemes for binary optimisation
+problems,” Quantum, vol. 5, p. 454, 2021.
+[21] B. Fuller, C. Hadfield, J. R. Glick, T. Imamichi, T. Itoko, R. J. Thompson,
+Y. Jiao, M. M. Kagele, A. W. Blom-Schieber, R. Raymond, and A. Mezzacapo, “Approximate solutions of combinatorial problems via quantum
+relaxations,” IEEE Transactions on Quantum Engineering, 2024.
+[22] R. Kondo, Y. Sato, R. Raymond, and N. Yamamoto, “Recursive quantum
+relaxation for combinatorial optimization problems,” Quantum, vol. 9, p.
+1594, 2025.
+[23] D. J. Egger, J. Mareček, and S. Woerner, “Warm-starting quantum optimization,” Quantum, vol. 5, p. 479, 2021.
+[24] S. Müller, M. Dukalski, and F. Phillipson, “Quantum annealing for optimizing unit scheduling in renewable energy systems: Formulation and
+evaluation,” IEEE Transactions on Power Systems, vol. 41, no. 2, pp. 836–
+846, 2026.
+[25] F. Feng, P. Zhang, M. A. Bragin, and Y. Zhou, “Novel resolution of unit
+commitment problems through quantum surrogate lagrangian relaxation,”
+IEEE Transactions on Power Systems, vol. 38, no. 3, pp. 2460–2471, 2023.
+[26] R. Mahroo and A. Kargarian, “Hybrid quantum-classical unit commitment,” in 2022 IEEE Texas Power and Energy Conference (TPEC), 2022,
+pp. 1–5.
+[27] N. G. Paterakis, “Hybrid quantum-classical multi-cut benders approach
+with a power system application,” Computers & Chemical Engineering,
+vol. 172, p. 108161, 2023.
+[28] F. Koch, S. Panahiyan, R. Mukherjee, J. Doetsch, and D. Jaksch,
+“Resource-efficient quantum optimization via higher-order encoding,”
+2025.
+[29] M. Sciorilli, G. Camilo, T. O. Maciel, A. Canabarro, L. Borges, and
+L. Aolita, “A competitive NISQ and qubit-efficient solver for the LABS
+problem,” 2025.
+[30] M. Sharma and H. C. Lau, “A comparative study of quantum optimization
+techniques for solving combinatorial optimization benchmark problems,”
+2025.
+[31] K. Nakaji, S. Uno, Y. Suzuki, R. Raymond, T. Onodera, T. Tanaka,
+H. Tezuka, N. Mitsuda, and N. Yamamoto, “Approximate amplitude
+encoding in shallow parameterized quantum circuits and its application
+to financial market indicators,” Physical Review Research, vol. 4, no. 2, p.
+023136, 2022.
+[32] Y. Zhou, Z. Tang, N. Nikmehr, P. Babahajiani, F. Feng, T.-C. Wei,
+H. Zheng, and P. Zhang, “Quantum computing in power systems,” iEnergy,
+vol. 1, no. 2, pp. 170–187, 2022.
+[33] T. Morstyn and X. Wang, “Opportunities for quantum computing within
+net-zero power system optimization,” Joule, vol. 8, no. 6, pp. 1619–1640,
+2024.
+[34] S. Efthymiou, S. Ramos-Calderer, C. Bravo-Prieto, A. Pérez-Salinas,
+D. García-Martín, A. Garcia-Saez, J. I. Latorre, and S. Carrazza, “Qibo: A
+framework for quantum simulation with hardware acceleration,” Quantum
+Science and Technology, vol. 7, no. 1, p. 015018, 2021.
+[35] S. Efthymiou, M. Lazzarin, A. Pasquale, and S. Carrazza, “Quantum
+simulation with just-in-time compilation,” Quantum, vol. 6, p. 814, 2022.
+[36] Qibo, “Qibo,” [Online]. Available: https://qibo.science/.
+
+15
+
+

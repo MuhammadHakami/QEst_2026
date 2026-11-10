@@ -1,0 +1,200 @@
+                                              Benchmarking Hybrid Quantum-Classical Algorithms for Power Grid Optimization
+                                                                              Problems
+                                                                                       Igor Gaidai 1, 2, ∗ and Rick Mukherjee1, 2, †
+                                                                   1
+                                                                       Department of Physics and Astronomy, University of Tennessee, Chattanooga, USA
+                                                                               2
+                                                                                 Quantum Center, University of Tennessee, Chattanooga, USA
+                                                             Alternating Current Optimal Power Flow Unit Commitment (AC-OPF-UC) is a difficult mixed-
+                                                          integer nonlinear optimization problem that combines binary generator commitment decisions with
+                                                          nonconvex continuous AC power-flow constraints. In this work, we investigate whether hybrid
+                                                          quantum-classical variational algorithms can improve the solution of single-period AC-OPF-UC rel-
+                                                          ative to classical approaches. To the best of our knowledge, this is the first study to directly evaluate
+                                                          quantum or hybrid quantum-classical algorithms for the full AC-OPF-UC problem. We consider two
+                                                          candidate algorithms for improving AC-OPF-UC solution quality relative to purely classical meth-
+                                                          ods on ideal quantum hardware. The first applies QAOA directly to a fully discretized formulation
+                                                          of the problem, with equality and inequality constraints incorporated through penalty terms and
+                                                          slack variables. Although conceptually straightforward, this approach requires a prohibitively large
+                                                          number of qubits even for small instances. The second, qubit-efficient approach encodes only the bi-
+                                                          nary generator status variables on a quantum computer, while optimizing the continuous power-flow
+                                                          variables classically for each sampled bitstring. We benchmark this method on randomly generated
+                                                          AC-OPF-UC instances with 5 to 13 generators and compare it against SCIP, SMAC, and uniform
+                                                          random sampling. Our simulations show that the qubit-efficient hybrid method does not outper-
+arXiv:2607.15543v1 [quant-ph] 17 Jul 2026
+
+
+
+
+                                                          form uniform sampling. These results suggest that in order to establish potential advantage of the
+                                                          variational hybrid strategy considered here over the best classical algorithms, if any, much larger
+                                                          system sizes (25+ generators) need to be tested, which is beyond our computational capacity. Al-
+                                                          ternatively, different approaches, such as quantum versions of branch-and-bound methods, may be
+                                                          more promising.
+                                                          Keywords:     Variational quantum algorithms; Quantum approximate optimization algorithm; Hybrid
+                                                          quantum-classical optimization; Mixed-integer nonlinear programming; AC optimal power flow; Unit com-
+                                                          mitment; Power grid optimization
+
+
+                                                              I.        INTRODUCTION                            most direct approach is to preserve both parts of the
+                                                                                                                model and solve the problem as a nonconvex Mixed-
+                                               Power grid optimization is a class of optimization prob-         Integer Nonlinear Programming (MINLP) or Mixed-
+                                            lems concerned with cost-efficient energy production, dis-          Integer Quadratically Constrained Quadratic Program-
+                                            tribution of power and reliability in power networks. One           ming (MIQCQP) problem. This class of methods can
+                                            such problem that we focus on in this work is called Alter-         provide the strongest solution guarantees, typically in
+                                            nating Current Optimal Power Flow Unit Commitment                   the form of feasible incumbent solutions together with
+                                            (AC-OPF-UC) problem. Roughly speaking, the prob-                    primal-dual optimality gaps. However, these guarantees
+                                            lem asks to find node voltages, phase angles and power              come at high computational cost, since the mixed-integer
+                                            output levels of generators in the network, such that the           search can grow exponentially in the worst case. As a re-
+                                            consumer load demand is satisfied, power production cost            sult, direct global methods are most useful for small and
+                                            is minimized and voltages are kept as close to nominal as           moderate benchmark systems, but do not by themselves
+                                            possible. The exact problem statement can be found in               resolve the scalability problem [2, 3].
+                                            Section III. This problem is notoriously difficult, combin-            A common way to improve tractability is to simplify
+                                            ing hard combinatorial optimization over binary variables           the network model before optimization. For example, re-
+                                            with a non-convex optimization of continuous variables.             placing the AC network with a linearized Direct Current
+                                            Finding any feasible solution, much less an optimal one,            (DC) approximation leads to Mixed-Integer Linear Pro-
+                                            for even a simpler variation of the problem (AC-OPF,                gramming (MILP) or Mixed-Integer Quadratic Program-
+                                            without the binary variables) is known to be strongly               ming (MIQP) formulations that are much easier to solve.
+                                            NP-hard. [1]                                                        The resulting schedules can then be checked or repaired
+                                               Classical methods for the AC-OPF-UC problem are                  using AC feasibility tests. This approach is computation-
+                                            best understood as different ways of managing two cou-              ally attractive, but it generally cannot guarantee feasi-
+                                            pled sources of difficulty: binary generator commitment             bility or optimality for the original AC problem because
+                                            decisions and nonlinear AC power-flow constraints. The              voltage magnitudes, reactive power, losses, and nonlinear
+                                                                                                                branch-flow constraints are not fully represented [4, 5].
+                                                                                                                  Between these two extremes, much of the recent liter-
+                                            ∗ igor-gaidai@utc.edu
+                                                                                                                ature uses convex relaxations that retain more of the AC
+                                            † rick-mukherjee@utc.edu
+                                                                                                                network structure than DC approximations while remain-
+                                                                                                                        2
+
+ing more tractable than the original nonconvex formula-        works [25–28]. These methods are closer in spirit to AC-
+tion. Semidefinite Programming (SDP), Second-Order             OPF-UC, but most rely on DC power flow, simplified
+Cone Programming (SOCP), and Mixed-Integer Second-             network constraints, or separable subproblems, so their
+Order Cone Programming (MISOCP) formulations re-               extension to the full nonconvex AC formulation is not
+place the original nonconvex constraints with tractable        automatic.
+lower-bounding problems [6, 7]. When the relaxation is            Overall, the studies reviewed above suggest that quan-
+exact, the solution of the relaxed problem is also globally    tum methods may be useful as components inside hy-
+optimal for the original nonconvex problem, so the re-         brid decompositions, especially for linear algebra [17, 18]
+laxation provides a certificate of global optimality [6, 7].   or binary search subroutines [21–28]. However, current
+When the relaxation is not exact, it can still provide use-    evidence does not establish a practical advantage over
+ful lower bounds, but the corresponding relaxed solution       strong classical baselines for realistic grid-optimization
+may not be feasible for the original AC formulation and        problems, and no existing approach directly resolves the
+may require feasibility restoration or local AC-OPF pol-       combined difficulty of binary commitment and nonlinear
+ishing [7]. These relaxations are often combined with          AC feasibility. To the best of our knowledge, no other
+decomposition, which separates the problem into smaller        work studied whether quantum algorithms are viable for
+continuous and mixed-integer subproblems and improves          AC-OPF-UC, how much improvement can they bring and
+scalability in AC network-constrained UC applications          at what cost. Thus, the goal of this paper is to close this
+[5, 8–10]. This direction has produced strong practical        gap and answer these questions.
+results on standard benchmark systems, but exactness
+and feasibility recovery remain instance-dependent.
+   Despite these advances, the problem remains difficult                         II.       BACKGROUND
+for large system sizes, which makes it a natural candi-
+date for investigation of whether quantum computing can                     A.   Time-Dependent Picture
+alleviate its difficulty. Quantum and hybrid quantum-
+classical approaches to power-grid optimization have so           Consider an arbitrary circuit element in an Alternating
+far been applied mainly to simplified subproblems, not         Current (AC) circuit. Voltage at the element oscillates
+to the full AC-OPF-UC problem considered here. For             sinusoidally:
+power-flow and OPF models, one line of work uses quan-
+tum linear-system solvers, such as HHL [11] or variational                            √
+                                                                               v(t) = 2V̄ cos(ωt + ϕv )               (1)
+quantum linear solvers [12], either directly for power-flow
+equations [13, 14] or inside Newton and interior-point it-     where V̄ is the root mean square (RMS) voltage, ω is
+erations [15–18]. In these approaches, the quantum com-        oscillation frequency, t is time, and ϕv is a phase.
+puter accelerates the repeated solution of linear systems         Typically, current through the element also oscillates
+arising from the KKT or Newton equations. This gives a         sinusoidally with the same frequency, but may, in gen-
+plausible asymptotic motivation, but it is not directly a      eral, have a different phase (because of reactive circuit
+solver for AC-OPF-UC, since by itself it does not handle       elements, such as inductors and capacitors):
+binary commitment decisions, branch-and-bound search,
+                                                                                        √
+or the nonconvex mixed-integer structure of the full prob-                       i(t) = 2I¯ cos(ωt + ϕi )            (2)
+lem. Existing demonstrations are also mostly small, sim-
+ulated, or limited to DC-OPF, AC-OPF, or power-flow            where I¯ is RMS current.
+equations, and they generally reproduce classical interior-      Power of a circuit element is a measure of the rate of
+point behavior without showing a practical speedup [13–        work that element performs. Power can be calculated as
+18].                                                           a product of voltage and current:
+   A second direction encodes unit commitment as a
+QUBO or Ising Hamiltonian and applies QAOA [19],                p(t) = v(t)i(t) = 2V̄ I¯ cos(ωt + ϕv ) cos(ωt + ϕi )
+quantum annealing [20], or related hybrid methods [21–                    ¯
+                                                                     = V̄ I(cos(ϕv − ϕi ) + cos(2ωt + ϕv + ϕi ))
+24]. Here the quantum computer is used to search over                     ¯                                           (3)
+                                                                     = V̄ I(cos(φ)+
+binary generator-status variables. This is more natu-
+rally connected to the commitment part of AC-OPF-                    cos(2ωt + 2ϕv ) cos(φ) + sin(2ωt + 2ϕv ) sin(φ))
+UC, but it does not straightforwardly include contin-                = P (1 + cos(2ωt + 2ϕv )) + Q sin(2ωt + 2ϕv )
+uous AC voltages, reactive powers, nonlinear power-
+flow equations, or line-current constraints. Those vari-       where φ = ϕv − ϕi , P = V̄ I¯ cos(φ) is called active power
+ables must either be discretized, which greatly increases      and Q = V̄ I¯ sin(φ) is called reactive power. The amount
+qubit requirements, or optimized classically in a decom-       of power consumed by a circuit element on average per
+position scheme. Related hybrid decompositions have            period (T ) is equal to P :
+also been studied for DC-OPF-UC and distributed UC,                                        Z T
+where quantum routines are embedded inside ADMM,                                       1
+                                                                                                 p(t)dt = P            (4)
+Lagrangian relaxation, or surrogate Lagrangian frame-                                  T    0
+                                                                                                                          3
+
+                       B.   Phasors                            additional degrees of freedom. For example, in a typi-
+                                                               cal 3-phase system under normal circumstances voltages
+   In many cases, periodic oscillations of physical quan-      and currents in each of the 3 phase conductors have the
+tities, such as voltage or current, do not matter because      same amplitude, frequency, and only differ by phase (0
+the relevant behavior can instead be described by period-      and ±2π/3).
+averaged quantities, as in Eq. (4). In these cases, it is         Local connections between a power station (where
+convenient to use phasors notation. A phasor is a com-         buses are located) and final consumers or generators are
+plex number whose amplitude corresponds to the RMS             assumed to be ideal and are also not explicitly included in
+value of the represented quantity and angle corresponds        the graph model. Thus, graph nodes can also be thought
+to its phase. For example, current phasor representing         of as representing neighborhoods powered by a particular
+Eq. (2) is given by                                            power station.
+                                                                  Individual consumers are typically not modeled explic-
+                             ¯ iϕi
+                         I = Ie                         (5)    itly either. Instead a total cumulative load from all con-
+                                                               sumers at each node is considered (a single constant com-
+A time-dependent representation of the current can be          plex number). Of course, individual power consumers are
+recovered from its phasor by                                   typically not constant in time. However if the number of
+                         √                                     consumers is sufficiently large it is usually a good approx-
+                   i(t) = 2Re(Ieiωt )             (6)          imation to treat the cumulative load as constant.
+                                                                  On the other hand, the number of power sources (gen-
+Voltage phasor is also defined similarly:
+                                                               erators) is typically much smaller than the number of
+                        V = V̄ eiϕv                     (7)    consumers, so each individual generator is modeled ex-
+                                                               plicitly.
+   Voltage and current phasors are related through a gen-         The continuous variables that need to be optimized in
+eralization of Ohm’s law: V = IZ, where Z is a complex         the network model are the voltage phasors at each bus Vi
+number called impedance, which is a generalization of re-      (where voltage magnitudes are defined with respect to a
+sistance. Impedance is defined as Z = R + iX, where            common implicit reference) and complex power outputs
+R is resistance and X is reactance. An inverse property        of each generator Sg . Because of the network equations
+Y = 1/Z is called admittance.                                  and constraints (see Eqs. (10)–(15) below) these variables
+   Similarly to Eq. (3), a product of voltage and              are not independent, and typically cannot be controlled
+(complex-conjugated) current phasors gives us a quan-          directly in real systems, so they should not be regarded
+tity S, called complex power.                                  as primary control knobs of the system. Instead, they
+                                                               should be treated as a consequence of the primary con-
+                               ¯ iφ = P + iQ
+                S = V I ∗ = V̄ Ie                       (8)    trols (typically electromotive force), whose optimized val-
+                                                               ues can be used to recover the optimal settings of the
+Note that S is not a phasor of power per se, since we can-     system.
+not recover time-dependent p(t) from it using an equiva-
+lent of Eq. (6), but it still gives us information about the
+values of P and Q, which is sufficient for many purposes.
+                                                                                    III.   THEORY
+
+
+           C.    Distributed Power Networks                                  A.    Power Network Model
+
+
+   Real-life electrical networks are complicated structures       In this work we consider the following problem. As an
+connecting together a large number of power consumers          input we get a graph describing configuration and param-
+and sources (generators). At some level of abstraction,        eters of a given power network (Figure 1). Each node i of
+they can be represented as a graph where nodes repre-          the graph has its associated voltage phasor (Vi = vi eiδi )
+sent so-called buses. A bus is a junction point in the         and specifies the minimum and maximum values of volt-
+network where multiple consumers and generators can            age magnitudes (vimin , vimax ), as well as its cumulative
+be connected. The edges between nodes represent elec-          power load from all consumers Li (complex) and a list
+trical lines, typically long-range conductors, connecting      of connected generators Gi = {gij }. Each edge speci-
+different buses into a single network.                         fies its admittance (Yij ) and maximum supported current
+   Electricity typically requires closed current paths. In     (|Iij |max ).
+real networks these paths also involve additional con-            Each generator g ∈ Gi (subscripts on g are implicit for
+ductors (e.g. other phase conductors) together with the        less cluttered notation) has an associated power output
+source and load connections. These additional conduc-          Sg = Pg + iQg , status ug (off=0 or on=1) and speci-
+tors are not explicitly included in the graph abstraction      fies its minimum and maximum values of active and re-
+since it is assumed that their electrical quantities can be    active powers (Pgmin , Pgmax , Qmin
+                                                                                                 g  , Qmax
+                                                                                                       g   ) and cost terms
+inferred from the model variables, so they introduce no        (ag , bg , cg ). The cost of producing a given level of power
+

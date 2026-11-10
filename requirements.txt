@@ -1,0 +1,36 @@
+chronos-forecasting==2.3.2
+dimod==0.12.23
+dwave-samplers==1.8.0
+gymnasium==1.4.0
+highspy==1.15.1
+jij-cimod==1.7.5
+lightgbm==4.7.0
+matplotlib==3.11.2
+numpy==2.5.4
+openjij==0.12.2
+optuna==5.0.0
+pandas==3.0.6  # resolved down from 3.1.1 by the cudaq / cirq install
+pvlib==0.16.1
+pyarrow==26.0.1
+pyyaml==6.0.3
+qiskit-aer==0.18.2
+qiskit-optimization==0.7.0
+qiskit==2.6.2
+scikit-learn==1.9.1
+scipy==1.18.1
+stable-baselines3==2.9.2
+tabulate==0.10.0
+torch==2.15.0
+cudaq==0.16.0.post1  # CUDA-Q: GPU statevector (cuStateVec), also iqm / pasqal / ibm targets
+cuda-quantum-cu13==0.16.0.post1
+cuquantum-python-cu13==26.6.0
+cirq-core==1.7.0
+qsimcirq==0.22.1
+nbformat==5.11.1
+nbconvert==7.17.2
+ipykernel==7.4.0
+py_wake==2.6.20  # wakes inside each Estonian wind park (qest.assets; TurbOPark, as the sage_globe twin's energy/wind.py)
+baltic-py==0.4.0
+tabpfn==2.0.9  # open-weights v2; gate-A quantile forecaster stacked on Chronos-2 (qest.fc_tabpfn)
+huggingface_hub==2.4.0  # tabpfn's resolver downgraded it once and broke chronos/transformers; keep pinned
+transformers==5.22.2

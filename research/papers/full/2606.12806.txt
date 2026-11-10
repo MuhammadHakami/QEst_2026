@@ -1,0 +1,2201 @@
+arXiv:2606.12806v1 [quant-ph] 11 Jun 2026
+
+Quantum Reservoir Computing for Short-Term
+Power Load Forecasting in Resource-Constrained
+Energy Systems
+Mansi Od 1 , Param Pathak 2 , Nouhaila Innan 3,4 , and Muhammad Shafique 3,4
+1
+University of Greenwich, London, United Kingdom
+2
+Fractal Analytics, QuantumAI Lab, Mumbai, Maharashtra, India
+3
+eBRAIN Lab, Division of Engineering, New York University Abu Dhabi (NYUAD), Abu Dhabi, UAE
+4
+Center for Quantum and Topological Systems (CQTS), NYUAD Research Institute, NYUAD, Abu Dhabi, UAE
+mansiod2049@gmail.com, param.pathak@fractal.ai, {nouhaila.innan, muhammad.shafique}@nyu.edu
+
+these models achieve low forecasting error on standard benchmarks. However, their accuracy comes at a steep hardware cost:
+millions of trainable parameters, large activation buffers, and
+repeated floating-point matrix multiplications make inference
+latency and storage requirements incompatible with the memory
+and energy limits of resource-constrained edge devices [4].
+Reservoir Computing (RC) offers a structurally different
+solution to this deployment gap [5]. Rather than propagating
+gradients through a recurrent network, RC projects input
+signals into a fixed, randomly initialized dynamical system
+and trains only a linear readout layer on top of the resulting
+high-dimensional state trajectory. Because the reservoir is
+never updated, training reduces to a convex readout regression
+problem, avoiding the costly backpropagation passes required
+by deep recurrent models. This makes RC attractive for lowpower deployment. However, classical echo-state reservoirs rely
+on random recurrent matrices whose effective dimensionality is
+bounded by the number of physical nodes, potentially limiting
+their representational capacity for complex multivariate energy
+Index Terms—Quantum machine learning, quantum reservoir signals [6].
+computing, short-term load forecasting, post-training quantization,
+Quantum Reservoir Computing (QRC) extends the RC
+edge computing, smart grids.
+paradigm to quantum mechanical systems, where the reservoir
+is a parameterized quantum circuit with frozen weights [7].
+Even a modest register of N qubits evolves in a Hilbert space
+I. I NTRODUCTION
+of dimension 2N , providing access to a high-dimensional
+Modern power grids are becoming increasingly distributed, nonlinear feature space with a compact physical register.
+pushing Short-Term Load Forecasting (STLF) from centralized Superposition and entanglement generate intricate correlations
+control rooms toward edge nodes embedded in smart meters and across input features that are difficult to replicate in classical
+local controllers [1]. Accurate sub-hourly demand prediction systems, while the fixed-circuit design preserves the core RC
+is indispensable for operational planning, frequency regulation, advantage of gradient-free training. Critically, QRC sidesteps
+and demand-response dispatch [2]. The volatility and non- the barren-plateau problem that undermines the trainability of
+stationarity of high-frequency consumption data make this fully parameterized quantum models [8], making it a suitable
+a fundamentally difficult sequential regression task, and the candidate for resource-constrained forecasting.
+stakes of forecasting error are high in both economic and
+Despite these advantages, a concrete hardware barrier
+grid-reliability terms.
+remains. Even when the quantum processing stage is fixed,
+Recurrent architectures such as Long Short-Term Mem- the classical readout layer must store a weight vector whose
+ory (LSTM) networks and Gated Recurrent Units (GRUs), dimensionality scales with the number of measured observables.
+as well as attention-based Transformers, have set the current At full 32-bit floating-point precision this readout imposes
+performance ceiling for STLF [3]. By learning rich temporal a non-trivial memory footprint that can exceed the on-chip
+dependencies through backpropagation across many layers, Static Random-Access Memory budget of embedded energy
+
+Abstract—Short-term load forecasting is essential for reliable
+energy management, but practical deployment on edge devices
+requires models that remain accurate under limited memory,
+finite measurement budgets, and hardware noise. This work
+proposes a hardware-efficient Quantum Reservoir Computing
+(QRC) framework for energy load forecasting, where a fixed
+quantum reservoir transforms temporal input windows into highdimensional features and only a classical Elastic Net readout
+is trained. To reduce deployment cost, the trained readout is
+compressed using post-training fixed-point quantization at bit
+widths from 8 to 2 bits. The framework is evaluated on the Tetouan
+and Spain energy load datasets under exact statevector simulation,
+512-shot finite sampling, and realistic hardware-noise models
+from IBM FakeTorino and IBM FakeMarrakesh. Results show
+that 6-bit readout precision preserves full-precision forecasting
+performance while reducing readout memory by 81.2%. Below
+this point, degradation becomes dataset dependent, with Tetouan
+showing stronger sensitivity and Spain degrading more gradually.
+Hardware-noise validation further shows that the trained readout
+transfers to noisy reservoir states without retraining. These
+findings support quantized QRC as a resource-aware forecasting
+approach for near-term quantum time-series applications.
+
+controllers. Post-training fixed-point quantization of the readout forecasting on near-term hardware, edge-constrained forecastweights is therefore a necessary step toward genuine edge ing, and finite-shot noise in QRC systems. These directions
+deployability, yet its effect on the rich high-dimensional frame the main gap addressed in this work: whether a fixed
+representations produced by a quantum reservoir has not been QRC model can support accurate load forecasting when its
+systematically studied. It is unclear whether the informational readout is compressed to low-bit precision and its reservoir
+redundancy embedded in quantum feature maps offers any states are evaluated under finite-shot and hardware-noise
+resilience against aggressive low-bit compression, or whether conditions.
+quantization noise degrades the forecasting signal in the same
+way it affects classical dense readouts.
+Through this work, we close this gap by proposing a A. Reservoir Computing for Probabilistic Load Forecasting
+Hardware-Efficient QRC framework that treats the classical
+The challenge of reconciling forecasting accuracy with
+readout as the primary compression target (see Fig. 1). The
+computational
+tractability has increasingly motivated the use
+quantum reservoir remains fully fixed throughout all experiof
+Echo
+State
+Networks
+(ESNs) in short-term load forecasting.
+ments; only the readout weights are quantized post-training
+Unlike
+conventional
+deep
+learning models that require costly
+to bit widths k ∈ {8, 6, 4, 3, 2}. Using the Tetouan and Spain
+gradient-based
+optimisation
+across all layers, ESNs fix a
+energy load datasets as two distinct forecasting benchmarks,
+randomly
+initialized
+sparse
+recurrent
+reservoir and train only a
+we investigate two core scientific questions:
+linear readout, dramatically reducing training overhead. Guerra
+• Representation resilience: Do the high-dimensional
+et al. [9] extended this principle by overlaying Bayesian uncerquantum feature maps retain sufficient informational
+tainty quantification onto the readout layer, yielding calibrated
+structure to support accurate forecasting when the readout
+prediction intervals on the ACEA and Spain national grid
+is compressed to sub-8-bit precision?
+datasets while training significantly faster than autoregressive
+• The accuracy-compactness frontier: What is the effecbaselines. Melhem et al. [10] further proposed a hybrid ESNtive accuracy-per-bit trade-off of a QRC readout, and
+GRU architecture for real-time edge deployment, achieving
+at which bit width does degradation become practically
+an RMSE of 142.3 kW while reducing inference latency by
+significant?
+3.2× and memory footprint by 47% on constrained hardware.
+Our results show that 6-bit precision matches full-precision While these results validate the reservoir computing paradigm
+forecasting performance while reducing readout memory by for practical smart grid deployment, classical reservoirs remain
+about 81%. Below this point, degradation becomes dataset de- fundamentally limited in their ability to capture the highly
+pendent, with stronger sensitivity on the smaller Tetouan setting nonlinear demand profiles of modern grids, motivating the
+and smoother degradation on the larger Spain dataset. These exploration of quantum alternatives.
+findings indicate that QRC readouts can support lightweight
+forecasting under practical memory constraints.
+Load Data
+
+Quantum reservoir
+
+Exact statevector
+
+512 shots
+
+Quantized readout
+
+Load forecast
+
+IBM hardware
+
+Fig. 1: Conceptual overview of the proposed hardware-efficient QRC forecasting
+framework. Energy load data is encoded into a fixed quantum reservoir, transformed into
+reservoir features, and mapped to load forecasts through a quantized classical readout.
+The framework is evaluated under exact simulation, finite-shot sampling, and realistic
+IBM backend-noise models.
+
+The rest of the paper is organized as follows: Sec. II reviews
+related work on reservoir computing for load forecasting and
+quantum-enhanced forecasting on near-term hardware. Sec. III
+presents the proposed QRC framework, covering the quantum
+reservoir architecture, temporal kernel aggregation, classical
+readout training, and post-training quantization pipeline. Sec. IV
+reports the results and the discussion. Finally, Sec. V concludes
+with a summary of the main findings and directions for future
+work.
+II. BACKGROUND AND R ELATED W ORK
+This section reviews prior work along four directions:
+reservoir computing for load forecasting, quantum-enhanced
+
+B. Quantum-Enhanced Short-Term Load Forecasting
+Building on this motivation, Habibi et al. [5] proposed a
+hybrid quantum-classical neural network in which a parameterized quantum circuit functions as a nonlinear feature extractor,
+achieving an RMSE reduction of approximately 6.4% over
+the strongest classical comparator on real power system data
+while remaining tractable on near-term Noisy IntermediateScale Quantum hardware. Pathak et al. [11] formalized a
+QRC framework using Chebyshev encoding and brickwork
+entanglement, reporting accuracy within 1% of full-precision
+baselines on the Tetouan City dataset under finite-shot constraints. However, neither of these works considers the hardware
+constraints imposed by real edge deployment, particularly the
+impact of quantized readout and finite measurement budgets.
+
+C. Edge-Constrained Load Forecasting
+Addressing the challenge of establishing accurate forecasting
+models directly on memory-limited edge hardware, Lekidis
+and Papageorgiou [12] proposed a lightweight edge-based
+energy demand prediction framework. Yet this framework
+relies entirely on classical models and does not account for
+the additional noise source inherent to quantum measurement,
+namely finite-shot sampling.
+
+D. Finite-Shot Noise Analysis in Quantum Reservoir Systems
+This measurement noise represents a fundamental and often
+overlooked constraint. Finite measurement budgets impose
+an irreducible constraint on QRC performance, as evaluating
+expectation values requires repeated circuit executions, introducing finite-sampling noise even on fault-tolerant hardware [13].
+Ahmed et al. [14] show that this noise degrades both recurrent
+QRC and Recurrence-Free Quantum Reservoir Computing,
+affecting the recurrent variant more severely due to noise
+propagation, a finding validated by Liu et al., who demonstrate
+that sampling noise undermines multi-step QRC convergence
+while single-step architectures remain more robust [15]. This
+motivates reporting results under both exact statevector simulation and 512-shot conditions in the present work [16].
+These studies leave open the combined question addressed in
+this paper: whether a fixed QRC model can retain forecasting
+accuracy when its readout is compressed to low-bit precision
+and its reservoir states are evaluated under finite-shot and
+realistic backend-noise conditions. We address this gap using
+two energy load forecasting datasets, including zone-level
+Tetouan demand and national-scale Spain demand.
+GA architecture search
+Deployment analysis
+
+4). Quantum reservoir
+Encoding + brickwork
+5N observables / step
+
+7). Quantization
+Optimal clip + refine
+8/6/4/3/2-bit fixed-pt
+
+2). Preprocessing
+Sin/cos (h, m, dow)
+Lag-1h, lag-24h, norm
+
+5). Temporal agg.
+5 exponential kernels
++ drift 245 features
+
+Trained model
+
+QRC
+
+1). Input data
+Power load demand
+Weather covariates
+
+Window Sequences
+
+Data preparation
+
+8). HW validation
+FakeTorino (Heron r1)
+FakeMarrakesh (r2)
+
+readout training, post-training quantization, and hardware-noise
+validation.
+A. Data Preparation and Feature Engineering
+The framework assumes access to an hourly power load
+time series accompanied by meteorological covariates such as
+temperature, humidity, wind speed, and atmospheric pressure.
+Additional exogenous variables, for instance cloud cover or
+electricity price signals, can be included when available. To
+capture the periodic structure inherent in energy demand,
+six cyclical features are constructed using sine and cosine
+projections of the hour of day, month of year, and day of
+week.
+This avoids artificial discontinuities between cyclically
+adjacent values, such as hour 23 and hour 0. Two autoregressive
+lag features are appended to each sample, specifically the load
+at one hour prior and at twenty-four hours prior, providing the
+model with direct access to the most recent intraday pattern.
+All features are normalized to the unit interval using minmax scaling fit exclusively on the training partition to prevent
+information leakage. The dataset is split chronologically into
+70% training, 10% validation, and 20% test partitions without
+shuffling, preserving the temporal ordering that is essential
+for honest evaluation of time series models. A sliding window
+of T = 24 consecutive hourly observations is then applied to
+construct supervised samples, where each window of shape
+(T, F ) is paired with the scalar load value at step t + 1 as the
+prediction target.
+B. Quantum Reservoir Architecture
+
+The quantum reservoir is a parameterized circuit whose
+internal weights are randomly initialized once and then kept
+fixed, so only the readout layer is trained. This avoids quantum
+Fig. 2: Overview of the proposed QRC forecasting framework. The pipeline constructs
+gradient optimization and reduces exposure to barren plateau
+T = 24 input windows, extracts 5N observables per time step from a fixed quantum
+effects. A genetic algorithm (GA) is used offline to select the
+reservoir, compresses the temporal states into 245 aggregated features, and trains an Elastic
+Net readout for load prediction. After training, the readout is quantized to {8, 6, 4, 3, 2}optimal reservoir configuration, searching over the number of
+bit fixed-point precision and evaluated under finite-shot and hardware-noise settings. The
+qubits N , the number of entanglement layers L, the encoding
+GA search is performed offline to select N , L, encoding, and coupling strength κ for
+each dataset.
+strategy, and the coupling strength κ. Fig. 3 illustrates the
+resulting circuit structure.
+At each time step t within the input window, the normalized
+III. M ETHODOLOGY
+feature vector xt ∈ RF is encoded into an N -qubit register.
+The proposed framework is a hardware-efficient QRC A layer-dependent shift δl = 0.1 · l is applied to each feature
+pipeline for short-term load forecasting. Given a multivari- before rotation to break symmetry across layers. The shifted
+ate load time series, the model first constructs supervised feature for qubit i at layer l is computed as
+24-hour input windows from temporal, meteorological, and
+x̃i,l = (xi mod F + δl ) mod 1.
+(1)
+autoregressive features. Each window is then processed by a
+fixed quantum reservoir, where measured observables form
+Each qubit i then receives a double-rotation gate sequence
+a high-dimensional representation of the input dynamics. RZ (πx̃i,l ) · RY (πx̃i,l ), which encodes each feature onto both
+These reservoir states are compressed through temporal kernel the azimuthal and polar axes of the Bloch sphere simultaneously.
+aggregation and mapped to a scalar load forecast using an This provides a richer initial state compared to single-axis
+Elastic Net readout. After training, only the readout weights encodings such as Chebyshev angle mapping, which applies
+are quantized to low-bit fixed-point precision and evaluated only a single RY rotation per qubit.
+Following the encoding, each qubit receives a general
+under finite-shot and hardware-noise settings. A GA-based
+search is performed offline to select the reservoir configuration rotation gate Rot(αi , βi , γi ) with Haar-randomly sampled
+angles that remain fixed throughout all experiments. The
+for each dataset.
+Fig. 2 summarizes the full pipeline, including data prepa- entanglement structure follows a brickwork topology, where
+ration, quantum reservoir encoding, temporal aggregation, nearest-neighbour CNOT pairs alternate between even and odd
+3). Sliding window
+T = 24 hourly steps
+(T, F)
+y at t+1
+
+6). Classical readout
+ElasticNet CV (L1 + L2)
+5-fold cross-validation
+
+9). Evaluation
+RMSE, MSE + std
+Memory savings (%)
+
+Encoding
+
+Frozen
+
+q₀
+
+RZ
+
+RY
+
+Rot
+
+q₁
+
+RZ
+
+RY
+
+Rot
+
+q₂
+
+RZ
+
+RY
+
+Rot
+
+q₃
+
+RZ
+
+RY
+
+Rot
+
+Brickwork ent.
+5N observables
+⟨Zᵢ⟩ ⟨Xᵢ⟩⟨Yᵢ⟩
+⟨ZᵢZᵢ₊₁⟩⟨XᵢXᵢ₊₁⟩
+
+RZ
+
+×L
+
+xᵢ̃ ,ₗ
+
+35 per step × T steps
+
+RZ
+
+Encoding: RZ(πx)̃ · RY(πx)̃ , x̃ = (xᵢ mod F + 0.1·ℓ) mod 1
+Frozen: Rot(α,β,γ) Haar-random, fixed after init
+Brickwork: CNOT · RZ(κ) · CNOT, offset alternates even ↔ odd per layer
+
+Fig. 3: Quantum reservoir circuit at one time step. Each of the N qubits receives
+the double rotation RZ (π x̃) · RY (π x̃) for feature encoding, followed by a frozen
+Haar random Rot(α, β, γ) gate and a brickwork entangling block whose CNOT offset
+alternates between even and odd pairs across layers. The encode and entangle pattern
+repeats L times before measurement of single qubit Pauli expectations ⟨Zi ⟩, ⟨Xi ⟩, ⟨Yi ⟩
+and nearest neighbour correlators ⟨Zi Zi+1 ⟩, ⟨Xi Xi+1 ⟩, yielding 5N observables per
+step.
+
+offsets across successive layers. Specifically, for layer l the
+entangling operation is applied to qubit pairs {(i, i + 1)} with
+offset l mod 2, implementing the pattern
+CNOTi,i+1 · RZ (κ)i+1 · CNOTi,i+1 ,
+i ∈ {offset, offset + 2, . . .},
+
+(2)
+
+where κ is the coupling strength selected by the GA. This
+alternating offset ensures that information propagates across
+the full qubit register over multiple layers rather than remaining
+confined to isolated pairs.
+After all L layers, the reservoir state is measured. The
+measurement observable set at each time step consists of
+single-qubit Pauli expectations and nearest-neighbor two-qubit
+correlators:
+−1
+N −1
+O = {Zi , Xi , Yi }N
+i=0 ∪ {Zi Z(i+1) mod N }i=0
+−1
+∪ {Xi X(i+1) mod N }N
+i=0 .
+
+(3)
+
+This yields 5N expectation values per time step. Over a
+full input window of T steps, the raw reservoir output consists
+of 5N × T scalar features, which are then compressed by
+the temporal aggregation stage described in the following
+subsection.
+C. Temporal Kernel Aggregation
+Rather than passing the full 5N × T state sequence to
+the readout, temporal kernel aggregation compresses the
+window into a compact feature vector and reduces overfitting risk. Five exponential decay kernels with rates α ∈
+{0.50, 0.70, 0.85, 0.95, 1.00} are applied across the T time
+steps. For each kernel rate α, the aggregated feature is
+fα =
+
+T
+−1
+X
+t=0
+
+5N
+
+wtα · st ,
+
+αT −1−t
+,
+T −1−t′
+t′ α
+
+wtα = P
+
+(4)
+
+where st ∈ R
+is the reservoir state at step t, and the index
+t′ in the denominator runs over the same range 0 to T − 1
+as t, making the denominator a normalization constant that
+ensures the kernel weights sum to unity. The five kernels assign
+different levels of emphasis to recent versus distant time steps,
+
+allowing the readout to access information at multiple temporal
+scales. The kernel with α = 0.50 decays rapidly and focuses
+almost entirely on the most recent observations, while α = 1.00
+produces a uniform average that weights all steps equally.
+In addition to the five kernel features, two non-weighted
+summary features are appended. The first is the terminal
+reservoir state sT −1 , which provides direct access to the final
+measurement output. The second is the first-to-last difference
+sT −1 −s0 , which captures the net drift of the reservoir dynamics
+over the input window and encodes how much the quantum
+state has evolved during the observation period. The final
+aggregated feature vector is therefore
+
+r = f0.5 , f0.7 , f0.85 , f0.95 , f1.0 ,
+
+(5)
+sT −1 − s0 , sT −1 ∈ R(K+2)×5N ,
+where K = 5 is the number of decay kernels. This aggregation
+strategy is inspired by liquid state machine readout methods and
+retains multi-timescale information while keeping the readout
+dimensionality tractable for a linear model.
+D. Classical Readout Training
+After temporal aggregation, the only trainable component is
+an Elastic Net readout that maps the compact reservoir vector
+r to the scalar load target. This keeps training convex and
+computationally inexpensive, while the ℓ1 term enables sparse
+selection over reservoir observables and the ℓ2 term improves
+numerical stability.
+
+Input
+R ∈ Rⁿ ˣ ᵈ
+y ∈ Rⁿ
+
+Standardize
+
+5-fold cross-validation grid search
+
+Zero mean
+Unit variance
+
+Alpha (α)
+
+Mixing ratio (ρ)
+
+30 values, log grid
+
+{0.05, 0.1, 0.15, 0.2}
+
+Elastic net objective
+ŵ = argmin Rw − y ² + α·ρ· w ₁ + α·(1−ρ)· w ²
+
+L1 penalty (lasso)
+
+L2 penalty (ridge)
+
+λ₁ = α · ρ
+Drives weak weights to zero
+
+λ₂ = α · (1 − ρ)
+Shrinks all weights uniformly
+
+Sparse weight vector ŵ
+ŷ = wᵀr + b → inverse scale to physical units
+
+Fig. 4: ElasticNet readout training pipeline. Standardized reservoir features R and targets
+‖
+‖
+‖ ‖
+‖ ‖
+y feed a 5 fold cross validated grid search over the regularization strength α (30 log
+spaced values) and the mixing ratio ρ ∈ {0.05, 0.1, 0.15, 0.2}, which set the ℓ1 and
+ℓ2 penalty weights λ1 = αρ and λ2 = α(1 − ρ). The selected combination yields a
+sparse weight vector ŵ whose predictions are inverse scaled to physical units.
+
+The aggregated reservoir features are first standardized to
+zero mean and unit variance using a scaler fitted exclusively on
+the training partition. The readout is then trained using Elastic
+Net regression, which combines ℓ1 and ℓ2 regularization into
+a single objective. Fig. 4 illustrates this training pipeline. The
+optimization problem solved by the readout is
+2
+
+2
+
+ŵ = arg min ∥Rw − y∥2 + λ1 ∥w∥1 + λ2 ∥w∥2 ,
+w
+
+(6)
+
+where R ∈ Rn×d is the matrix of aggregated reservoir states
+over all n training samples, y is the normalized target vector,
+and d = (K + 2) × 5N is the readout dimensionality. The two
+penalty terms are controlled by a shared regularization strength
+
+α and a mixing parameter ρ through the relationships λ1 = α·ρ this range are saturated to the boundary. The threshold is found
+and λ2 = α · (1 − ρ). The ℓ1 component promotes sparsity in by grid search over the interval [0.5σ, ∥w∥∞ ], where σ is the
+the weight vector by driving small or irrelevant coefficients standard deviation of the trained weights and ∥w∥∞ is the
+exactly to zero, which acts as an automatic feature selection largest absolute weight value. The objective of the search is
+mechanism over the reservoir observables. The ℓ2 component to minimize the mean squared error between the original and
+shrinks the remaining nonzero weights toward zero, preventing quantized weights:
+h
+i
+any single observable from dominating the prediction and
+2
+∗
+c
+=
+arg
+min
+E
+(w
+−
+Q
+(w,
+c))
+,
+(8)
+k
+improving numerical stability.
+c
+The optimal values of α and ρ are selected jointly through
+where Qk (w, c) is the uniform quantization function defined as
+five-fold cross-validation. The regularization strength α is
+Qk (w, c) = ∆ · round(clip(w, −c, c)/∆) and ∆ = 2c/(2k − 1)
+searched over a logarithmic grid of 30 candidate values, while
+is the quantization step size, which determines the spacing
+the mixing parameter ρ is evaluated over {0.05, 0.1, 0.15, 0.2}.
+between adjacent representable values at bit width k.
+This range of ρ values keeps the readout in a regime where
+Once the clipping threshold is fixed, the weights are
+moderate sparsity is encouraged without aggressively zeroing
+quantized to the nearest grid point. However, direct quantization
+out too many features. The combination that achieves the lowest
+can introduce systematic bias in the predictions, particularly at
+cross-validated error on the training partition is selected as
+aggressive bit widths such as 3-bit or 2-bit. To mitigate this,
+the final model. The prediction for an unseen sample is then
+an iterative residual refinement procedure is applied over three
+computed as
+correction rounds. In each round, the residual between the true
+⊤
+ŷ = w r + b,
+(7)
+training targets and the predictions of the current quantized
+where b is the learned bias term, and the output is inverse- model is computed. A Ridge regression model is then fitted on
+transformed through the min-max scaler to recover predictions this residual to produce a correction term, and the corrected
+weights are re-quantized. This process progressively reduces
+in the original physical units of the target variable.
+the quantization error by allowing the model to compensate
+for the distortion introduced by rounding. The final quantized
+E. Post-Training Quantization
+prediction for an unseen sample is
+A key advantage of confining all trainable parameters to
+
+⊤
+a single linear readout is that the resulting weight vector
+ŷ (k) = w(k) r + b(k) ,
+(9)
+can be compressed through post-training quantization without
+modifying the quantum reservoir or repeating any quantum where w(k) and b(k) are the refined quantized weight vector
+computation. This subsection describes the procedure used and bias at bit width k, and r is the aggregated reservoir
+to reduce the readout from 32-bit floating point to low-bit feature vector. Memory savings relative to the original 32-bit
+fixed-point representations, targeting deployment on resource- representation are computed as (1 − k/32) × 100%, yielding
+constrained edge hardware where memory and arithmetic reductions of 75%, 81.25%, 87.5%, 90.6%, and 93.75% for 8,
+precision are limited. Fig. 5 illustrates the full quantization 6, 4, 3, and 2-bit representations respectively.
+pipeline.
+Algorithm 1 summarizes the full training and quantized
+deployment procedure. At inference time, the fixed reservoir
+encoding, temporal aggregation, and quantized readout forward
+FP32 weights
+Optimal Clipping
+Uniform quantization
+pass are executed using the stored low-bit weights; no quantum
+ŵ ∈ Rᵈ
+Search c* ∈ [0.5σ, w ∞]
+Δ = 2c* / (2ᵏ−1), round to grid
+gradient computation is required.
+The four stages in the algorithm map directly to the
+Iterative residual refinement (n = 3 rounds)
+architectural blocks in fig. 2. Stage 1 corresponds to the
+Compute residual
+Re-quantize
+Ridge correction
+data preparation block, Stage 2 to the quantum reservoir and
+e = y − (Rw⁽ᵏ⁾+ b)
+Fit correction on e
+w ← Qₖ(w⁽ᵏ⁾+ corr)
+temporal aggregation blocks and, Stage 3 to the classical
+readout block, and Stage 4 to the quantization and deployment
+analysis block. At inference time, only Stages 2 and the
+3-bit
+4-bit
+2-bit
+8-bit
+6-bit
+90.6% saved
+93.7% saved
+75% saved
+81.2% saved 87.5% saved
+forward pass of Stage 3 are executed, since the trained and
+quantized weights are stored on device. The quantum reservoir
+parameters remain frozen throughout, meaning no quantum
+ŷ⁽ᵏ⁾ = w⁽ᵏ⁾ᵀ r + b⁽ᵏ⁾
+gradient computation is performed at any point during training
+Fig. 5: Post training quantization (PTQ) pipeline. The trained FP32 weights pass
+or deployment.
+‖ ‖
+through an optimal
+clipping search over [0.5σ, ∥w∥∞ ] followed by uniform rounding
+to a k bit grid with step size ∆ = 2c∗ /(2k − 1). Three rounds of iterative
+residual refinement then fit a Ridge correction on the prediction error and re-quantize,
+suppressing the systematic bias that grows at low bit widths. The procedure produces
+five deployable readouts at {8, 6, 4, 3, 2} bits with corresponding memory savings of
+{75, 81.2, 87.5, 90.6, 93.7}%.
+
+For a given target bit width k ∈ {8, 6, 4, 3, 2}, the first step
+is to determine an optimal clipping threshold c∗ that defines
+the representable range of the weight vector. Values outside
+
+F. Evaluation Protocol and Hardware Noise Simulation
+All experiments are conducted across two independent
+random seeds to account for variability in the stochastic
+initialization of reservoir weights. Each seed generates a
+different set of Haar random angles for the frozen rotation
+gates, producing a distinct reservoir instance that processes the
+
+Algorithm 1 QRC Pipeline with Post-Training Quantization
+Require: Multivariate time series D = {(xt , yt )}N
+t=1 , target bit widths
+B = {8, 6, 4, 3, 2}, window length T , number of qubits Nq , number of
+layers L, coupling strength κ, refinement rounds niter
+Ensure: Load forecasts ŷ (k) and memory savings for each k ∈ B
+// Stage 1: Data Preparation
+1: Construct cyclical time features (hour, month, day of week) and autoregressive lags (yt−1 , yt−24 )
+2: Normalize all features to [0, 1] using training partition statistics
+3: Partition chronologically into train, validation, and test sets
+4: Form sliding window samples (Xi , yi ) of shape (T, F )
+// Stage 2: Quantum Reservoir Encoding
+5: Initialize Nq × L frozen rotation angles via Haar random sampling
+6: for each window sample Xi do
+7:
+for each time step t = 1, . . . , T do
+8:
+Encode features into Nq qubits using layer shifted double rotation
+gates
+9:
+Apply frozen brickwork entanglement with coupling κ
+10:
+Measure 5Nq observables (single qubit Pauli and nearest neighbour
+correlators)
+11:
+end for
+12:
+Aggregate T step measurements into compact vector ri using K=5
+exponential decay kernels, terminal state, and drift term
+13: end for
+// Stage 3: Classical Readout Training
+14: Standardize reservoir features using training set statistics
+15: Train Elastic Net readout via cross validated grid search over regularization
+strength and sparsity ratio
+16: Obtain weight vector ŵ and bias b
+17: Compute baseline predictions ŷi = ŵ⊤ ri + b and invert scaling
+// Stage 4: Post-Training Quantization
+18: for each bit width k ∈ B do
+19:
+Search for optimal clipping threshold c∗ minimizing quantization
+distortion
+20:
+Quantize weights to k bit fixed point grid with step size ∆ =
+2c∗ /(2k − 1)
+21:
+for round = 1, . . . , niter do
+22:
+Compute prediction residual under current quantized weights
+23:
+Fit ridge correction on residual and update weights
+24:
+Re-quantize corrected weights to k bit grid
+25:
+end for
+26:
+Store quantized forecasts ŷ (k) and memory saving (1−k/32)×100%
+27: end for
+28: return {ŷ (k) , memory saving(k) } for all k ∈ B
+
+same input through a different unitary evolution. Reporting
+results as the mean and standard deviation across seeds ensures
+that the observed performance reflects the general behavior of
+the framework rather than a single favorable configuration.
+Each seed configuration is further evaluated under two
+measurement settings. The first setting uses exact statevector
+simulation, denoted as shots = None, where expectation
+values are computed analytically without any sampling noise.
+This serves as the noiseless reference and represents the best
+achievable accuracy for a given reservoir. The second setting
+uses 512 shots per circuit execution, which introduces finite
+sampling noise into the expectation value estimates. This
+emulates the statistical fluctuations that a physical quantum
+processor would produce when operating with a limited
+measurement budget. Comparing these two settings isolates
+the effect of shot noise on forecasting accuracy, independent
+of any device level imperfections.
+Forecasting quality is assessed using a suite of metrics
+selected for their relevance to the energy load forecasting
+community. RMSE and MAE measure prediction accuracy in
+
+the native physical units of each dataset:
+v
+u n
+n
+u1 X
+1X
+(ŷi − yi )2 , MAE =
+|ŷi −yi |, (10)
+RMSE = t
+n i=1
+n i=1
+where ŷi and yi are the predicted and actual load values for
+the ith test sample and n is the total number of test samples.
+To enable comparison across datasets with different scales, the
+mean absolute percentage error (MAPE) expresses the average
+prediction deviation as a fraction of the true load:
+n
+
+MAPE =
+
+100 X ŷi − yi
+%.
+n i=1
+yi
+
+(11)
+
+The coefficient of determination R2 quantifies the proportion
+of variance in the observed load that the model explains, with
+a value of 1 indicating a perfect fit and values near 0 indicating
+performance no better than predicting the mean:
+Pn
+(ŷi − yi )2
+2
+R = 1 − Pi=1
+,
+(12)
+n
+2
+i=1 (yi − ȳ)
+where ȳ is the mean of the observed values. Following
+ASHRAE Guideline 14, which is widely adopted for validating
+energy models in building and grid applications, two additional
+metrics are reported. The coefficient of variation of RMSE
+(CVRMSE) normalizes the root mean squared error by the
+mean observed load, providing a scale independent measure
+of prediction spread:
+CVRMSE =
+
+RMSE
+× 100%,
+ȳ
+
+(13)
+
+The normalized mean bias error (NMBE) captures systematic
+directional tendency in the predictions, indicating whether the
+model consistently overpredicts or underpredicts demand:
+Pn
+(ŷi − yi )
+× 100%.
+(14)
+NMBE = i=1
+n · ȳ
+Finally, because grid operators are most sensitive to forecasting errors during periods of high demand, when reserve margins
+are thin and supply shortfalls carry the greatest operational risk,
+a peak load MAPE is computed over the top 10% of hours
+ranked by actual load. This metric isolates model reliability
+precisely where accurate forecasting matters most for grid
+stability.
+Beyond noiseless and finite shot simulation, the framework
+is validated under realistic hardware noise to assess whether
+a model trained under ideal conditions can generalize to
+the imperfections of physical quantum processors. Two IBM
+fake backends are used for this purpose. FakeTorino is a
+calibrated noise model of the IBM Torino processor based
+on the Heron r1 architecture with 133 qubits. FakeMarrakesh
+is a calibrated noise model of the IBM Marrakesh processor
+based on the Heron r2 architecture with 156 qubits. Both
+backends incorporate gate error rates, readout errors, and
+decoherence parameters extracted from real hardware calibration data, providing a faithful approximation of the noise
+environment on current superconducting quantum devices. For
+these experiments, inference is performed on a subset of test
+samples using 1024 shots per circuit. The saved readout model
+
+from the noiseless training phase is loaded and applied directly
+to the noisy reservoir states without any retraining or fine
+tuning. This inference only protocol isolates the effect of
+hardware noise on the quantum reservoir output from the
+readout optimization, testing whether the framework remains
+operationally viable under realistic deployment conditions.
+IV. R ESULTS AND D ISCUSSION
+A. Experimental Setup
+
+TABLE I: Reservoir architectures selected for each dataset.
+
+Parameter
+
+Tetouan
+
+Spain
+
+Qubits (N )
+Layers (L)
+Encoding
+Coupling (κ)
+Window (T )
+Input features
+Observables per step
+Aggregated features
+ℓ1 ratio (ρ)
+Val RMSE
+
+7
+4
+Chebyshev
+π/2
+24
+11
+35
+245
+0.1
+3142.28
+
+7
+3
+RZ –RY
+π/3
+24
+13
+35
+245
+0.1
+3706.30
+
+The proposed framework is evaluated on two publicly
+available energy load forecasting datasets that differ in spatial
+scale, sampling resolution, and feature composition. The
+The dataset-specific differences appear in the encoding and
+Tetouan dataset [17] records power consumption from three reservoir dynamics. Tetouan selects Chebyshev encoding with
+distribution zones in Tetouan, Morocco, at ten-minute intervals four entanglement layers and stronger coupling, κ = π/2. Spain
+over approximately one year. Zone 1 is used as the prediction selects RZ –RY double rotation with three layers and weaker
+target in kilowatt hours (kWh). After hourly resampling and the coupling, κ = π/3. This indicates that Tetouan benefits from a
+preprocessing described in Sec. III, the final dataset contains deeper and more strongly coupled reservoir, while Spain favors
+approximately 8,400 samples with 11 input features.
+richer input rotations with a shallower circuit. Since Spain
+The Spain dataset [18] contains four years of hourly national includes a broader set of exogenous variables, the dual-axis
+grid records, with total load demand in megawatts (MW) as encoding can provide a more expressive initial state without
+the prediction target. Energy records are merged with Madrid requiring additional entanglement depth.
+weather data using UTC-aligned timestamps and then prepared
+using the same feature construction, scaling, chronological
+split, and sliding-window protocol. The final dataset contains
+C. Quantization Performance and Memory Reduction
+approximately 35,000 samples with 13 input features.
+All quantum circuit simulations are implemented in PennyThe first objective of the evaluation is to determine how far
+Lane using the lightning.qubit backend and executed the QRC readout can be compressed before forecasting accuracy
+on an NVIDIA A100 GPU through Google Colab Pro+. The begins to degrade. Since the quantum reservoir remains fixed,
+classical readout is trained using Elastic Net regression from quantization affects only the trained Elastic Net readout weights.
+scikit-learn. The regularization strength is selected by five-fold This makes the analysis a direct test of whether the reservoir
+cross-validation over a logarithmic grid of 30 candidates, while features contain enough redundancy to tolerate low-bit fixedthe mixing parameter is searched over {0.05, 0.1, 0.15, 0.2}. point deployment. Table II reports the results across five
+Each configuration is evaluated over two random seeds, {42, 7}, quantization levels, two datasets, and two simulation regimes.
+under exact statevector simulation and finite-shot simulation
+A consistent pattern appears across both datasets: the readout
+with 512 shots per circuit. PTQ is applied to the trained remains stable down to 6-bit precision. In the noiseless setting,
+readout weights at bit widths {8, 6, 4, 3, 2} using three rounds the 6-bit model closely matches the FP32 baseline on both
+of iterative residual refinement. Hardware-noise validation is Tetouan and Spain, with only minor changes in RMSE, MAPE,
+performed using the IBM FakeTorino and IBM FakeMarrakesh and R2 . Under 512-shot simulation, the same trend is preserved,
+backends through the qiskit.remote PennyLane device and 6-bit quantization even produces a small improvement
+with 1024 shots per circuit. The trained readout models and in several metrics. This suggests that moderate rounding of
+feature scalers are serialized using joblib so that the hardware- the readout weights does not disrupt the forecasting function
+noise experiments perform inference only, without retraining. learned from the reservoir features.
+Fig. 6 further clarifies the dataset-level differences below
+B. Selected Reservoir Architectures
+6 bits. Tetouan is more sensitive to aggressive compression:
+A GA-based search is used to select the reservoir configu- under 512-shot simulation, RMSE increases from 3286 kWh at
+ration for each dataset, following the design space defined 6 bits to 4009 kWh at 4 bits, then to 5073 kWh and 5535 kWh
+in Sec. III-B. The search considers the number of qubits, at 3 and 2 bits, respectively. Spain degrades more gradually,
+entanglement depth, encoding strategy, and coupling strength. with RMSE increasing from 3080 MW at 6 bits to 3116 MW
+In the experiments, the GA uses a population of six individuals at 4 bits, then to 3222 MW and 3406 MW at 3 and 2 bits.
+These results identify 6-bit precision as the most reliable
+over three generations, with validation RMSE used as the
+operating point. It reduces readout memory by 81.2% while
+fitness criterion. Table I reports the selected architectures.
+Both datasets select seven qubits and a 24-hour window, preserving full-precision performance across datasets and
+yielding 35 expectation values per time step and 245 aggregated simulation regimes. Lower bit widths provide additional
+features after temporal kernel compression. This common memory savings, but the resulting accuracy loss becomes
+feature dimensionality suggests that the same reservoir size dataset dependent and is especially pronounced under finiteis sufficient for both forecasting tasks, despite differences in shot sampling. Therefore, the 6-bit readout offers the best
+dataset scale and feature composition.
+accuracy-memory trade-off for the proposed QRC framework.
+
+TABLE II: Quantization performance across bit widths for both datasets. Values are averaged over two random seeds. Standard deviations remain below 1% of the mean for all
+configurations at 6 bits and above.
+
+Setting
+
+Bits
+
+Mem (%)
+
+RMSE
+
+MAPE
+
+CVRMSE
+
+Pk MAPE
+
+Noiseless
+
+FP32
+8
+6
+4
+3
+2
+
+—
+75.0
+81.2
+87.5
+90.6
+93.8
+
+3359
+3355
+3348
+3707
+3900
+4216
+
+9.81
+9.81
+9.77
+11.12
+12.04
+13.24
+
+0.695
+0.696
+0.697
+0.622
+0.588
+0.500
+
+11.42
+11.41
+11.38
+12.60
+13.26
+14.33
+
+6.39
+6.32
+6.42
+5.63
+5.44
+5.65
+
+3084
+3084
+3090
+3150
+3217
+3387
+
+8.56
+8.56
+8.57
+8.73
+8.94
+9.57
+
+0.535
+0.535
+0.533
+0.515
+0.494
+0.437
+
+10.66
+10.67
+10.68
+10.89
+11.12
+11.71
+
+13.21
+13.19
+13.21
+13.07
+14.08
+14.71
+
+FP32
+8
+6
+4
+3
+2
+
+—
+75.0
+81.2
+87.5
+90.6
+93.8
+
+3352
+3347
+3286
+4009
+5073
+5535
+
+9.58
+9.54
+9.38
+11.85
+15.95
+15.64
+
+0.697
+0.697
+0.708
+0.554
+0.274
+0.153
+
+11.40
+11.38
+11.17
+13.63
+17.25
+18.82
+
+7.13
+7.14
+7.02
+6.52
+8.27
+6.15
+
+3083
+3083
+3080
+3116
+3222
+3406
+
+8.55
+8.55
+8.52
+8.66
+8.94
+9.64
+
+0.535
+0.535
+0.536
+0.525
+0.492
+0.430
+
+10.66
+10.66
+10.65
+10.78
+11.14
+11.78
+
+13.12
+13.09
+13.09
+13.04
+14.04
+13.61
+
+CVRMSE
+
+Pk MAPE
+
+RMSE
+
+MAPE
+
+R2
+
+shots=None (noiseless)
+shots=512.0 (finite shot)
+
+6500
+
+4
+
+2 At 6-bits the noiseless and finite shot curves converge to their lowest separation. The 512 shot RMSE of
+3286 kWh is actually lower than its own FP32 baseline of 3352 kWh.
+
+5000
+
+3 Below 6-bits the shaded confidence bands widen sharply. The finite shot curve rises faster because shot
+noise amplifies the rounding errors introduced by the coarser quantization grid.
+
+4500
+
+4 At 2-bits the standard deviation bands span over 2000 kWh for finite shot, meaning different random
+seeds produce drastically different outcomes. The readout has collapsed to only 4 discrete weight levels.
+
+RMSE(MW)
+
+5500
+
+shots=None (noiseless)
+shots=512.0 (finite shot)
+
+3700
+
+1 From 32 to 8-bits both curves overlap within a narrow band around 3350 kWh. Removing 75% of
+weight precision causes no measurable change in prediction error.
+
+6000
+
+RMSE (kWh)
+
+Spain (MW)
+
+R2
+
+512 shots
+
+Tetouan (kWh)
+
+3600
+
+1
+
+6-bit through 32-bit both curves converge, confirming that quantization
+down to 6-bit introduces negligible accuracy loss.
+
+3500
+
+2
+
+Convergence point where shots=None and shots=512 align at 6 & 8-bit,
+showing that finite-shot sampling has negligible impact at these bit widths.
+
+3400
+
+3
+
+shots=512 degrades faster below 4 -bit as finite measurement noise
+compounds with quantization error.
+
+4
+
+High variance at 4-bit under noiseless simulation, where seed-dependent
+iterative refinement yields inconsistent corrections across seeds.
+
+3300
+
+3
+
+4000
+
+4
+
+3200
+
+3500
+
+(a)
+
+2 3 4
+
+6
+
+1
+8
+
+32
+
+Bit Width
+
+RMSE Degradation (%)
+
+60
+50
+
+1
+
+At 6-bits the quantized readout slightly outperforms FP32. Coarser rounding acts as implicit weight
+regularization, suppressing noisy coefficients
+
+40
+
+2
+
+The Chebyshev encoded readout has a wide weight dynamic range. Below 6-bits the quantization grid
+becomes too coarse to preserve it.
+
+30
+
+3
+
+Shot noise and quantization error compound at low bit widths. At 3-bits the 512 shot curve degrades 3x
+faster than the noiseless one.
+
+4
+
+At 2-bits only 4 discrete levels represent each weight. Std dev exceeds 1200 kWh, indicating unstable
+and unreliable quantization.
+
+4
+
+3
+20
+10
+0
+
+(c)
+
+2 3
+
+4
+
+6
+
+8
+
+32
+
+Bit Width
+14
+
+1 Negligible accuracy loss at 6-32 bit as the model retains
+full precision even with 81% memory loss.
+
+12
+
+2 At 6-bit the model auto-corrects small rounding errors,
+keeping degradation 0 at this precision.
+
+4
+
+10
+
+3 Below 4-bit, error climbs past the 5% threshold as
+rounding can no longer be corrected.
+
+8
+
+4 At 2-bit, RMSE spikes to ~3387-3406 MW (+10% over
+FP32) with a wide per-seed spread showing high
+instability.
+
+3
+
+6
+
+shots=None (noiseless)
+shots=512.0 (finite shot)
+5% threshold
+15% threshold
+
+4
+
+2
+
+2
+
+2
+
+1
+
+0
+
+1
+2
+
+(b)
+
+shots=None (noiseless)
+shots=512.0 (finite shot)
+5% threshold
+15% threshold
+
+RMSE Degradation (%)
+
+2
+
+1
+
+2
+
+3100
+
+3
+3000
+
+3
+
+4
+
+6
+
+8
+
+32
+
+Bit Width
+
+(d)
+
+2
+
+3
+
+4
+
+6
+
+8
+
+32
+
+Bit Width
+
+Fig. 6: Bit-width sensitivity of the QRC readout for Tetouan and Spain under noiseless and 512-shot simulation. Panels (a) and (c) show the Tetouan results, while panels (b) and (d)
+show the Spain results. For both datasets, the readout remains stable from FP32 down to 6-bit precision, corresponding to an 81.2% memory reduction. Below 6 bits, the degradation
+becomes more visible, with Tetouan showing stronger sensitivity under finite-shot simulation and Spain degrading more gradually.
+
+Actual
+FP32 shots=None (RMSE=3496)
+6-bit shots=None (RMSE=3523, mem↓81%)
+
+Zone 1 Power Consumption (kWh)
+
+45000
+
+40000
+
+35000
+
+30000
+
+25000
+
+20000
+
+(a)
+0
+
+(b)
+100
+
+200
+
+300
+
+Time Steps (hours)
+
+500
+
+Actual
+FP32 shots=512 (RMSE=3418)
+6-bit shots=512 (RMSE=3229, mem↓81%)
+
+45000
+
+Zone 1 Power Consumption (kWh)
+
+400
+
+40000
+
+35000
+
+30000
+
+25000
+
+20000
+
+(c)
+0
+
+(d)
+100
+
+200
+
+300
+
+400
+
+500
+
+Time Steps (hours)
+
+Fig. 7: Comparison of FP32 and 6-bit QRC forecasts over 500-hour test windows for the Tetouan and Spain datasets under noiseless and 512-shot simulation (for one fixed seed).
+Panels (a) and (c) correspond to Tetouan, while panels (b) and (d) correspond to Spain. In both datasets, the 6-bit readout closely follows the FP32 baseline under both simulation
+settings, showing that the temporal forecast structure is preserved after quantization. The agreement remains strong under finite-shot simulation, confirming that 6-bit quantization
+provides substantial memory reduction with minimal effect on prediction quality.
+
+TABLE III: Hardware noise validation on a 50 sample test slice using 1024 shots per circuit. The simulation baseline uses lightning.qubit with matched shot count. Negative
+degradation indicates that hardware noise improved accuracy.
+
+Tetouan (kWh)
+Source
+
+RMSE
+
+MAPE
+
+Pk MAPE
+
+RMSE
+
+MAPE
+
+R2
+
+FakeTorino
+(Heron r1,
+133 qubits)
+
+0.969
+
+Simulation
+Hardware
+Degradation
+
+2172
+2110
+
+5.00
+5.06
+
+0.882
+6.63
+0.889
+6.44
+−2.9%
+
+4.19
+4.67
+
+3736
+4048
+
+9.24
+10.03
+
+0.373
+11.44
+0.264
+12.40
++8.4%
+
+15.62
+16.35
+
+FakeMarrakesh
+(Heron r2,
+156 qubits)
+
+0.979
+
+Simulation
+Hardware
+Degradation
+
+2217
+2064
+
+5.30
+4.85
+
+0.877
+6.77
+0.894
+6.30
+−6.9%
+
+4.48
+4.09
+
+3799
+3920
+
+9.41
+9.73
+
+0.351
+11.64
+0.309
+12.01
++3.2%
+
+15.97
+16.06
+
+CVRMSE
+
+D. Forecasting Behavior at the 6-bit Operating Point
+For Tetouan, the FP32 and 6-bit forecasts remain closely
+aligned in both settings. Under noiseless simulation, RMSE
+changes from 3496 to 3523 kWh, corresponding to a difference
+of only 27 kWh across the 500-hour window. Under 512-shot
+simulation, the gap increases from 3286 to 3391 kWh, but
+the quantized curve still follows the full-precision trajectory
+without visible drift. This indicates that finite-shot sampling
+slightly increases the numerical gap but does not distort the
+forecast pattern. For Spain, the effect of quantization is even
+smaller. Under noiseless simulation, RMSE changes from 3109
+to 3113 MW, corresponding to a +0.13% penalty. Under 512shot simulation, the 6-bit readout slightly improves RMSE from
+3107 to 3106 MW. The quantized model therefore preserves
+the main daily load behavior while reducing readout memory
+by about 81%.
+These results show that the 6-bit readout preserves the
+forecast trajectory in both datasets, not only the aggregate
+performance metrics. This is important for load forecasting
+because the temporal profile of the prediction, especially around
+transitions and peak-demand intervals, is as important as the
+average error.
+
+IBM Torino Noise Model Reservoir States
+
+0.75
+
+1
+
+0.50
+
+2
+
+0.25
+
+(0,0)
+
+1
+
+−0.25
+
+−0.50
+
+2
+−0.75
+
+(a)
+
+−1.00
+−1.00
+
+−0.75
+
+−0.50
+
+Spread increases at higher
+expectation values where gate
+errors accumulate across
+
+−0.25
+
+0.00
+
+0.25
+
+0.50
+
+0.75
+
+IBM Marrakesh Noise Model Reservoir States
+
+1
+
+0.50
+
+1.00
+
+0.25
+
+1
+
+(0,0)
+
+−0.25
+
+−0.50
+
+2
+
+Outliers in the negative
+quadrant are sparse and isolated,
+con rming that noise-induced
+distortions remain bounded even
+at extreme expectation values.
+
+−0.75
+
+(c)
+
+−1.00
+−1.00
+
+−0.75
+
+−0.50
+
+−0.25
+
+0.00
+
+0.25
+
+0.50
+
+Simulation Reservoir States
+
+fi
+
+0.5
+
+0.75
+
+Dense diagonal clustering
+confirms r = 0.97 correlation;
+Torino Heron r1 noise
+preserves
+reservoir structure with
+
+1.00
+
+2
+
+(0,0)
+
+1
+
+0.0
+
+2
+
+Noise-induced scatter
+HW states deviate at extremes
+±0.05 tolerance band
+
+−0.5
+
+3
+3
+
+−1.5
+1.5
+
+Correlation of r = 0.98
+exceeds Torino's 0.97.
+The newer Heron r2
+architecture produces
+lower gate error rates.
+
+0.00
+
+1.0
+
+Noise-induced scatter
+HW states deviate at extremes
+
+(b)
+
+Simulation Reservoir States
+
+0.75
+
+Ideal (r=1)
+
+−1.0
+
+Ideal (r=1)
+
+1.00
+
+Pk MAPE
+
+1
+
+Dense clustering along the
+diagonal con rms r = 0.97
+correlation. Hardware noise
+preserves reservoir structure.
+
+0.00
+
+CVRMSE
+
+1.5
+
+Ideal (r=1)
+
+1.00
+
+IBM Torino Noise Model Reservoir States
+
+Corr.
+
+Spain (MW)
+
+IBM Marrakesh Noise Model Reservoir States
+
+Backend
+
+R2
+
+1.0
+
+0.5
+
+−1.0
+
+−0.5
+
+0.0
+
+0.5
+
+1.0
+
+1.5
+
+Simulation Reservoir States
+Ideal (r=1)
+
+1 Marrakesh Heron r2
+shows stronger agreement
+with the simulation,
+reaching r = 0.99. The
+diagonal structure is
+preserved, with only a few
+isolated outliers.
+1
+
+0.0
+
+2
+
+(0,0)
+
+−0.5
+
+2
+−1.0
+
+Spread widens at extremes where
+gate errors accumulate; outliers past
+±1.0 decoherence events
+
+(d)
+−1.0
+
+−0.5
+
+0.0
+
+0.5
+
+1.0
+
+1.5
+
+Simulation Reservoir States
+
+Fig. 8: Simulation-versus-hardware reservoir states for the Tetouan and Spain datasets
+over 50 test samples under the IBM FakeTorino and IBM FakeMarrakesh noise models.
+Panels (a) and (c) show Tetouan, while panels (b) and (d) show Spain. In all cases, the
+points cluster tightly around the diagonal, showing that realistic hardware noise preserves
+the reservoir-state geometry. For Tetouan, the Pearson correlation increases from 0.97 on
+Torino to 0.98 on Marrakesh, indicating slightly better agreement with simulation under
+the newer Heron r2 backend. For Spain, both hardware models maintain a near-perfect
+correlation of 0.99 with low error, confirming that the reservoir representation remains
+stable under realistic device noise.
+fi
+
+E. Hardware Noise Validation
+The final evaluation examines whether a readout trained
+on ideal reservoir states can still operate when the quantum
+reservoir is executed under realistic backend noise. This setting
+is important because the proposed framework freezes the
+quantum reservoir and performs inference without retraining.
+The trained FP32 readout is therefore applied directly to noiseless simulation outputs, with correlations ranging from
+reservoir states generated under the IBM FakeTorino and IBM 0.97 to 0.99. This indicates that backend noise perturbs the
+FakeMarrakesh noise models using 1024 shots per circuit. The reservoir features but does not destroy the geometry needed
+simulation baseline is computed with the same shot count by the trained readout.
+The prediction-level comparison in Fig. 9 shows that the
+to isolate the effect of backend noise. The hardware-noise
+results show different dataset-level responses. On Tetouan, both main errors occur around sharp load peaks rather than across
+backends improve over their matched simulation baselines, with the full temporal profile. This suggests that the remaining gap is
+RMSE decreasing from 2172 to 2110 kWh on FakeTorino and mainly linked to the smoothing behavior of the linear readout,
+from 2217 to 2064 kWh on FakeMarrakesh. This corresponds to not to a collapse of the reservoir under hardware noise. Overall,
+negative degradation values of −2.9% and −6.9%, suggesting the hardware experiments show that the learned readout can
+a mild noise-regularization effect similar to the behavior transfer from ideal reservoir states to noisy reservoir states
+reported in MTS-QRC [19]. On Spain, hardware noise increases without retraining.
+the RMSE, but the degradation remains limited: +8.4%
+on FakeTorino and +3.2% on FakeMarrakesh. Across both
+F. Comparison with Related Work
+datasets, FakeMarrakesh gives the better hardware-noise result,
+The proposed framework differs from existing load foreindicating stronger agreement with the simulation baseline.
+Fig. 8 explains this behavior at the reservoir-state level. casting and quantum time-series models in three main aspects:
+The noisy reservoir outputs remain closely aligned with the the quantum reservoir is fixed, the trainable component is
+
+TABLE IV: Structural comparison of the proposed framework with related works.
+
+Method
+
+Paradigm
+
+Zone 1 Power Consumption (kWh)
+
+Fuzzy+MLP [20]
+Classical ML
+ESN [21]
+Classical RC
+iQTransformer [22] Variational QML
+MTS-QRC [19]
+Quantum RC
+This work
+Quantum RC
+
+45000
+
+3
+
+40000
+
+1
+
+1
+
+Marrakesh (2064)
+outperforms Torino (2110)
+and simulation (2172).
+Heron r2 noise is lower
+
+Quantum Trainable
+Training Q. Params
+
+Readout
+
+PTQ
+
+HW Noise
+Validation
+
+None
+None
+Gradient
+None
+None
+
+MLP
+Ridge
+Hybrid
+Ridge
+Elastic Net
+
+✗
+✗
+✗
+✗
+✓
+
+N/A
+Energy (Tetouan)
+N/A
+General TS
+✗
+General TS
+✓ (Heron r2)
+Lorenz, ENSO
+✓ (r1 + r2) Energy (2 datasets)
+
+N/A
+N/A
+O(102 )
+0
+0
+
+Application
+
+under different settings.
+
+All three models track the peak.
+RMSE spread is only 108 kWh
+across backends.
+
+4
+4
+
+Slightly wider spread in the
+second cycle suggests mild noise
+accumulation across windows.
+
+35000
+
+30000
+
+G. Discussion and Key Insights
+
+The results show that the proposed QRC framework is
+tolerant to readout quantization up to a practical limit. Across
+(a)
+both Tetouan and Spain, 6-bit PTQ preserves forecasting
+performance while reducing readout memory by 81.2%. Below
+this point, degradation becomes dataset dependent: Spain
+declines gradually, while Tetouan is more sensitive under finiteshot simulation. This suggests that the readout can absorb
+moderate rounding errors, but very low precision can distort
+the learned forecasting function. The consistent 6-bit operating
+(b)
+point is important because the two datasets select different
+Fig. 9: Prediction-level comparison between noiseless simulation and hardware-noise
+inference on 50 test samples. Panel (a) shows the Tetouan dataset, where both hardware
+reservoir configurations. Tetouan uses a deeper Chebyshevbackends match or slightly improve upon the simulation baseline, with RMSE decreasing
+encoded reservoir with stronger coupling, while Spain uses
+from 2172 kWh in simulation to 2110 kWh on IBM Torino (Heron r1) and 2064 kWh on
+IBM Marrakesh (Heron r2). Panel (b) shows the Spain dataset, where the simulation and
+a shallower RZ –RY encoded reservoir with weaker coupling.
+hardware-based predictions follow the same hourly trend, with RMSE values of 3736,
+Despite these differences, both remain stable at 6-bit precision,
+4048, and 3920 MW for simulation, Torino, and Marrakesh, respectively. In both datasets,
+the hardware predictions remain close to the simulation baseline, indicating that realistic
+indicating that the observed quantization resilience is not tied
+backend noise has a limited effect on forecasting quality.
+to one specific encoding or circuit depth.
+The hardware-noise results show that the learned readout
+transfers from ideal reservoir states to noisy reservoir states
+limited to a classical Elastic Net readout, and the readout is
+without retraining. High simulation-to-hardware correlations
+evaluated under both post-training quantization and realistic
+indicate that realistic noise perturbs the reservoir features
+hardware-noise models. Since prior studies do not evaluate the
+without destroying their main geometry. The remaining errors
+same Tetouan and Spain datasets under the same protocol, the
+occur mainly around sharp demand peaks, suggesting that
+comparison is organized structurally rather than as a direct
+the main bottleneck is the smoothing tendency of the linear
+numerical benchmark. Table IV summarizes these differences.
+readout rather than quantization or hardware noise. Future
+Classical approaches provide useful forecasting baselines, work can therefore explore peak-aware losses, regime-specific
+but they do not address the deployment setting studied here. readouts, or adaptive readout calibration while preserving the
+Fuzzy+MLP models have been evaluated on the Tetouan dataset fixed quantum reservoir and low-precision deployment pipeline.
+with strong full-precision performance [20], while ESN-based
+methods share the frozen-reservoir principle with QRC [21].
+V. C ONCLUSION
+However, these approaches do not study quantum feature
+generation, finite-shot inference, post-training quantization,
+This work presents a hardware efficient QRC framework for
+or hardware-noise transfer. Among quantum approaches, iQ- short-term load forecasting under the memory and precision
+Transformer relies on trainable quantum parameters optimized constraints of edge deployed energy systems. The framework
+through gradient-based learning [22]. This differs from the keeps the quantum reservoir entirely fixed, trains only a
+proposed QRC design, where the quantum circuit remains regularized linear readout on temporally aggregated reservoir
+fixed and only the classical readout is trained. MTS-QRC states, and applies post training fixed point quantization to the
+is closer in structure because it also uses a frozen quantum readout weights at bit widths between 32 and 2-bits. Evaluated
+reservoir and validates behavior under hardware noise [19], on the Tetouan and Spain datasets across noiseless and 512
+but it does not examine low-bit readout quantization or energy shot regimes, the readout preserves full precision forecasting
+forecasting across the two datasets considered here.
+accuracy down to 6-bits while removing 81.2% of its memory
+The proposed framework fills a distinct gap by combining footprint, and the trained model transfers without retraining
+a fixed quantum reservoir, Elastic Net readout, low-bit PTQ, to the IBM FakeTorino and FakeMarrakesh noise backends,
+finite-shot evaluation, and hardware-noise validation on two where Heron r2 even improves RMSE on Tetouan by 6.9%
+energy load forecasting datasets. This comparison positions over the matched simulation baseline. These results establish
+the work as a resource-aware and hardware-aware QRC study quantized QRC as a practical route toward deploying quantum
+rather than a direct accuracy benchmark against models trained forecasting on resource-constrained grid infrastructure, and
+3
+
+Actual
+Simulation (RMSE=2172)
+IBM Torino / Heron r1 (RMSE=2110)
+IBM Marrakesh / Heron r2 (RMSE=2064)
+
+25000
+
+0
+
+2
+
+2
+
+10
+
+Curves nearly overlap at low
+demand. Error concentrates at
+peaks, not valleys.
+
+20
+
+30
+
+40
+
+50
+
+Time Steps (hours)
+
+38000
+
+Total Load (MW)
+
+36000
+
+1
+
+Models miss sharp
+peaks (~38,500 MW)
+by 6,000-7,000 MW.
+
+4
+
+All curves align at
+troughs (~25,500 MW)
+with negligible noise.
+
+1
+
+34000
+
+3
+
+2
+
+32000
+
+2
+
+30000
+28000
+
+Simulation best matches the
+stable 30-32K MW band.
+
+Actual
+Simulation (RMSE=3736)
+IBM Torino / Heron r1 (RMSE=4048)
+IBM Marrakesh / Heron r2 (RMSE=3920)
+
+26000
+24000
+
+0
+
+10
+
+3 Torino is 128 MW
+higher than Marrakesh
+at this peak.
+
+4
+
+20
+
+30
+
+Time Steps (hours)
+
+40
+
+50
+
+motivate future work on peak aware readout designs, automated
+bit width selection, and end-to-end evaluation on physical
+quantum processors as the hardware matures.
+ACKNOWLEDGMENT
+This work was supported in part by the NYUAD Center
+for Quantum and Topological Systems (CQTS), funded by
+Tamkeen under the NYUAD Research Institute grant CG008.
+R EFERENCES
+[1] M. S. Iqbal and M. Adnan, “Edge computing and transfer learning-based
+short-term load forecasting for residential and commercial buildings,”
+Energy and Buildings, vol. 329, p. 115273, 2025.
+[2] J. Millar, H. Haddadi, and A. Madhavapeddy, “Energy-aware deep learning on resource-constrained hardware,” arXiv preprint arXiv:2505.12523,
+2025.
+[3] X. Kong, Z. Chen, W. Liu, K. Ning, L. Zhang, S. Muhammad Marier,
+Y. Liu, Y. Chen, and F. Xia, “Deep learning for time series forecasting:
+a survey,” International Journal of Machine Learning and Cybernetics,
+vol. 16, no. 7, pp. 5079–5112, 2025.
+[4] S. A. F. Mortezanejad and R. Wang, “Addressing challenges in time
+series forecasting: A comprehensive comparison of machine learning
+techniques,” arXiv preprint arXiv:2503.20148, 2025.
+[5] M. R. Habibi, S. Golestan, Y. Wu, J. M. Guerrero, and J. C. Vasquez,
+“Electrical load forecasting in power systems based on quantum computing
+using time series-based quantum artificial intelligence,” Scientific Reports,
+vol. 15, no. 1, p. 7429, 2025.
+[6] F. Dakheel and M. Çevik, “Optimizing smart grid load forecasting via a
+hybrid long short-term memory-xgboost framework: Enhancing accuracy,
+robustness, and energy management,” Energies, vol. 18, no. 11, p. 2842,
+2025.
+[7] K. Fujii and K. Nakajima, “Harnessing disordered-ensemble quantum
+dynamics for machine learning,” Physical Review Applied, vol. 8, no. 2,
+p. 024030, 2017.
+[8] J. R. McClean, S. Boixo, V. N. Smelyanskiy, R. Babbush, and H. Neven,
+“Barren plateaus in quantum neural network training landscapes,” Nature
+Communications, vol. 9, no. 1, p. 4812, 2018.
+[9] M. Guerra, S. Scardapane, and F. M. Bianchi, “Probabilistic load
+forecasting with reservoir computing,” IEEE Access, vol. 11, pp. 145 989–
+146 002, 2023.
+[10] S. B. Melhem, M. Golec, S. Alrabaee, M. Alshaikh, and M. Uyar,
+“Edgeai-powered hybrid esn-gru model for high-accuracy and efficient
+short-term load forecasting in smart grids,” IEEE Access, vol. 13, pp.
+198 241–198 251, 2025.
+[11] P. Pathak, M. Od, N. Innan, and M. Shafique, “Late breaking results:
+Hardware-efficient quantum reservoir computing via quantized readout,”
+arXiv preprint arXiv:2604.06075, 2026.
+[12] A. Lekidis and E. I. Papageorgiou, “Edge-based short-term energy
+demand prediction,” Energies, vol. 16, no. 14, p. 5435, 2023.
+[13] D. A. Kreplin and M. Roth, “Reduction of finite sampling noise in
+quantum neural networks,” Quantum, vol. 8, p. 1385, 2024.
+[14] O. Ahmed, F. Tennie, and L. Magri, “Optimal training of finitely sampled
+quantum reservoir computers for forecasting of chaotic dynamics,”
+Quantum Machine Intelligence, vol. 7, no. 1, p. 31, 2025.
+[15] D.-S. Liu, Q.-X. Jie, C.-L. Zou, X.-F. Ren, and G.-C. Guo, “Practical
+quantum reservoir computing in rydberg atom arrays,” Physical Review
+A, vol. 113, no. 4, p. 042401, 2026.
+[16] F. Hu and X. Gao, “Generalization error in quantum machine learning in
+the presence of sampling noise,” arXiv preprint arXiv:2410.14654, 2024.
+[17] A. Salam and A. E. Hibaoui, “Power consumption of tetouan city,” https:
+//doi.org/10.24432/C5B034, 2018, uCI Machine Learning Repository.
+[18] N. Jhana, “Hourly energy demand, generation and weather
+data for spain,” https://www.kaggle.com/datasets/nicholasjhana/
+energy-consumption-generation-prices-and-weather, 2019, accessed:
+2026.
+[19] W. Hamhoum, S. Cherkaoui, J.-F. Laprade, O. Ahmed, and S. Wang,
+“Multivariate time series forecasting with gate-based quantum reservoir
+computing on nisq hardware,” arXiv preprint arXiv:2510.13634, 2025.
+[20] K. Alsalem, “A hybrid time series forecasting approach integrating
+fuzzy clustering and machine learning for enhanced power consumption
+prediction,” Scientific Reports, vol. 15, no. 1, p. 6447, 2025.
+
+[21] A. Häußer, “Echo state networks for time series forecasting: Hyperparameter sweep and benchmarking,” arXiv preprint arXiv:2602.03912,
+2026.
+[22] S. Ranilla-Cortina, D. A. Aranda, J. Ballesteros, J. Bonilla, N. Monrio,
+E. F. Combarro, and J. Ranilla, “Quantum neural network architectures
+for multivariate time-series forecasting,” arXiv preprint arXiv:2510.21168,
+2025.
+
+

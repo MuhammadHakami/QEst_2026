@@ -1,0 +1,209 @@
+                                                Quantum-enhanced Markov Chain Monte Carlo for Combinatorial Optimization
+
+                                                                       Kate V. Marshall,1, ∗ Daniel J. Egger,2 Michael Garn,3 Francesca
+                                                                  Schiavello,3, 4 Sebastian Brandhofer,5 Christa Zoufal,2 and Stefan Woerner2
+                                                                        1
+                                                                            IBM Quantum, IBM Research Europe – Hursley, United Kingdom.
+                                                                             2
+                                                                                 IBM Quantum, IBM Research Europe – Zurich, Switzerland
+                                                                        3
+                                                                            The Hartree Centre, STFC, Sci-Tech Daresbury, United Kingdom
+                                                                                    4
+                                                                                        The Open Quantum Institute, Geneva, Switzerland
+                                                                             5
+                                                                                 IBM Quantum, IBM Research Europe – Böblingen, Germany
+                                                                                                   (Dated: March 30, 2026)
+arXiv:2602.06171v2 [quant-ph] 27 Mar 2026
+
+
+
+
+                                                            Quantum computing offers an alternative paradigm for addressing combinatorial optimization
+                                                         problems compared to classical computing. Despite recent hardware improvements, the execution
+                                                         of empirical quantum optimization experiments at scales known to be hard for state-of-the-art
+                                                         classical solvers is not yet in reach. In this work, we offer a different way to approach combinatorial
+                                                         optimization with near-term quantum computing. Motivated by the promising results observed
+                                                         in using quantum-enhanced Markov chain Monte Carlo (QeMCMC) for approximating complicated
+                                                         probability distributions, we combine ideas of sampling from the device with QeMCMC together with
+                                                         warm-starting and parallel tempering, in the context of combinatorial optimization. We demonstrate
+                                                         empirically that our algorithm recovers the global optima for instances of the Maximum Independent
+                                                         Set problem (MIS) up to 117 decision variables using 117 qubits on IBM quantum hardware. We
+                                                         show early evidence of a scaling advantage of our algorithm compared to similar classical methods
+                                                         for the chosen instances of MIS. MIS is practically relevant across domains like financial services
+                                                         and molecular biology, and, in some cases, already difficult to solve to optimality classically with
+                                                         only a few hundred decision variables.
+
+
+                                                             I.   INTRODUCTION                                   For quantum optimization, hybrid quantum-classical al-
+                                                                                                                 gorithms and techniques such as warm-starting leave
+                                            Combinatorial optimization is an important application               much to be hopeful about, even before fault-tolerance
+                                            for quantum computing, inspired by the natural formula-              [1, 11, 12]. Today’s quantum devices–despite inherent
+                                            tion of such problems to finding the ground state of Ising           noise–have achieved a scale, speed, and fidelity that en-
+                                            Hamiltonians [1]. This mapping has motivated the explo-              able computations beyond the reach of exact classical
+                                            ration of quantum optimization algorithms that could of-             simulation [13]. Hence, we can now benchmark the capa-
+                                            fer super-polynomial speedups over classical approaches              bilities of quantum-enhanced solvers on non-trivial opti-
+                                            [2–7]. There exist various approaches to the study of                mization problem instances, such as the ones provided
+                                            quantum optimization, ranging from provably exact to                 in the Quantum Optimization Benchmarking Library
+                                            heuristic algorithms. Heuristic approaches usually lack              (QOBLIB) [14]. This resource provides combinatorial
+                                            provable convergence guarantees, runtime guarantees, or              optimization problem instances, benchmarking metrics,
+                                            both [1]. Nevertheless, these algorithms could outper-               baseline results to assist the community in exploring the
+                                            form classical solvers for select problem instances. In the          path to quantum advantage in optimization, as well as
+                                            field of classical optimization, most practically used op-           a foundation to better understand the potential prac-
+                                            timization algorithms are heuristic. One such quantum                tical usefulness of quantum optimization algorithms in
+                                            heuristic is the Quantum Approximate Optimization Al-                addressing industry-relevant applications.
+                                            gorithm (QAOA) [8], which benefits from bounded worst-
+                                                                                                                 As quantum hardware becomes increasingly capable, we
+                                            case performance guarantees, e.g., for MAXCUT on 3-
+                                                                                                                 can begin to investigate theoretical results with non-
+                                            regular graphs [9]. However, the search for evidence of
+                                                                                                                 trivial problem instances. One set of interesting theoret-
+                                            a quantum advantage has proved extremely challenging,
+                                                                                                                 ical and early numerical results include those from the
+                                            largely due to noise that continues to limit the width and
+                                                                                                                 quantum-enhanced Markov chain Monte Carlo (QeM-
+                                            depth of circuits executable on available hardware.
+                                                                                                                 CMC) algorithm, originally developed for approximating
+                                            Whilst we navigate these challenges, heuristic quantum-              challenging probability distributions [15, 16]. The au-
+                                            classical frameworks offer a practically motivated direc-            thors in Ref. [16] showed that with a quantum proposal
+                                            tion for near-term quantum computing research [10, 11].              distribution, QeMCMC demonstrated up to a quartic
+                                                                                                                 advantage in reaching the target distribution more effi-
+                                                                                                                 ciently compared to classical Markov chain Monte Carlo
+                                                                                                                 (MCMC). Subsequent work has further investigated be-
+                                            ∗ kate.marshall@ibm.com
+                                                                                                                 havior, limitations, and variants of QeMCMC [17–22].
+                                                                                                                            2
+
+                                                              where Z = s e−E(s)/(kB T ) is the partition function en-
+                                                                          P
+While asymptotic speedups for quantum optimization al-
+gorithms are only expected with fault-tolerant quantum        suring normalization, and kB is the Boltzmann constant.
+devices [23], heuristic quantum optimization algorithms       At low temperatures, i.e., T → 0, the distribution in
+may demonstrate promising results in the near-term for        Eq. (1) concentrates its probability mass on configura-
+select problem instances. In this work, we introduce          tions that minimize E(s), which provides a connection
+and explore an optimization workflow that combines con-       between probabilistic sampling and optimization. Con-
+cepts from QeMCMC, warm-starting, and parallel tem-           straints may be incorporated into the energy landscape,
+pering to solve combinatorial optimization problems. We       e.g., by adding penalty terms of the form
+show the first realization of a practical QeMCMC algo-
+rithm on non-trivial system sizes. Using our method,                            E(s) = E0 (s) + λ C(s),                    (2)
+we approach instances of Maximum Independent Sets
+(MIS) of increasing size up to 117 decision variables using   where E0 (s) denotes the objective, C(s) tracks constraint
+IBM Quantum superconducting hardware. Particular in-          violations, and λ is a sufficiently large penalty factor,
+stances of this problem class are already challenging to      or Lagrange multiplier. In the limit T → 0, the Gibbs
+solve with state-of-the-art classical solvers with only a     distribution concentrates probability mass on low-energy
+few hundred variables, in some cases [14]. Interestingly,     configurations, biasing sampling toward high-quality so-
+we observe an empirical scaling advantage of our method       lutions.
+in terms of increasing problem size, compared to classical
+MCMC implementations on the selected MIS instances,           In general, constructing a low-temperature Gibbs state
+for the three problem instances studied. Furthermore, for     from which to sample is computationally hard. There-
+the largest problem instance with 117 decision variables,     fore, in practice, MCMC methods are widely used to sam-
+we observe the quantum hardware experiments converg-          ple from Boltzmann distributions [24]. MCMC avoids
+ing faster in terms of number of iterations compared to       explicitly evaluating the target distribution µ and its as-
+classical simulations of the algorithm, which suggests the    sociated partition function, Z, since this requires sum-
+truncation error associated with the tensor network sim-      ming over an exponentially large configuration space, and
+ulations becomes more detrimental than hardware noise         thus, exact computation would require Ω(2n ) time. In-
+in our simulations. Hence, our algorithm provides an          stead, MCMC constructs a Markov chain that evolves
+alternative way to approach combinatorial optimization        through the space of spin configurations by proposing
+with quantum computing.                                       transitions from a current configuration s to a candidate
+                                                              configuration s′ , according to a fixed transition probabil-
+We structure this work as follows. In Section II, we pro-     ity, P (s′ | s). A common approach is a two-step proposal
+vide background material before presenting key methods        and acceptance procedure
+used herein in Section III, including QeMCMC, warm-
+starting quantum optimization and parallel tempering.                       P (s′ | s) = Q(s′ | s) A(s′ | s).              (3)
+We explain how these methods work together to form
+the basis of our workflow in Section III F, accompanied       Here, Q(s′ | s) denotes the conditional probability of
+by Figure 1. In Section IV C, we test the applicability of    proposing candidate transitions from s to s′ , and A(s′ | s)
+applying the QeMCMC-inspired optimization algorithm           is an acceptance ratio. A can be defined in numerous
+to MIS. We provide comparisons to known classical meth-       ways, with a popular example being the Metropolis Hast-
+ods in Section ??, discuss anticipated scaling, or feasi-     ings (MH) acceptance probability
+bility with increasing problem size, of our algorithm in
+                                                                                          µ(s′ ) Q(s | s′ )
+                                                                                                                  
+Section ?? and conclude in Section V.                                       ′
+                                                                        A(s | s) = min 1,                              .   (4)
+                                                                                          µ(s) Q(s′ | s)
+
+                                                              To ensure this procedure yields meaningful samples, the
+                 II.   BACKGROUND                             transition probabilities P must be designed such that
+                                                              the chain converges to our target distribution, µ, from
+    A.   Markov chain Monte Carlo methods for                 Eq. (1). This convergence is guaranteed under standard
+         sampling Boltzmann distributions                     conditions—namely irreducibility and aperiodicity—and
+                                                              by enforcing the detailed balance condition,
+Consider a discrete optimization problem defined by an
+energy or cost function E(s) for configurations s ∈                        P (s′ | s) µ(s) = P (s | s′ ) µ(s′ ),           (5)
+{−1, +1}n , where the objective is to minimize this en-
+ergy. Once an energy function is defined, we may as-          for all s ̸= s′ [16]. This detailed balance constrains P
+sociate to it the Gibbs distribution, or equivalently the     such that the Markov chain converges to µ as its station-
+Boltzmann distribution of a classical Ising model,            ary distribution. In this regime, samples are statistically
+                                                              correct, meaning that they are drawn from the target, µ,
+                           e−E(s)/(kB T )                     and computed averages converge to the true expectation
+                  µ(s) =                  ,            (1)    values without systematic bias [16].
+                                Z
+                                                                                                                                                                  3
+
+
+
+                                                      𝑇ℎ𝑖𝑔ℎ
+                                                                                                                                         Replica exchange
+Replicas (circuits)
+
+
+
+
+                                                                             Objective value / energy
+                                                     𝑇𝑚𝑒𝑑𝑖𝑢𝑚
+
+
+                                                       𝑇𝑙𝑜𝑤
+
+
+
+
+                                                              Target objective
+                                                                                                        Iterations
+                      Cost layers     Mixer layers
+                      which           which evolve            At each    1. Sample from QPU
+                      evolve as       as                      iteration… 2. Apply filter to avoid noisy samples and
+                                                                            subsample from “best” solution pool
+                                                                         3. MH evaluation
+                      𝑒 −𝑖𝛾𝐻𝑐𝑜𝑠𝑡       𝑒 −𝑖𝛽𝐻𝑚𝑖𝑥                         4. Replica exchange
+                                                                         5. Warm start next iteration of circuits
+
+
+
+      FIG. 1: The algorithm workflow. We see a hot, medium and cold replica working together such that the coldest
+    replica eventually converges to the target objective. Objective values of proposed solutions to the MIS problem are
+     plotted against iterations. Each iteration requires drawing samples from the QPU and then classically processing
+            these counts, necessitating a close exchange of information between quantum and classical hardware.
+
+
+In the worst case, computation time required to obtain                                                  is connected via an edge in E. A maximum independent
+independent samples for the MH variant of MCMC, de-                                                     set is an independent set of maximal size. Now, suppose
+scribed above, scales exponentially with system size. Yet,                                              a binary decision variable xi ∈ {0, 1} for each vertex vi ,
+in practice, it is often possible to choose good proposal                                               where xi = 1 if vi is included in the selected subset of
+distributions that exhibit good convergence. This forms                                                 vertices, and xi = 0 otherwise. Then, the MIS problem
+the basis of widely-used classical optimization heuristics                                              can be formulated as
+such as simulated annealing and parallel tempering [25–
+                                                                                                                                         |V |−1
+27]. An end-to-end example of sampling from the Boltz-                                                                                   X
+mann distribution with our implementation of QeMCMC                                                                                max            xi ,          (6)
+                                                                                                                                     x
+is provided in Appendix A.                                                                                                                i=0
+
+                                                                                                        subject to the constraints
+
+                            B.      Maximum Independent Sets                                                             xi xj = 0        ∀ (vi , vj ) ∈ E,     (7)
+
+In this manuscript, we study MIS problems, which we                                                     which enforce the selected subset of vertices to be an
+will now formulate as a Quadratic Unconstrained Binary                                                  independent set. Further, we can formulate this as the
+Optimization (QUBO) problem that can be mapped to a                                                     following QUBO:
+classical Ising model. This mapping enables us to inter-                                                                                          
+pret the problem in terms of an energy landscape and to                                                                  X             X
+sample from the corresponding Boltzmann distribution,                                                              max      xi − λ          xi xj  ,      (8)
+                                                                                                                     x
+where low-temperature sampling concentrates on config-                                                                     vi ∈V             (vi ,vj )∈E
+urations with a minimized energy.
+                                                                                                        where the first term is the objective and the second term
+Let G = (V, E) be a graph with vertices V = {v1 , . . . , vn }                                          enforces the constraints as long as λ is sufficiently large,
+and edges E ⊂ V ×V . An independent set of vertices of G                                                e.g., λ ≥ 2, i.e., the maximum in Eq. (8), indeed gives an
+is a subset of V such that no pair of vertices in the subset                                            optimal MIS solution.
+

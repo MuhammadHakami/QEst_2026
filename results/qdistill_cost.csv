@@ -1,0 +1,6 @@
+route,circuits,shots,recurring,usd_IonQ Forte,usd_IQM Emerald 54q,usd_IQM Garnet 20q,usd_Rigetti Cepheus 108q,usd_IBM_1s,usd_IBM_4s
+"live partitioned LR-QAOA, 12-qubit windows, every day",5878,5878200,True,472019.45999999996,11168.58,10286.85,4261.695,9405.12,37620.48
+"live partitioned, 200 shots a window (untested)",5878,1175640,True,95814.66,3644.484,3468.138,2263.107,9405.12,37620.48
+"live monolithic LR-QAOA, 24 qubits, one circuit a day-unit",582,1164000,True,93294.6,2037.0,1862.3999999999999,669.3,931.2,3724.8
+"distilled: Q3 training windows, once",1891,1891000,False,151847.3,3592.9,3309.25,1370.975,3025.6000000000004,12102.400000000001
+"distilled: the season on the model, no QPU (4 vCPU)",0,0,True,0.0009390901167392715,0.0009390901167392715,0.0009390901167392715,0.0009390901167392715,0.0009390901167392715,0.0009390901167392715

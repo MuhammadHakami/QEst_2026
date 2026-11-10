@@ -1,0 +1,234 @@
+Leveraging Quantum Annealing for Large-Scale Household
+       Energy Scheduling with Hydrogen Storage
+ Arash Khalatbarisoltani1, Amin Mahmoudi2, Jie Han3, Muhammad Saeed4, Wenxue Liu1, Jinwen Li1, Solmaz Kahourzade5,
+                                        Amirmehdi Yazdani6, Xiaosong Hu1
+
+Abstract— Hydrogen integration into microgrids facilitates the absorption of intermittencies from renewable energy resources.
+However, significant challenges remain due to complex optimization problems, particularly in large-scale applications involving
+multiple fuel cells (FCs) and electrolyzers (ELs) with numerous binary decision variables. This paper presents a hierarchical
+quantum annealing (QA) model predictive control-based power allocation framework aimed at accelerating these optimization
+problems. First, in a day-ahead stage, the framework determines the startup and shutdown of the FCs and ELs. The short-term
+stage then refines the output power of the FCs and the hydrogen generation rate of the ELs. The feasibility is evaluated through
+a case study consisting of multiple households in Australia. Our findings demonstrate that while the traditional optimization
+approach performs satisfactorily in scenarios with a small number of households, the QA approach becomes more appropriate
+and effectively solves the problem within an acceptable range as the number of connected households increases.
+
+Keywords: home energy management, hydrogen grids, quantum computing, renewable energy, standalone microgrids
+
+1. Introduction
+     Worldwide concerns about global warming are prompting the integration of distributed renewable energy (DRE) sources, such
+as solar photovoltaic panels (PVs) and wind turbines (WTs), into microgrids. Intermittency is one of the main challenges associated
+with DREs; consequently, conventional microgrids are evolving to incorporate multi-storage systems that enhance reliability while
+accommodating DREs. Each microgrid with DREs can balance power demand and supply in either interconnected or islanded
+modes [1]. In [2], the integration of solar PV and battery energy storage for residential houses is investigated, considering vehicle-
+to-home operation. Another study discusses the effects of electricity tariffs and energy sharing in grid-connected houses [3].
+Islanded microgrids that utilize electrolyzers (ELs) and fuel cells (FCs) can benefit from hydrogen (H₂) as an energy vector,
+offering the distinct advantage of long-term storage capabilities that support a stable power supply. An additional benefit is that
+H₂ conversion by-products can also address the water and heating needs of connected facilities, such as residences and hospitals
+in islanded modes. However, the proliferation of H₂ technologies in islanded systems faces challenges due to complex optimization
+problems and high initial costs. In hybrid power systems (H2PS) that integrate H₂ storage, power allocation strategies (PASs) play
+a crucial role in enhancing performance. A PAS coordinates the operation of various components, such as PEM fuel cells
+(PEMFCs), ELs, batteries, and DREs, to achieve optimal power allocation under varying uncertain demands. PASs can be
+categorized into two types: rule-based and optimization-based. Rule-based PASs rely on predefined conditions to guide the
+operation of H2PS under specific scenarios. For example, a rule-based PAS is proposed in [4] for a standalone H2PS that
+incorporates WTs and PVs. Furthermore, [5] suggests that FC-based combined heat and power systems can significantly reduce
+CO₂ emissions, while the integration of FCs with supercapacitors is also discussed in [6]. Although rule-based PASs are relatively
+straightforward to implement, they often do not achieve optimal performance. In contrast, optimization-based PASs leverage
+predictive information, enabling adaptation to uncertain conditions. However, traditional optimization techniques face scalability
+limitations when applied to large-scale systems. The integration of FCs and ELs, due to their power constraints, necessitates high
+computational capacity, further exacerbating the scalability issue. Quantum computing (QC) presents a promising solution [7]
+and can be divided into two categories: gate-based and annealing-based. In the gate-based category, qubits are initialized in specific
+states, then manipulated using quantum gates to construct circuits. For example, [8] employs a Quantum Approximate
+Optimization Algorithm (QAOA) framework based on the Alternating Direction Method of Multipliers (ADMM) to address the
+unit commitment problem. Despite the benefits associated with these methods, challenges remain when applying them to power
+systems [9]. Conversely, quantum annealing (QA), in the second category, has demonstrated potential for effectively solving
+combinatorial optimization problems. For instance, [10] shows that QA outperforms QAOA in various optimization tasks. This
+ 1
+  Chongqing University, Chongqing, China
+ 2
+  Flinders University, Adelaide, Australia
+ 3
+  Loughborough University, Loughborough, England
+ 4
+  Shanghai Jiao Tong University, Shanghai, China
+ 5
+  University of South Australia, Adelaide, Australia
+ 6
+  Murdoch University, Perth, Australia
+study proposes a QA-based model predictive control (MPC) approach for optimal household power management with hydrogen
+storage, aiming to expedite the optimization solution. This approach utilizes long-term predictions to determine the status of the
+EL and FC after adjusting their outputs during short-term operations. The remainder of the paper is organized as follows: Section
+2 presents the studied standalone households in Australia. Section 3 outlines the QA-based MPC scheduling framework. Section
+4 presents the results, followed by Section 5, which summarizes the findings.
+
+2. System model
+   Fig. 1 presents a multi-standalone household equipped with ELs and hydrogen storage tanks, local residential PEMFCs, and
+battery packs. The simulation is based on real data obtained from WTs and solar PVs. Data on load demand from one standalone
+household is available for only one year [11], while similar load profiles are generated for the other households. The operation
+of the controllable appliances is randomly distributed throughout the year [1]. The output power of each solar PV module,
+denoted as 𝑃!"# , is calculated as [12]
+                                                 𝑃!"# = 𝜂$ 𝑃%"# 𝐼& %1 − 0.004(𝑇' − 25)0                                                   (1)
+
+where 𝑇' represents the ambient temperature, 𝐼& and 𝑃%"# represent the solar insolation and rated output power of the solar PV
+module, and 𝜂$ stands for the solar PV converter efficiency. The output power 𝑃!() of a WT is considered a piecewise function
+of wind speed 𝑣 [12]
+                                              0                  𝑣 < 𝑣& 𝑜𝑟 𝑣 > 𝑣*
+                                            ⎧
+                                            ⎪         𝑣 − 𝑣&
+                                                              +
+                                     𝑃!() = 𝑃%() ;           <        𝑣& ≤ 𝑣 < 𝑣!                                        (2)
+                                            ⎨        𝑣! − 𝑣&
+                                            ⎪𝑃()                     𝑣! ≤ 𝑣 ≤ 𝑣*
+                                            ⎩ %
+
+where 𝑣& = 3 m/s, 𝑣! = 8 m/s and 𝑣* = 22 m/s represent the cut-in, rated and cut-out wind speeds, respectively, and 𝑃%()
+denotes the rated power of the WTs.
+
+3. Multi-stage QA-based MPC PAS framework
+  This study proposes a multi-stage scheduling framework to optimize the interconnected households, which integrates DRE
+sources with ELs and H₂ storage, as well as residential PEMFCs and local batteries, as shown in Fig. 2. The multi-stage
+optimization framework consists of two steps: long-term and short-term. The long-term scheduling step relies on predictions of
+the DERs and residential load demands. This stage primarily aims to optimize the startup and shutdown statuses of the PEMFCs
+and ELs for the subsequent 24-hour period using a 1-hour optimization interval, denoted by 𝑇, . The objective function of the
+long-term planning step includes the costs associated with the FCs, ELs, hydrogen storage levels, and battery storage levels. The
+indices 𝑡and 𝑖represent the value at time 𝑡and the FC and battery of household 𝑖.
+                                                                      Standalone
+                                                          Battery
+                                                                      Household
+   Renewable energy
+                          Water
+                                      Hydrogen tank
+                       electrolyser
+   Wind
+                                                         Fuel cell
+  turbines
+   Solar
+   panels
+                                                        Residential
+                                                      energy system
+  Hydrogen grid
+  Electricity grid
+                                                                      Standalone
+                                                         Battery
+                                                                      Household
+
+
+                                                         Fuel cell
+
+
+
+                                                        Residential
+                                                      energy system
+     Fig. 1. Multi-standalone household integrated with hydrogen storage and       Fig. 2. The proposed multi-stage QA-based MPC PAS framework.
+                            renewable energy sources.
+                                                                                                      12    12   12
+             /0
+   min G G %𝐽-,!    12
+                 + 𝐽-,! 0 − 𝐻! + (𝑆𝑂𝐶!5'! − 0.7)6                     (3)                           𝑃-,! ≥ 𝑃<-= 𝑈-,! ,                           (17)
+                                                                                                     /0     /0   /0                              (18)
+         -∈4 !∈)!
+                                                                                                    𝑃-,! ≤ 𝑃<'> 𝑈-,! ,
+                                                                                                      12    12   12
+                    /0
+                 𝑈-,!  + 𝑆-,!/0
+                                + 𝐷-,!/0
+                                           = 1,                        (4)                          𝑃-,! ≤ 𝑃<'> 𝑈-,! ,                           (19)
+                                                                                                                               "*          +&,
+                    12       12       12
+                  𝑈-,! + 𝑆-,! + 𝐷-,! = 1,                              (5)                 5'!             5'!       ?"#$% "&,%()         "&,%() (20)
+                 /0        /0         /0      /0
+                                                                                     𝑆𝑂𝐶   -,!   =  𝑆𝑂𝐶   -,!78  +        0 #$%
+                                                                                                                                      −  #$% 0 #$% ,
+                                                                                                                                        ?+
+              𝑈-,!   = 𝑈-,!78    + 𝛼-,!   − 𝛽-,! ,                     (6)                                  5'!                5'!
+                 12        12         12      12                                                     𝑆𝑂𝐶-,! ≥ 𝑆𝑂𝐶<-= ,                               (21)
+              𝑈-,!   = 𝑈-,!78    + 𝛼-,!   − 𝛽-,! ,                     (7)
+                                                                                                            5'!               5'!                    (22)
+       /0
+      𝑆-,!     /0
+           = 𝑆-,!78       /0
+                     + 𝛼9,-,!       /0
+                               − 𝛽9,-,!       /0
+                                         − (𝛼-,!        /0
+                                                   − 𝛽-,!  ),          (8)                           𝑆𝑂𝐶-,! ≤ 𝑆𝑂𝐶<'> ,
+                                                                                                          &A       B-9                               (23)
+        12     12         12        12        12
+      𝑆-,! = 𝑆-,!78 + 𝛼9,-,! − 𝛽9,-,! − (𝛼-,! − 𝛽-,! ), 12             (9)                             𝑦 !     + 𝑦 !      ≤    1,
+                                                                                                        &A        5'!          B-9                   (24)
+                /0        /0         /0
+             𝐷-,! = 𝐷-,!78 + 𝛼9,-,! − 𝛽9,-,! ,/0
+                                                                      (10)                           𝑃 -,!   ≤  𝑃<'>,& !   𝑦       ,
+                                                                                                      B-9         5'!           B-9                  (25)
+                12
+              𝐷-,!        12
+                    = 𝐷-,!78         12
+                                + 𝛼9,-,!      12
+                                          − 𝛽9,-,! ,                  (11)                           𝑃-,! ≤ 𝑃<'>,B 𝑦! ,
+                                                                                                                   $ 12              & /0
+                          /0
+                       𝑈-,!:;   ≥ 𝛼-,!/0
+                                         ,                            (12)                     𝐻! = 𝐻!78 + 𝜂 𝑃-,! − 𝜂 𝑃-,! ,                         (26)
+                          12
+                       𝑈-,!:; ≥ 𝛼-,! ,12                              (13)                                 𝐻  ! ≥  𝐻  <-=    ,                       (27)
+                          /0          /0                                                                   𝐻  ! ≤  𝐻  <'>    ,                       (28)
+                       𝐷-,!:;   ≥ 𝛽-,!   ,                            (14)              "#        ()        /0        12           5'!       CD'B
+                          12          /0                                              𝑃!    +   𝑃 !   +   𝑃 -,! +  𝑃  -,!   +   𝑃 -,!   =  𝑃 -,!  ,  (29)
+                       𝐷-,!:;   ≥ 𝛽-,!   ,                            (15)
+                       /0        /0     /0
+                     𝑃-,!   ≥ 𝑃<-=    𝑈-,!  ,                         (16)
+where 𝑇, denotes the set of hourly intervals across a day. The main objective function comprises costs from PEMFCs and ELs.
+FCs costs include standby losses and the costs of starting up and shutting down, assuming no losses when the FCs are On and
+Off [21]:
+                                /0              /0              /0         /0                  /0     /0
+                              𝐽-,!  = 𝑐9/0 · 𝑆-,!    + 𝑐A/0 · %𝛼9,-,! + 𝛽9,-,! 0 + 𝑐C/0 · (𝛼-,!    + 𝛽-,!  ),                                         (30)
+
+Similarly, EL costs cover the costs for standby, and both high and low transition states of ELs and are calculated:
+                            12            12
+                           𝐽-,! = 𝑐912 · 𝑆-,! + 𝑐A12 · %𝛼9,-,!
+                                                         12       12
+                                                               + 𝛽9,-,! 0 + 𝑐C12 · (𝛼-,!
+                                                                                     12     12
+                                                                                         + 𝛽-,! ),                                                 (31)
+
+where 𝑐9/0 and 𝑐912 represent the costs associated with keeping PEMFCs and ELs in standby mode, respectively. 𝑐A/0 and 𝑐A12
+denote the transition costs related to the startup and shutdown of PEMFCs and ELs, while 𝑐C/0 and 𝑐C12 represent the transition
+costs associated with their operation. Equations (4) and (5) ensure that each PEMFC and EL is in exactly one state (On, Standby,
+                                    /0    /0          /0
+or Off). The binary variables 𝑈-,!     , 𝑆-,! , and 𝐷E,F  indicate the On, Standby, and Off statuses of the 𝐹𝐶- , respectively. Similarly,
+  12    12           12
+𝑈E,F , 𝑆-,! , and 𝐷E,F indicate the On, Standby, and Off statuses of the 𝐸𝐿- . Equations (6) and (7) define the state transition logic
+for the On status, linking it to previous states and startup/shutdown actions. Equations (4) and (5) also govern the transitions for
+the Standby and Off statuses for both 𝐹𝐶- and 𝐸𝐿- . These equations impose the enforced hot-start constraints, mitigating the
+effects of cold starts for PEMFCs and ELs. It is assumed that startup and shutdown actions cannot occur simultaneously. The
+minimum duration constraints in (6) and (7) enforce that units must operate for a specified minimum duration after starting up
+                        /0         /0
+or shutting down. 𝑇D=,<-=    and 𝑇D**,<-=     denote the minimum number of time periods a fuel cell must remain On after startup and
+                                                         12              12
+Off after shutdown, respectively. Similarly, 𝑇GH,IEH             and 𝑇GJJ,IEH   represent the corresponding minimum durations for the
+electrolyzer. Equations (16) and (19) impose the minimum and maximum power limits for PEMFCs and ELs. It is assumed that
+                                                                                                                  /0        12
+power references are static, and transient characteristics of power are not considered in this phase. 𝑃E,F            and 𝑃E,F represent the
+                                                                                                 /0         /0
+power output of the 𝐹𝐶- and the power consumption of the 𝐸𝐿- , respectively. 𝑃E,IEH and 𝑃E,IKL indicate the minimum and
+                                                                   12          12
+maximum allowable output powers of the 𝐹𝐶- , while 𝑃E,IEH                and 𝑃E,IKL  denote the minimum and maximum allowable power
+consumptions of the 𝐸𝐿- . The battery state of charge (SOC), denoted as SOC5'!             E,F , is governed by Equation (20), which tracks
+changes in SOC over time. Equations (21) and (22) enforce the minimum and maximum SOC limits. The SOC dynamically
+changes based on stored energy, and charging and discharging efficiencies are represented by 𝜂&5'! and 𝜂B5'! , respectively,
+                                                                 &A           B-9
+although these values may differ from one another. 𝑃(-,!78)             and 𝑃(-,!78)  are the power charged into and discharged from the
+battery at time 𝑡 − 1, while 𝐶 5'! is the battery capacity. SOC<-= and SOC5'!
+                                                                        5'!
+                                                                                      <'> are the minimum and maximum allowable states
+of charge for the battery, respectively. To prevent simultaneous charging and discharging, Equation (23) is applied, while
+Equations (24) and (25) enforce the charging and discharging power limits. 𝑦!&A and 𝑦!B-9 are binary variables indicating whether
+                                               5'!          5'!
+the battery is charging or discharging. 𝑃<'>,&      and 𝑃IKL,O    are the maximum power limits for charging and discharging the battery.
+Hydrogen storage changes over time are modeled in Equation (26), with Equations (27) and (28) ensuring that the storage remains
+within capacity limits. The efficiencies for hydrogen production and consumption by ELs and PEMFCs are also considered as
+different constants. 𝐻! represents the amount of hydrogen stored, while 𝜂12 and 𝜂/0 are the efficiencies for hydrogen production
+and consumption, respectively. 𝐻<-= and 𝐻<'> are the minimum and maximum hydrogen storage capacities, respectively.
+Equation (29) enforces the power balance constraint, where 𝑃!"# is the power generated by solar PVs, 𝑃!() is the power generated
+              /0                                               12
+by WTs, 𝑃E,F     is the power output from the PEMFC, 𝑃E,F         is the power consumed by the EL (considered as negative generation or
+

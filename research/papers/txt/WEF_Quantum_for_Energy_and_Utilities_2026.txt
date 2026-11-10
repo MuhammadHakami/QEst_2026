@@ -1,0 +1,152 @@
+In collaboration
+with Aramco
+
+
+
+Quantum for
+Energy and Utilities:
+Key Opportunities
+for Energy Transition
+WHITE PAPER
+APRIL 2026
+Images: Adobe Images, Getty Images
+
+
+
+
+Contents
+Foreword                                                                                   3
+
+Executive summary                                                                          4
+
+1 Introduction                                                                             6
+
+       1.1	
+           Methodology                                                                     6
+
+       1.2	
+           What is pushing quantum technology7
+           adoption in energy and utilities?
+
+       1.3	
+           When will quantum applications8
+           materialize in energy and utilities?
+
+       1.4	
+           Quantum solutions across the9
+           energy and utilities value chain
+
+2 Energy (generation and supply)                                                          11
+
+       2.1	
+           Fossil fuels11
+
+       2.2	
+           Renewable and nuclear energy16
+
+3 Power and grid infrastructure                                                           22
+
+       3.1	
+           Transmission22
+
+       3.2 Distribution                                                                   23
+
+       3.3 Storage                                                                        23
+
+4 Utilities (public services and critical infrastructure)                                 29
+
+       4.1 Electricity and gas29
+
+       4.2 Water and wastewater29
+
+       4.3 Heating and cooling30
+
+5 Strategic roadmap for leaders                                                           33
+
+       5.1	
+           What holds quantum technology adoption back?33
+
+       5.2	
+           Actions to overcome quantum technology35
+           adoption challenges
+
+       5.3	
+           Organization roadmap to adopt quantum                                          37
+           technologies in energy and utilities
+
+Conclusion                                                                                39
+
+Contributors                                                                              40
+
+Endnotes                                                                                  43
+
+
+Disclaimer
+This document is published by the World Economic Forum
+as a contribution to a project, insight area or interaction.
+The findings, interpretations and conclusions expressed
+herein are a result of a collaborative process facilitated and
+endorsed by the World Economic Forum but whose results
+do not necessarily represent the views of the World Economic
+Forum, nor the entirety of its Members, Partners or other
+stakeholders.
+© 2026 World Economic Forum. All rights reserved. No part of
+this publication may be reproduced or transmitted in any form
+or by any means, including photocopying and recording, or by
+any information storage and retrieval system.
+
+
+                                                Quantum for Energy and Utilities: Key Opportunities for Energy Transition   2
+April 2026   Quantum for Energy and Utilities:
+             Key Opportunities for Energy Transition
+
+
+
+
+             Foreword
+                                                                                                          Ahmad Al Khowaiter
+                                            Jeremy Jurgens
+                                                                                                          Executive Vice President,
+                                            Managing Director,
+                                                                                                          Technology & Innovation,
+                                            World Economic Forum
+                                                                                                          Aramco
+
+
+
+
+             The world is facing a tightening “energy trilemma”1           and planning spaces and, eventually, improve
+             that requires reducing emissions while keeping                materials simulation accuracy. Quantum sensing can
+             energy reliable and affordable, in an environment             increase measurement fidelity for subsurface imaging
+             shaped by geopolitical volatility and persistent              and monitoring. Quantum communication can
+             uncertainty. Progress on transition indicators has            strengthen critical-infrastructure security when long-
+             continued, but unevenly and slower than required.             lived assets must remain trustworthy for decades.
+             Meanwhile, electricity demand is accelerating as
+             economies digitize and artificial intelligence scales         This white paper has been developed through a
+             up, intensifying pressure on grids and bringing               strategic partnership between the World Economic
+             infrastructure upgrades, flexibility and security to          Forum and Aramco – part of the industry track of
+             the forefront of national agendas.                            the Forum’s Quantum Economy Network – and
+                                                                           focuses on practical paths rather than hype. It
+             Against this backdrop, the limits of conventional             draws on expert input, surveys and early projects
+             computation are becoming more visible. Renewable-             to highlight use cases across the energy value
+             heavy power systems exhibit non-linear dynamics               chain, from generation to transmission and system
+             that are difficult to model with sufficient fidelity.         security. Turning pilots into routine capability will
+             Breakthroughs in batteries, catalysts, carbon capture         require investment in skills, better data integration
+             and storage, and hydrogen rely on molecular                   and continued progress in hardware reliability.
+             interactions that are costly to simulate with classical
+             methods. And across supply chains, trading and                We extend our sincere thanks to the experts and
+             network operations, optimization problems grow                organizations across industry, academia, technology
+             combinatorially, where incremental improvements               providers and policy who contributed time and
+             in solution quality or time-to-decision can translate         insight to this paper. We hope it equips energy and
+             into material operational and economic value.                 utilities industry decision-makers with a practical
+                                                                           basis to prioritize credible quantum opportunities,
+             Quantum technologies, including computing,                    align stakeholders and investments, and build the
+             sensing and communication, do not replace existing            technical, security and talent foundations needed
+             tools, but they can expand what is tractable.                 for responsible integration in the years ahead.
+             Quantum computing may help explore vast design
+
+
+
+
+                                                          Quantum for Energy and Utilities: Key Opportunities for Energy Transition   3
+

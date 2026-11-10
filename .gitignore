@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+data/raw/
+data/derived/
+results/*.parquet
+.python/
+.uv-cache/
+tools/
+.env
+research/third_party/
+research/papers/*.pdf
+models/
+results/*.pkl
+results/*.log
+results/qscen_params/
+data/

@@ -1,0 +1,223 @@
+                                           A Survey on Applications of Quantum Computing for Unit Commitment
+                                                                                  Milad Hasanzadeh1 , Ali Rajabi1 , and Amin Kargarian1
+
+
+                                              Abstract— Unit Commitment (UC) is a core optimization                       (DE)—have improved flexibility and robustness [6]. Still,
+                                           problem in power system operation and electricity market                       they lack guarantees of global optimality and may require
+                                           scheduling. It determines the optimal on/off status and                        extensive tuning. Even with modern solvers, UC, large-scale
+                                           dispatch of generating units while satisfying system, operational,
+                                           and market constraints. Traditionally, UC has been solved                      security-constrained UC (SCUC), and stochastic remain
+                                           using mixed-integer programming, dynamic programming, or                       NP-hard.
+                                           metaheuristic methods, all of which face scalability challenges                   Quantum computing offers a fundamentally different
+                                           as systems grow in size and uncertainty. Recent advances in
+                                           quantum computing—spanning quantum annealing, variational                      computational framework. By leveraging the principles
+                                           algorithms, and hybrid quantum–classical optimization—have                     of superposition and entanglement, quantum processors
+                                           opened new opportunities to accelerate UC solution processes by                can represent and evaluate an exponentially large number
+                                           exploiting quantum parallelism and entanglement. This paper                    of candidate solutions simultaneously [7]. Many discrete
+                                           presents a comprehensive survey of existing research on the                    optimization problems, including UC, can be reformulated as
+                                           applications of quantum computing for solving the UC problem.
+arXiv:2601.01777v2 [quant-ph] 1 Aug 2026
+
+
+
+
+                                           The reviewed works are categorized based on the employed                       quadratic unconstrained binary optimization (QUBO) models
+                                           quantum paradigms, including annealing-based, variational                      or equivalently as Ising Hamiltonians [8]. This QUBO–Ising
+                                           hybrid, quantum machine learning, and quantum-inspired                         mapping enables direct execution of UC formulations on
+                                           methods. Key modeling strategies, hardware implementations,                    quantum hardware through energy-minimization processes.
+                                           and computational trade-offs are discussed, highlighting the                   Early studies have demonstrated the feasibility of using
+                                           current progress, limitations, and potential future directions for
+                                           large-scale quantum-enabled UC.                                                quantum annealing on D-Wave platforms [9] and gate-based
+                                              Index Terms— Quantum Annealing, Quantum Computing,                          variational algorithms such as the quantum approximate
+                                           Quantum Machine Learning, Unit Commitment.                                     optimization algorithm (QAOA) and the variational quantum
+                                                                                                                          eigensolver (VQE) [10], [11]. These works highlight the
+                                                                    I. I NTRODUCTION                                      potential of hybrid quantum–classical schemes to accelerate
+                                              The past decade has seen rapid advances in quantum                          scheduling.
+                                           computing, sparking growing interest in its application to                        Despite growing attention, the literature on quantum
+                                           large-scale engineering optimization. Among these, the unit                    computing for power system optimization remains fragmented
+                                           commitment (UC) problem occupies a central role in power                       across different algorithmic and hardware perspectives.
+                                           system operation and electricity market scheduling. UC                         Some efforts emphasize hardware-specific annealing
+                                           determines the on/off status and generation levels of thermal                  implementations [12], [13], others focus on hybrid or
+                                           and renewable units over a scheduling horizon while satisfying                 distributed gate-based formulations that embed quantum
+                                           demand balance, ramping, reserve, and network constraints.                     subroutines within classical coordination methods such as
+                                           Because it couples binary and continuous decisions under                       alternating direction method of multipliers (ADMM) [10]
+                                           nonlinear cost characteristics, UC remains one of the most                     or Benders decomposition [14], [15], and a smaller number
+                                           computationally demanding optimization problems in the                         investigate learning-driven frameworks using quantum
+                                           power and energy domain [1]–[3].                                               neural networks (QNNs) or quantum reinforcement learning
+                                              Classical UC formulations have long relied on mathematical                  (QRL) [16], [17]. What is currently missing is a unified
+                                           programming and heuristic approaches. Mixed-integer linear                     survey that synthesizes these developments, contrasts their
+                                           and nonlinear programming techniques offer deterministic                       modeling assumptions, and identifies the practical pathways
+                                           optimality but suffer from exponential growth in computation                   toward scalable quantum-enabled UC.
+                                           with system size and uncertainty [4], [5]. Dynamic
+                                                                                                                              This paper provides such a synthesis. It systematically
+                                           programming and priority-list methods provide faster
+                                                                                                                          reviews quantum computing applications to the
+                                           approximations yet become intractable for realistic multi-area
+                                                                                                                          UC problem. This survey paper organizes existing
+                                           or stochastic variants. Metaheuristic algorithms—such as
+                                                                                                                          research into four methodological groups: (i) quantum
+                                           genetic algorithms (GA), particle swarm optimization
+                                                                                                                          annealing–based formulations, (ii) variational and
+                                           (PSO), simulated annealing (SA), and differential evolution
+                                                                                                                          hybrid quantum–classical optimization frameworks,
+                                             This work was supported by the National Science Foundation under Grant       (iii) quantum machine-learning–assisted scheduling, and (iv)
+                                           ECCS-1944752 and Grant ECCS-2312086.                                           quantum-inspired metaheuristics. The goal is to establish a
+                                             1 All authors (Amin Kargarian is corresponding author) are with the
+                                                                                                                          cohesive understanding of how quantum paradigms have
+                                           Department of Electrical Engineering, Louisiana State University, Louisiana,
+                                           USA.            mhasa42@lsu.edu, Ali.Rajabi@lsu.edu,                           been adapted for UC, what computational trade-offs they
+                                           kargarian@lsu.edu                                                              introduce, and where open research opportunities remain.
+        II. OVERVIEW OF Q UANTUM C OMPUTING                                                 Quantum Principles
+
+   Quantum computing leverages the principles of
+                                                                                   Optimization Bridge: QUBO ↔ Ising
+superposition and entanglement to explore vast decision
+spaces in parallel, offering new opportunities for accelerating
+combinatorial optimization in power systems. Unlike classical
+bits, qubits can represent a superposition of 0 and 1, allowing     Annealing: Adiabatic / Ising            Variational: QAOA, VQE
+simultaneous evaluation of multiple states. This parallelism,
+combined with interference-based search, makes quantum
+algorithms well suited for problems such as UC and optimal              Hybrid / Distributed & QML: QADMM, QGBD, QNN, QRL
+power flow (OPF), where binary and nonlinear constraints
+lead to high computational complexity.
+                                                                               Power System Applications: UC, OPF, SCUC
+   Many power system optimization problems can be
+reformulated as QUBO or, equivalently, as Ising Hamiltonians.     Fig. 1: Overview of quantum principles to power systems.
+Objective functions and constraints are encoded through
+quadratic cost and penalty terms, and the resulting
+                                                                  formulations executable on hardware such as D-Wave.
+Hamiltonian’s ground state represents the optimal solution.
+                                                                  The following studies highlight various annealing and
+This QUBO–Ising mapping provides a unified interface
+                                                                  search-based approaches that address the complexity and
+between classical optimization models and quantum hardware.
+                                                                  scalability of UC.
+   Two main quantum paradigms have been applied to
+                                                                     In [18], a Grover-inspired quantum search algorithm is
+power system optimization. Quantum annealing uses adiabatic
+                                                                  proposed for UC, using amplitude amplification to locate
+evolution to minimize an Ising Hamiltonian and has been
+                                                                  near-optimal on/off schedules. An oracle encodes feasible
+implemented on platforms such as D-Wave to solve discrete
+                                                                  solutions based on generation cost and constraints, and
+scheduling problems. Gate-based variational algorithms,
+                                                                  iterative amplification enhances the probability of selecting
+including the QAOA and the VQE, combine parameterized
+                                                                  optimal commitments. A classical refinement step adjusts
+quantum circuits with classical feedback loops, enabling
+                                                                  dispatch for feasibility, providing a quantum-accelerated
+hybrid optimization compatible with noisy intermediate-scale
+                                                                  alternative to exhaustive or annealing-based search.
+quantum (NISQ) devices.
+                                                                     In [19], a qubit-efficient quantum annealing method is
+   Recent research also explores distributed and hybrid
+                                                                  introduced for stochastic UC using a two-stage stochastic
+quantum–classical methods—such as Quantum ADMM and
+                                                                  UC framework. The Powell–Hestenes–Rockafellar augmented
+Quantum Benders Decomposition—to handle large-scale
+                                                                  Lagrangian approach replaces slack variables with dual
+systems through decomposed QUBO subproblems. Moreover,
+                                                                  penalties, yielding a compact QUBO. A quantum ADMM
+emerging quantum machine learning (QML) frameworks,
+                                                                  decomposition further divides the master problem into smaller
+including QNNs and QRL, extend quantum computing to
+                                                                  subproblems that can be solved on annealing hardware,
+adaptive and data-driven scheduling.
+                                                                  ensuring consistency through multiplier updates. This design
+   Current quantum processors from D-Wave, IBM, IonQ,
+                                                                  reduces embedding complexity and scales with uncertainty
+and others already enable small-scale demonstrations of
+                                                                  scenarios.
+these techniques. Although constrained by qubit count, noise,
+                                                                     In [12], a quantum-compatible UC formulation is proposed
+and connectivity, such devices provide a foundation for
+                                                                  using logarithmic discretization to reduce qubit usage
+near-term hybrid optimization. These developments (see Fig.
+                                                                  in QUBO models. Generation levels are encoded with
+1) establish the basis for Section III, which reviews how
+                                                                  logarithmic intervals instead of linear steps, capturing wide
+quantum computing paradigms are specifically applied to
+                                                                  ranges with fewer binaries. The resulting compact QUBO
+UC.
+                                                                  integrates commitment and discretized generation variables
+            III. Q UANTUM C OMPUTING IN UC                        with quadratic penalties for balance and limits, yielding a
+                                                                  hardware-efficient and scalable annealing formulation.
+   We categorize prior UC studies into four groups, each
+                                                                     In [13], a hybrid quantum annealing decomposition
+reflecting a distinct quantum paradigm applied to the problem:
+                                                                  framework is introduced for scalable UC optimization. The
+annealing methods that solve QUBO-encoded UC via Ising
+                                                                  system-level UC is divided into local QUBO subproblems,
+minimization, variational/hybrid algorithms suited for NISQ
+                                                                  which are solved by quantum annealing, with coupling
+hardware, QML approaches that frame UC as a learning task,
+                                                                  constraints managed through classical coordination. A
+and quantum-inspired metaheuristics that mimic quantum
+                                                                  variable-reduction strategy minimizes auxiliary variables and
+search classically. This separation aligns with the natural
+                                                                  qubit use, enabling efficient hardware embedding while
+methodological boundaries in the UC literature, enabling a
+                                                                  preserving feasibility.
+clear and fair comparison of techniques.
+                                                                     In [20], a quantum annealing framework is developed
+A. Quantum Annealing–Based UC                                     for renewable-integrated UC by formulating binary on/off
+  Quantum annealing represents one of the earliest paradigms      and renewable scheduling decisions as a QUBO. The
+applied to UC, focusing on direct QUBO or Ising                   objective combines cost and curtailment penalties, with system
+constraints enforced via quadratic terms. Mapped to an           is reformulated as a QUBO with additional penalties
+Ising Hamiltonian and solved on a quantum annealer, the          for resilience constraints. The quantum layer solves the
+approach yields feasible, near-optimal schedules with faster     commitment subproblem and the classical layer updates
+convergence than classical heuristics.                           penalties and worst-case scenarios. This hybrid design enables
+   In [9], a quantum annealing approach is applied to a          resilience-aware UC by using quantum subroutines to explore
+combinatorial OPF problem by casting discrete scheduling         feasible configurations under uncertainty.
+and network decisions into a QUBO for Ising-based                   In [25], a quantum surrogate Lagrangian relaxation (QSLR)
+optimization. Binary activation states and quadratic penalty     framework is introduced for UC, embedding quantum
+terms capture operational constraints, while a hybrid            subroutines within a classical decomposition scheme. The
+quantum–classical loop refines solutions post-annealing.         SLR method relaxes coupling constraints like load balance and
+Though centered on OPF, the method generalizes to UC,            reserves, producing binary subproblems expressed as QUBOs
+showcasing the viability of annealing solvers for discrete       solved via quantum optimizers, while dual multipliers are
+power system scheduling.                                         updated classically. This hybrid design combines quantum
+                                                                 efficiency in local search with classical coordination for global
+B. Variational and Hybrid Quantum–Classical Frameworks           convergence, outlining a decomposition-based quantum UC.
+   Building upon annealing formulations, variational and            In [26], a hybrid classical–quantum framework is developed
+hybrid quantum–classical methods exploit gate-based              for constrained UC with ramping, up/down, and reserve limits.
+architectures and decomposition schemes to solve UC more         The binary subproblem is cast as a QUBO and solved via
+flexibly. The following works integrate QAOA, VQE, or            warm-start QAOA initialized from a classical relaxation, while
+distributed ADMM structures within hybrid optimization           a classical quadratic solver handles the continuous dispatch.
+frameworks.                                                      Iterative coordination between the two layers yields feasible
+   In [15], the UC problem is formulated as a QUBO and           and scalable UC solutions under limited resources.
+solved via QAOA within a hybrid quantum–classical loop,             In [27], a multi-stage hybrid quantum–classical algorithm is
+where quantum circuits evaluate the Hamiltonian and a            proposed for UC, combining a variational quantum optimizer
+classical optimizer updates variational parameters. To enhance   with a classical dispatch refinement step. The VQA generates
+scalability, QAOA is embedded in a distributed ADMM              candidate commitment vectors, while a classical SLSQP
+framework (quantum-ADMM), enabling each microgrid to             solver refines power outputs and checks feasibility. Iterative
+solve local UC subproblems quantumly while coordinating          information exchange accelerates convergence, and tests on
+through dual updates, illustrating distributed variational UC    IonQ hardware demonstrate the practicality of VQA-based
+optimization.                                                    hybrid frameworks for UC scheduling.
+   In [21], the UC problem is reformulated as a QUBO for            In [28], a quantum-aided hybrid algorithm is presented
+direct execution on quantum hardware, encoding on/off states,    for UC, combining a quantum variational solver for binary
+up/down times, and demand constraints in a compact quadratic     commitments with a classical optimizer for dispatch. The
+form. The model minimizes qubit use by eliminating slack         quantum layer produces candidate schedules, the classical
+variables and redundant terms, with the ground state of the      layer refines power outputs and feasibility, and feedback
+corresponding Ising Hamiltonian representing a feasible UC       updates the quantum parameters. This iterative coordination
+schedule. This hardware-oriented formulation highlights the      accelerates binary-space exploration and illustrates the
+importance of encoding efficiency for NISQs.                     synergy between quantum and classical solvers in large-scale
+   In [22], the UC problem is cast as a binary QUBO and          UC scheduling.
+mapped to an Ising Hamiltonian for solution via QAOA. Unit          In [29], a fully distributed quantum ADMM (QADMM)
+commitments and generation limits are encoded as quadratic       framework is introduced for large-scale UC. The UC is
+cost and penalty terms, while the QAOA circuit alternates        decomposed into binary QUBO and continuous subproblems
+between cost and mixer operators with parameters (γ, β)          solved by quantum and classical optimizers, respectively.
+optimized classically. Implemented in Qiskit, this early study   A consensus-based coordination enforces global constraints
+shows how gate-based QAOA can approximate feasible UC            through dual updates among agents. By distributing QUBO
+schedules within a hybrid quantum–classical framework.           tasks and minimizing inter-agent communication, the method
+   In [23], a distributed quantum-enabled UC framework is        scales efficiently while reducing regional qubit demands.
+proposed, decomposing the scheduling task into regional             In [14], a quantum generalized Benders decomposition
+QUBO subproblems solved via hybrid quantum–classical             (QGBD) framework is proposed for UC, combining
+solvers. Regional coordination is maintained through iterative   a quantum-solved binary master QUBO with classical
+multiplier updates enforcing balance and coupling constraints.   continuous subproblems that generate Benders cuts.
+This architecture reduces qubit demand, enables parallel         Distributed variants assign local masters to regional agents
+execution, and demonstrates scalable hybrid quantum              coordinated via consensus, reducing QUBO size and qubit
+scheduling across microgrids or market regions.                  demand. This hybrid design adapts classical decomposition
+   In [24], a quantum-embedded robust optimization               for scalable quantum execution in UC optimization.
+framework is proposed for resilience-constrained UC,                In [30], a hybrid quantum–classical ADMM framework
+combining QAOA with a classical robust loop. The UC              is developed for integrated UC and DC-OPF optimization.
+

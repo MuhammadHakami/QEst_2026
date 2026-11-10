@@ -1,0 +1,2350 @@
+Qubit-Efficient Variational Quantum Optimization via Pauli Correlation Encoding:
+Application to Large-Scale Power Demand Portfolio Optimization
+Takuya Yoshioka∗ and Keita Sasada
+Strategic Technology Center, TISI Inc., 2-2-1 Toyosu, Koto-ku, Tokyo 135-0061, Japan
+
+Riku Usuki and Yuichiro Nakano
+Graduate School of Engineering Science, Osaka University,
+1-3 Machikaneyama, Toyonaka, Osaka 560-8531, Japan
+
+arXiv:2607.24722v2 [quant-ph] 11 Sep 2026
+
+Keisuke Fujii
+Graduate School of Engineering Science, Osaka University,
+1-3 Machikaneyama, Toyonaka, Osaka 560-8531, Japan
+Center for Quantum Information and Quantum Biology, Osaka University,
+1-2 Machikaneyama, Toyonaka, Osaka 560-0043, Japan and
+Center for Quantum Computing, RIKEN, 2-1 Hirosawa, Wako, Saitama 351-0198, Japan
+(Dated: September 15, 2026)
+Variational quantum algorithms offer a promising route to combinatorial optimization, but their
+applicability is limited by the challenge of encoding large-scale problems within restricted qubit
+resources. In this work, we introduce a qubit-efficient variational framework based on Pauli correlation encoding (PCE) and apply it to electric power demand portfolio optimization. Binary variables
+are represented through expectation values of Pauli correlation operators, which encode multi-body
+correlations of the quantum state and provide a continuous relaxation enabling compact representations with few qubits. We further propose a two-stage hybrid formulation, in which a time-averaged
+problem provides initialization for a time-resolved optimization. Numerical simulations demonstrate
+near-optimal performance across problem sizes ranging from m = 18 to 10,296, with normalized cost
+gaps on the order of 10−4 relative to solutions with certified optimality. We show that the performance is governed by the interplay between continuous relaxation and discretization: the effective
+resolution of the correlator representation determines how reliably improvements in the continuous
+loss translate into better discrete solutions, with larger systems exhibiting more consistent behavior. Finally, we demonstrate robustness on a trapped-ion quantum processor, where high-quality
+solutions are obtained despite noise and finite sampling. These results establish PCE as a physically
+motivated and qubit-efficient framework for large-scale combinatorial optimization.
+
+I.
+
+INTRODUCTION
+
+Variational quantum algorithms have emerged as a
+flexible framework for tackling combinatorial optimization problems on near-term quantum devices [1–5]. However, they face a fundamental scalability challenge: current hardware provides only a limited number of qubits,
+whereas many practically relevant optimization problems involve extremely large classical variable spaces together with dense quadratic interactions and real-valued,
+nonuniform coefficients. Addressing this gap requires
+reconciling the discrete, high-dimensional structure of
+classical optimization problems with the continuous and
+resource-constrained nature of quantum representations.
+Understanding and controlling this interplay between discrete variables and their continuous embeddings remains
+a central challenge in variational quantum optimization.
+In standard approaches such as the Quantum Approximate Optimization Algorithm (QAOA) [2, 6], binary optimization variables are typically mapped directly onto
+qubits, so the required qubit count grows linearly with
+
+∗ takuya.yoshioka@tisi.jp
+
+problem size. This becomes a major limitation for large,
+fully connected quadratic optimization problems, motivating alternative encoding strategies that compress the
+problem representation while retaining useful optimization structure.
+Several approaches have been proposed to address the
+qubit-scaling bottleneck, including space-efficient encodings [7, 8] and quantum random access optimization
+(QRAO) with relaxation-based extensions [9, 10]. These
+methods reduce qubit requirements by mapping binary
+optimization problems to compressed or relaxed quantum representations followed by measurement and decoding. However, such compression typically introduces
+trade-offs in decoding sensitivity, representational flexibility, and measurement overhead. Accordingly, balancing qubit efficiency, continuous relaxation, and sampling
+cost remains an open challenge for large-scale combinatorial optimization [7–12].
+These limitations motivate the exploration of alternative representations based on physically meaningful observables of quantum states. In particular, expectation
+values of Pauli operators encode multi-body correlations
+of the underlying quantum state and provide a continuous description of discrete degrees of freedom. This perspective connects combinatorial optimization to the sta-
+
+2
+tistical structure of quantum states. Leveraging this perspective, Pauli correlation encoding (PCE), introduced
+by Sciorilli et al. [13], represents classical binary variables
+not as individual qubits, but as the signs of expectation
+values of Pauli correlation operators generated by a variational quantum circuit.
+106
+
+problem size 𝑚
+
+105
+104
+103
+
+𝑘 = b𝑛/2c
+𝑘=1
+𝑘=2
+𝑘=3
+𝑘=4
+𝑘=5
+𝑘=6
+𝑘=7
+
+linear qubit scaling (𝑚 = 𝑛)
+problem instances
+
+102
+101
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+
+number of qubits 𝑛
+
+FIG. 1. Maximum representable problem size m as a function of the number of qubits n for different correlation orders
+
+k in Pauli correlation encoding (PCE) [13], where m = 3 nk .
+The black solid curve corresponds to k = ⌊n/2⌋, which maximizes the number of Pauli correlators (i.e., expectation values of Pauli correlation operators). The linear reference line
+(m = n) indicates direct encodings with one-to-one qubit–
+variable mapping. Filled markers denote the (n, m) instances
+considered in this work.
+
+For a fixed correlation order k, PCE represents classi(k)
+cal variables using the expectation values {⟨Πi ⟩}m
+i=1 of
+k-body Pauli correlation operators. These expectation
+values, hereafter referred to as Pauli correlators, can be
+interpreted as continuous relaxations of binary variables
+that retain information about higher-order correlations in
+the quantum
+ state. Their number scales combinatorially
+as m = 3 nk , enabling the representation of a large number of classical variables with comparatively few qubits.
+In particular, choosing k = ⌊n/2⌋ maximizes the correlator count, as shown in Fig. 1.
+Throughout this study, we focus on even n and adopt
+k = n/2, which maximizes the number of correlators for
+a fixed n. Importantly, this large number of available correlators does not imply an equivalent increase in the number of independent degrees of freedom. All correlators are
+generated from the same underlying quantum state and
+are therefore constrained by quantum correlations and
+the expressivity of the variational ansatz. Accordingly,
+PCE should be viewed as a compressed representation
+rather than an exact embedding of independently controllable variables. The present work does not assume
+independent control of all encoded variables, but instead
+investigates whether useful optimization structure can be
+represented and exploited within the constrained manifold generated by the variational quantum circuit.
+
+Following the original proposal [13], PCE has been
+studied for several combinatorial optimization problems,
+including large-scale benchmark instances such as MaxCut [13], smaller-scale LABS problems on quantum hardware [14], and comparative simulation studies across multiple problem classes [15]. Applications to more practical
+tasks, including portfolio optimization, have also been
+explored, but mainly at moderate scales and in simulation [16, 17]. However, the behavior of PCE remains insufficiently understood for dense quadratic problems with
+real-valued and nonuniform coefficients.
+In this work, we study PCE in this regime through
+electric power demand portfolio optimization, which naturally yields fully connected QUBO instances. This application provides a useful setting for examining the scalability and optimization behavior of PCE beyond structured benchmark problems. A central issue is not only
+whether the relaxed loss can be minimized, but whether
+such improvements are reliably transmitted to the discretized binary solution. This motivates a systematic
+investigation of the relationship among continuous relaxation, binary decoding, and the distribution of Pauli correlators.
+The novelty of the present work does not primarily
+lie in applying PCE to another optimization problem,
+but rather in clarifying how a compact correlator-based
+representation behaves in dense quadratic optimization
+problems with real-valued and nonuniform coefficients.
+Specifically, this work provides three contributions.
+First, we investigate the behavior of PCE in a class
+of fully connected quadratic optimization problems with
+real-valued and nonuniform coefficients, using electric
+power demand portfolio optimization as a representative application. This setting differs substantially from
+the benchmark problems primarily considered in previous PCE studies and provides a useful testbed for examining the representational and optimization properties
+of PCE in practically motivated dense QUBO instances.
+We demonstrate near-optimal performance, with normalized cost gaps on the order of 10−4 relative to solutions
+with certified optimality obtained using a state-of-the-art
+commercial solver [18], across a wide range of problem
+sizes. Second, we show that the optimization behavior
+of PCE is governed by the interplay between the continuously relaxed loss and the discretized binary objective.
+To analyze this mechanism, we study the distribution of
+Pauli correlators, which serve as continuous representations of binary variables, and characterize how this interplay between continuous relaxation and discrete binary
+structure manifests in the correlator space. As a result,
+we clarify how the effective resolution of the correlator
+representation evolves with system size and influences the
+optimization behavior. Third, we validate the robustness
+of this representation on trapped-ion quantum hardware
+and show that useful binary solutions can still be recovered through post-processing under finite sampling and
+hardware noise. This result provides practical evidence
+that the continuous relaxation framework retains suffi-
+
+3
+cient information about the underlying binary structure,
+enabling reliable solution recovery even in the presence
+of hardware imperfections.
+These contributions provide new insight into the representational capacity, optimization behavior, and practical robustness of PCE beyond previously studied benchmark settings. Taken together, these results provide
+a unified understanding of PCE from both representational and optimization perspectives in fully connected
+settings with practical relevance. In particular, our findings clarify how continuous relaxation can faithfully encode binary structures, how the interplay between continuous and discrete representations governs the optimization mechanism, and how these properties persist under
+realistic hardware conditions. This positions PCE as a
+viable framework for bridging compact quantum representations and practical combinatorial optimization, offering a complementary approach to existing quantum
+and classical methods in the NISQ regime.
+This paper is organized as follows. Section II introduces the power demand portfolio optimization problem and its time-averaged (Model 1) and time-resolved
+(Model 2) formulations. Section III presents the PCEbased variational framework. Section IV reports the numerical and hardware results. Sections V and VI provide
+discussion and conclusion. Additional analyses and supplementary results are provided in the Appendix.
+
+The model parameters are derived from open electricity consumption data provided by the Energy Management System Open Data platform [26]. The dataset consists of hourly electricity consumption records covering
+a 61-day period from April 1 to May 30, and includes
+2,143 independent consumer-level time series. For each
+consumer i and time step t, the available demand reduction pt,i is defined as 10% of the original electricity
+consumption.
+For problem instances with m ≤ 2,143, the portfolio is constructed by randomly selecting m distinct consumers from the available dataset. For larger-scale instances with m > 2,143, additional consumer profiles are
+generated using the mixup data augmentation method,
+in which synthetic reduction profiles are constructed as
+convex combinations of pairs of independent consumer
+time series. This combined procedure enables a systematic study of problem instances across a wide range of
+portfolio sizes while preserving the statistical characteristics of the original data.
+The problem sizes considered in this work are selected
+to span representative points along the scaling curve enabled by Pauli correlation encoding, as shown in Fig. 1,
+ranging from small instances to large instances approaching the representational limit of the available qubit resources.
+
+B.
+II.
+
+ELECTRIC POWER DEMAND PORTFOLIO
+OPTIMIZATION PROBLEM
+
+Electric power demand portfolio optimization is a practically important task in power aggregator operations,
+where subsets of consumers are selected to meet procurement targets under stochastic uncertainty in available demand reduction [19, 20]. The resulting problem is typically large-scale and combinatorial, with dense quadratic
+couplings arising from correlations among consumer demand reduction profiles [21–25]. This structure makes
+it a natural benchmark for high-dimensional QUBO-type
+optimization with real-valued, nonuniform coefficients.
+
+Cost Models: Averaged and Time-Resolved
+Formulations
+
+We introduce two related formulations of the demand
+portfolio optimization problem: a time-averaged model
+(Model 1) and a time-resolved model (Model 2). Both
+are based on the same hourly procurement cost, while
+differing in how temporal fluctuations are treated.
+We first define the hourly cost at time step t for a given
+portfolio configuration x as
+
+!2 
+m
+X
+Ct (x) =E
+pt,i xi − Pttarget 
+i=1
+
+=
+A.
+
+Problem Definition and Data Construction
+
+We consider a power demand portfolio optimization
+problem in which a power aggregator selects a subset of
+demand-side consumers to procure a target amount of
+flexible power under uncertainty [21, 24]. Let pt,i denote the available demand reduction that can be procured from consumer i at time t, treated as a random
+variable reflecting stochastic variability in available demand reduction. The portfolio selection is represented
+by binary variables x = (x1 , . . . , xm ) ∈ {0, 1}m , where
+xi = 1 indicates that consumer i is included in the portfolio and xi = 0 otherwise.
+
+m X
+m
+X
+
+Cov(pt,i , pt,j )xi xj
+
+i=1 j=1
+
++
+
+m
+X
+i=1
+
+!2
+E[pt,i ]xi − Pttarget
+
+.
+
+(1)
+
+This objective measures the deviation between procured
+power and the procurement target at each time step,
+while incorporating both stochastic fluctuations and the
+mean available demand reduction.
+Throughout this work, the target power is set as
+m
+
+Pttarget =
+
+1X
+E[pt,i ],
+2 i=1
+
+(2)
+
+4
+so that the task corresponds to procuring approximately
+half of the total available demand reduction. This provides a balanced benchmark setting while preserving the
+nontrivial correlation structure of the procurement problem.
+
+1.
+
+formulation represents the practically motivated operational model used to evaluate procurement performance
+under realistic fluctuations in available demand reduction.
+For later analysis, we define the expected procured
+power and its variability at each time step t. The expected procured power is given by
+
+Model 1: Time-Averaged Portfolio Optimization
+
+Model 1 is a time-averaged formulation in which a common portfolio is selected over a time window of length
+nT . This model is introduced to capture the dominant
+statistical structure of uncertainty in available demand
+reduction and to provide effective initial parameters for
+the subsequent time-resolved optimization.
+The averaged cost function is defined as
+1
+CT (x) =
+nT
+
+T +n
+T −1
+X
+
+Ct (x).
+
+(3)
+
+Pt (x) =
+
+m
+m X
+X
+
+and the corresponding standard deviation is
+v
+uX
+m
+um X
+σt (x) = t
+Cov(pt,i , pt,j )xi xj .
+
+(7)
+
+i=1 j=1
+
+Using these definitions, the hourly cost in Eq. (1) can
+be written in the compact form
+
+2
+Ct (x) = σt (x)2 + Pt (x) − Pttarget .
+
+Cov(pt,i , pt,j )xi xj
+
+T +n
+T −1
+X
+
+m
+X
+
+t=T
+
+i=1
+
+!2
+E[pt,i ]xi − Pttarget
+
+, (4)
+
+where the overline denotes averaging over the time window of length nT . In this work, the reference time is set
+to T = 1, and the averaging window is fixed to nT = 24.
+For later normalization and comparison of optimization results, we define reference minimum and maximum
+cost values, CTmin and CTmax , which are obtained using
+the Gurobi optimizer [18] with a relative optimality gap
+tolerance of 10−4 . Using these reference values, we introduce the normalized cost gap
+∆CT
+CT − CTmin
+= max
+,
+WT
+CT − CTmin
+
+(5)
+
+which takes values between 0 and 1 and quantifies the
+relative optimality of a given solution. Similarly, we define the normalized loss gap as ∆LT /WT , where ∆LT =
+LT − CTmin uses the same optimal cost reference, so that
+both cost and loss are measured relative to the same
+optimal reference. These normalized gap measures are
+used throughout this work to compare optimization performance for Model 1 across different problem sizes and
+solution methods.
+
+2.
+
+(6)
+
+t=T
+
+i=1 j=1
+
+1
++
+nT
+
+E[pt,i ]xi ,
+
+i=1
+
+Substituting Eq. (1) into Eq. (3) gives
+CT (x) =
+
+m
+X
+
+Model 2: Time-Resolved Portfolio Optimization
+
+Model 2 corresponds to the fully time-resolved formulation, in which the hourly cost Ct (x) defined in Eq. (1)
+is minimized independently at each time step t. This
+
+(8)
+
+These quantities characterize the mean and variability of
+the procured power and are used in Sec. IV to evaluate
+portfolio quality and robustness.
+In this formulation, the requirement to match the procurement target Pttarget acts as a soft constraint through
+the quadratic penalty term in Eq. (8). While such
+penalty-based formulations are standard in classical combinatorial optimization, their behavior becomes nontrivial when the binary variables are optimized through
+a continuous quantum representation. In particular,
+within the PCE framework introduced below, the optimization is performed in a continuously relaxed space,
+whereas the final portfolio is obtained only after binary
+decoding. This interplay between continuous relaxation
+and discrete binary structure underlies the optimization
+mechanism analyzed later in this work.
+In practice, this mechanism is realized through three
+stages: (i) variational optimization in the continuous correlator space, (ii) binary decoding of the resulting expectation values, and (iii) greedy post-processing to locally
+refine the decoded solution. This multi-stage procedure
+should be distinguished from the greedy (random) baseline, which applies only step (iii) starting from randomly
+generated bit strings.
+
+III.
+
+PAULI CORRELATION ENCODING AND
+VARIATIONAL FRAMEWORK
+
+In this section, we summarize the Pauli correlation encoding (PCE) used to represent large-scale binary optimization problems and describe the variational quantum
+framework used to optimize the encoded variables. We
+first introduce the structure of the PCE representation
+and then explain how it is incorporated into a variational
+quantum optimization procedure.
+
+5
+A.
+
+Pauli Correlation Encoding of the Optimization
+Problem
+
+Pauli correlation encoding (PCE) [13] provides a qubitefficient representation of large-scale combinatorial optimization problems by embedding many variables into
+correlated expectation values of Pauli operators. As illustrated in Fig. 1, this encoding enables a combinatorial
+growth of the effective problem size m with respect to
+the number of qubits n, allowing realistically sized power
+demand portfolio problems to be addressed using a relatively small quantum system.
+For a fixed correlation order k, the PCE representation is constructed from a set of k-body Pauli correlation
+(k)
+operators {Πi }m
+i=1 , where
+
+
+Y
+
+Y
+Y
+(k)
+Πi ∈
+Xj ,
+Yj ,
+Zj ,
+
+
+(9)
+j∈S
+j∈S
+j∈S
+with
+
+S ⊂ {1, . . . , n},
+
+|S| = k.
+
+Here, S specifies the subset of qubits on which the operator acts nontrivially. Each operator is therefore defined by choosing a subset S of k qubits and assigning
+a common Pauli type (X, Y , or Z) to that subset. The
+index i = 1, . . . , m labels the resulting distinct opera(k)
+tors, whose expectation values {⟨Πi ⟩}m
+i=1 serve as the
+encoded continuous variables, following the original PCE
+construction [13]. 
+Since there are nk possible subsets and three possible
+Pauli types, the total number of available correlators is
+ 
+n
+m=3
+.
+(10)
+k
+Importantly, despite the combinatorial scaling of m, the
+number of distinct measurement settings does not scale
+with the number of encoded variables. Because the operators in Eq. (9) are grouped according to their Pauli
+type, all correlators can be estimated from measurements
+in only three global bases, namely the all-X, all-Y , and
+all-Z bases. Consequently, the number of quantum state
+preparations and measurement configurations remains
+fixed at three, independent of the problem size m. This
+property substantially reduces the measurement-setting
+overhead associated with estimating a combinatorially
+large number of Pauli correlators. However, as discussed
+in Sec. V, overall computational cost also depends on
+the statistical precision required for correlator estimation, the cost of evaluating the dense QUBO objective,
+and the cost of classical post-processing.
+This combinatorial scaling enables the representation
+of a large number of classical variables using a comparatively small number of qubits. In particular, for even
+n, the choice k = n/2 maximizes the number of distinct Pauli correlation operators and therefore yields the
+largest number of available encoded variables for a fixed
+number of qubits. Throughout this study, we adopt this
+choice.
+
+B.
+
+Variational Optimization Framework
+
+To solve the encoded optimization problem, we employ a variational quantum framework in which a parameterized quantum circuit generates the Pauli correlators
+(k)
+{⟨Πi ⟩θ }m
+i=1 , which are then optimized through a classical outer loop.
+1.
+
+Parameterized Quantum Circuit
+
+In the present work, the quantum circuit is used as
+a learning-based parametric model that generates Pauli
+correlators, rather than as a standalone quantum algorithm. The parameterized quantum state |ψ(θ)⟩ is prepared by a layered circuit ansatz. Each layer consists
+of the sequential application of (i) Ry rotations on all
+qubits, (ii) Rz rotations on all qubits, and (iii) fully connected Rzz rotations between all qubit pairs. For a circuit
+with
+ n qubits and depth l, each layer therefore contains
+n
+with 2n single-qubit
+2 two-qubit Rzz rotations together
+
+rotations, corresponding to n2 +2n elementary gates per
+layer. As a result, the total number of entangling gates
+scales as O(l n2 ).
+Throughout this work, the circuit depth is fixed to
+l = 5. This choice reflects a trade-off between expressivity and computational cost: because each layer already
+contains O(n2 ) entangling gates, increasing the depth
+substantially would significantly amplify the total computational cost, particularly for large-scale instances.
+Empirically, a depth of five was found to provide stable
+optimization performance across all problem sizes considered in this work. This depth also remains compatible with both state-vector simulation and execution on
+trapped-ion quantum hardware. A systematic investigation of the expressibility and depth scaling of the ansatz is
+beyond the scope of the present study. For each encoded
+(k)
+operator Πi , the corresponding correlator is defined as
+(k)
+
+(k)
+
+⟨Πi ⟩θ = ⟨ψ(θ)|Πi |ψ(θ)⟩.
+
+(11)
+
+These expectation values serve as the fundamental continuous quantities used in the relaxation described below.
+2.
+
+Continuous Relaxation and Loss Function
+
+To enable variational quantum optimization, the binary variables x are relaxed to continuous variables
+y(θ) ∈ [0, 1]m constructed from the Pauli correlators generated by the parameterized circuit. Specifically, each
+relaxed variable is defined as
+
+
+(k)
+yi (θ) = ς 2α⟨Πi ⟩θ ,
+(12)
+where ς(x) = [1 + e−x ]−1 = [tanh(x/2) + 1]/2 is the
+sigmoid function, and α controls the sharpness of the
+relaxation.
+
+6
+This relaxation is central to the present formulation:
+the optimization is performed in the continuous space of
+y(θ), whereas the final binary configurations are evaluated only after binary decoding. As shown later, the
+consistency between these two levels plays a central role
+in the observed optimization behavior.
+Using these relaxed variables, the loss function for the
+time-resolved model is defined as
+2
+m 
+1
+βν X
+yi (θ) −
+,
+(13)
+Lt (θ) = Ct (y(θ)) +
+4m i=1
+2
+where β is a tunable regularization parameter and ν is the
+Frobenius norm of the QUBO matrix. An analogous loss
+function is defined for the averaged model by replacing
+Ct with CT . The factor 1/4 ensures consistency with
+the equivalent formulation based on tanh (see Eq. (12)),
+matching the form used in prior work [14]. In evaluating
+ν, constant terms in the quadratic cost function, such
+as (Pttarget )2 , which do not depend on the variables, are
+excluded.
+All variational optimizations are performed using
+noiseless state-vector simulation implemented with the
+Qulacs simulator [27]. The variational parameters θ are
+optimized using the Broyden–Fletcher–Goldfarb–Shanno
+(BFGS) algorithm, which was found to provide stable
+and efficient convergence across all problem sizes considered. Gradients of the loss function are computed from
+exact expectation values using the backpropagation functionality available in Qulacs [27]. For each Model 1 instance, the variational optimization is repeated over five
+independent runs with different random initial circuit parameters. Among these runs, we select the one that yields
+the minimum decoded cost with respect to the original
+binary objective, and denote the corresponding circuit
+parameters by θ ∗ .
+The resulting parameters θ ∗ are used both to initialize the optimization for the time-resolved Model 2 and
+to evaluate the corresponding QPU results, without introducing additional random restarts. This warm-start
+strategy improves convergence speed and stabilizes the
+optimization for large-scale instances. Quantum hardware experiments are performed by executing the optimized circuits with fixed parameters on a quantum processing unit, followed by measurement of the corresponding expectation values and cost functions.
+3.
+
+Decoding and Post-Processing
+
+After optimization, binary portfolio selections are obtained by threshold-based decoding of the correlators:
+
+
+i
+1h
+(k)
+xi (θ) :=
+sign ⟨Πi ⟩θ + 1 .
+(14)
+2
+In realistic quantum hardware, the estimation of expec(k)
+tation values ⟨Πi ⟩θ is fundamentally limited by finiteshot projection noise. For a finite number of measure-
+
+ment shots Nshot , the statistical √
+uncertainty of each estimated correlator scales as O(1/ Nshot ). Consequently,
+if the true expectation value lies close to the decoding
+√
+(k)
+boundary, i.e., |⟨Πi ⟩θ | ≲ 1/ Nshot , its decoded sign
+becomes increasingly sensitive to statistical fluctuations,
+leading to sign errors in the decoded binary variables.
+This sensitivity is particularly relevant in large-scale instances, where a significant fraction of correlators may be
+concentrated near zero. The resulting degradation of the
+decoded solution quality is discussed further in Sec. IV C.
+The decoded configurations x(θ) are then evaluated using the original binary cost functions, such as CT (x(θ))
+for Model 1 and Ct (x(θ)) for Model 2. This thresholdbased decoding introduces a nonlinear projection from
+the relaxed representation to the binary feasible space,
+and therefore plays a central role in the interplay between
+continuous relaxation and discrete binary structure analyzed in Sec. IV B.
+Because the decoding map is nonlinear, the parameter
+values that minimize the relaxed loss do not necessarily coincide with those that minimize the decoded binary
+cost. Accordingly, for each optimization run, we denote
+by θ ∗ the variational parameters along the optimization
+trajectory that minimize the decoded binary cost without post-processing, namely CT (x(θ)) for Model 1 or
+Ct (x(θ)) for Model 2. Unless otherwise stated, all reported binary solutions, cost values, and correlator distributions are evaluated at θ ∗ , whereas the relaxed loss
+values shown in the optimization traces correspond directly to the continuously optimized objective. This distinction is particularly important in the present setting,
+where the relaxed loss can continue to improve even when
+the decoded binary state remains unchanged.
+Because the decoded binary solution is not in general
+locally optimal, we also examine a post-processing step
+applied after decoding. We tested both the local search
+procedure adopted by Sciorilli et al. [13] and a greedy
+method, and found that the greedy approach consistently yielded better performance. Accordingly, greedy
+post-processing is adopted when post-processed results
+are reported. Throughout this paper, the term “complete PCE workflow” refers to PCE-based initialization,
+sign-based decoding, and the subsequent greedy postprocessing step. Unless otherwise stated, all reported
+PCE results correspond to this complete workflow.
+In the greedy method, a single-pass update is performed: binary variables are ranked by their individual
+cost-reduction contributions, and are sequentially flipped
+in this order, with each variable updated at most once.
+
+IV.
+
+RESULTS
+
+We first evaluate the time-averaged optimization problem (Model 1), which serves as the initial stage of the
+hierarchical optimization framework. Solving Model 1
+provides variational circuit parameters that capture the
+dominant structure of the cost landscape and are used
+
+7
+
+normalized cost gap Δ𝐶𝑇 /𝑊𝑇
+
+10−2
+
+10−3
+
+10−4
+
+10−5 1
+10
+
+greedy (all-zero)
+greedy (random)
+PCE simulation
+PCE experiment
+102
+
+103
+
+problem size 𝑚
+
+104
+
+FIG. 2. Normalized cost gap as a function of the problem
+size m for the time-averaged portfolio optimization (Model 1).
+The vertical axis shows the normalized cost gap ∆CT /WT
+[Eq. (5)]. Crosses [greedy (all-zero)] denote results obtained
+by the greedy algorithm initialized from the all-zero bit string,
+while plus markers [greedy (random)] show results averaged
+over 1,000 runs with independent random initial bit strings;
+error bars indicate standard deviations over these runs. Circles and diamonds correspond to results obtained using the
+complete PCE workflow, including greedy post-processing after sign-based decoding, in simulation and on the quantum
+processing unit (QPU), respectively. For m = 18, the PCE
+solver achieves the exact optimal cost, yielding a zero normalized cost gap; the corresponding data point is not shown. The
+QPU results are obtained using circuit parameters optimized
+via variational quantum circuit simulation.
+
+to initialize the subsequent time-dependent optimization
+(Model 2).
+
+A.
+
+Qubit Efficiency and Optimization Performance
+of PCE (Model 1)
+
+Figure 2 shows the normalized cost gap for Model 1
+as a function of the problem size m, demonstrating the
+optimization performance of the PCE-based framework
+across a wide range of problem sizes. The corresponding optimization settings and convergence statistics are
+summarized in Table I.
+Across all tested instances, the PCE-based solver
+achieves consistently low normalized cost gaps, indicating that the proposed encoding and optimization strategy
+remain effective as the problem size increases. This scalability is enabled by the compact representation of variables through Pauli correlation operators, which avoids
+the linear growth of qubit requirements typical of direct
+binary encodings.
+The hyperparameters αsc and β are selected to minimize the total cost CT via a grid search. Here, αsc controls the scaling α = αsc n⌊k/2⌋ [13]. Their dependence
+on system size is detailed in Appendix A. In particular,
+
+TABLE I. Summary of optimization settings and convergence statistics for Model 1. Here, m denotes the problem
+size (number of consumers), n the number of qubits, and k
+the order of Pauli correlation operators. nparams is the number
+of variational parameters. The hyperparameters αsc , β, and
+ν appear in the loss function (see text), where ν corresponds
+to the Frobenius norm of the cost matrix and has units of
+MWh2 . The parameter α is defined as α = αsc n⌊k/2⌋ following Ref. [13]. The values of αsc and β are selected to minimize
+the decoded cost CT , while ν is fixed. For each instance, the
+optimization is repeated over five independent runs with different random initial circuit parameters. The reported values
+correspond to the run that yields the minimum decoded cost
+CT , and niter denotes the number of optimization iterations
+for that run.
+m
+18
+60
+210
+756
+2,772
+10,296
+
+n
+4
+6
+8
+10
+12
+14
+
+k
+2
+3
+4
+5
+6
+7
+
+αsc
+1.5
+0.1
+0.1
+0.5
+0.1
+0.1
+
+β
+0.1
+0.1
+0.1
+0.0
+0.0
+0.0
+
+ν
+0.00421
+0.0320
+0.120
+0.901
+6.52
+45.6
+
+nparams
+70
+135
+220
+325
+450
+595
+
+niter
+173
+458
+1,291
+1,450
+2,486
+2,609
+
+β > 0 is beneficial for smaller instances, whereas β = 0
+yields more stable performance for larger systems.
+To assess the role of post-processing, we compare
+against a greedy baseline initialized from random bit
+strings [greedy (random)], using the same single-pass update rule as in Sec. III B 3. Since PCE also applies this
+greedy step after decoding, this comparison isolates the
+quality of the binary initialization. The corresponding
+cost distributions are shown in Appendix B 1.
+The size dependence in Fig. 2 can be understood from
+the intrinsic structure of the problem. Here, the statistical quantities E[pt,i ] and Cov(pt,i , pt,j ) in Eq. (1) are
+fixed, so the task reduces to a combinatorial optimization
+P problem. As m increases, the aggregated quantity
+i pt,i xi may exhibit averaging effects, which can reduce
+the influence of individual consumer fluctuations on the
+overall portfolio behavior. At the same time, the number of near-optimal configurations may increase, leading
+to a higher degeneracy of solutions with similar cost values. These effects can make the optimization landscape
+effectively smoother, allowing high-quality solutions to
+be obtained more easily. This interpretation is consistent with the baseline behavior: while greedy (all-zero)
+shows a size-independent lower bound, greedy (random)
+improves with increasing m. This indicates that the performance gain in larger systems is not solely algorithmic,
+but reflects the increasing smoothness and redundancy of
+the effective solution space. This picture is further supported by the match probability analysis in Sec. IV C,
+which shows that low-cost solutions increasingly differ
+at the level of individual binary variables, indicating an
+increase in the number of distinct near-optimal configurations.
+Across all problem sizes, the PCE simulation results
+remain consistently below the greedy (random) baseline,
+
+B.
+
+Optimization Mechanism
+
+To understand the relationship between the continuous
+optimization and the discretized binary objective, we analyze the optimization behavior for representative small
+and large instances, as shown in Fig. 3.
+For both system sizes, the normalized loss gap decreases smoothly during optimization, reflecting the continuous nature of the variational objective. In contrast,
+the corresponding decoded binary cost exhibits step-like
+or irregular, non-monotonic behavior due to the nonlinear mapping from continuous variables to binary variables.
+To clarify the origin of this behavior, we examine the
+distributions of the continuous variables and the corresponding Pauli correlators, shown in Fig. 4. These distributions are evaluated at the iterations that achieve the
+minimum decoded binary cost values in Fig. 3, thereby
+characterizing the structure of the solutions that are optimal after discretization prior to post-processing.
+For the small instance (m = 18), the optimization
+exhibits plateau-like cost behavior together with effectively discrete correlator values, as shown in Fig. 3(a) and
+Fig. 4(a). In this regime, the regularization parameter β
+strongly affects the optimization behavior. Setting β > 0
+keeps the correlators near zero, so that many variables
+remain close to the decoding boundary after the nonlinear transformation. As a result, small fluctuations in the
+continuous variables can trigger frequent changes in the
+discretized configuration, leading to irregular cost variations across iterations, which enhances exploration of
+the binary solution landscape. In contrast, when β = 0,
+the correlators spread more broadly, driving the continuous variables toward more polarized values. As a result,
+the discretized configuration becomes stable but rigid,
+and the decoded binary cost often stops improving despite continued reduction of the relaxed loss. This indicates that, in the small-system regime, the bottleneck lies
+in transmitting continuous updates into discrete binary
+
+normalized loss and cost gaps
+
+demonstrating that PCE provides better initial configurations. For QPU experiments, the same trend is observed up to m = 756, indicating that useful problemdependent structure is preserved in hardware-generated
+states. For larger instances (m = 2,772 and 10,296), the
+QPU results approach the mean of the greedy (random)
+distribution, suggesting that the initialization becomes
+effectively random at the level of post-processed cost.
+This behavior is consistent with the correlator distributions in Appendix B 2 and with the match probability
+analysis in Sec. IV C, where the overlap between simulation and QPU solutions approaches the random baseline.
+These QPU results are obtained using parameters optimized in noiseless simulations, yet they follow the same
+overall trends, indicating that the proposed method remains viable on current quantum hardware. Further details are provided in Sec. IV C and Appendix B.
+
+normalized loss and cost gaps
+
+8
+100
+
+(a) 𝑚 = 18
+
+10−1
+10−2
+10−3
+10−4
+10−5
+
+0
+
+25
+
+50
+
+75
+
+100
+
+iteration
+
+(b) 𝑚 = 10,296
+
+𝛽 = 0.0
+Δ𝐿𝑇 /𝑊𝑇
+Δ𝐶𝑇 /𝑊𝑇 w/o PP
+
+0
+
+1000
+
+10−2
+
+125
+
+150
+
+175
+
+𝛽 = 0.1
+Δ𝐿𝑇 /𝑊𝑇
+Δ𝐶𝑇 /𝑊𝑇 w/o PP
+
+10−3
+500
+
+1500
+
+iteration
+
+2000
+
+2500
+
+FIG. 3.
+Iteration dependence of the normalized loss
+∆LT /WT and cost ∆CT /WT gaps (without post-processing,
+w/o PP). Results are shown for β = 0.0 and 0.1. Panels
+correspond to (a) m = 18 with αsc = 1.5 (α = 6.0), and
+(b) m = 10,296 with αsc = 0.1 (α = 274.4). The continuous
+loss decreases monotonically during optimization, whereas the
+corresponding decoded binary cost exhibits step-like or irregular, non-monotonic behavior due to the nonlinear discretization into binary variables. Crosses connected by dotted lines
+indicate the minimum cost values attained along the optimization trajectory, together with the corresponding loss values at the same iterations. For m = 18, the cost reaches zero
+around iteration ∼ 80 and is partially truncated due to the
+logarithmic scale. All results are obtained from state-vector
+simulations.
+
+variables.
+For the large instance (m = 10,296), the optimization
+becomes substantially smoother after discretization, and
+the correlator distributions become effectively continuous, as shown in Fig. 3(b) and Fig. 4(b). In this regime,
+the interplay between the continuous loss and the decoded binary cost is reduced, and the optimization behaves more consistently with the relaxed objective. Importantly, the role of β changes systematically with system size. For large systems, transitions in the decoded
+binary variables occur naturally due to the continuous
+correlator distribution, and explicit regularization is no
+longer required. Setting β = 0 avoids biasing the variables toward intermediate values, thereby yielding more
+stable and lower-cost configurations.
+Overall, these results show that the optimization behavior in Model 1 is governed by the effective resolution
+of the correlator representation, which is ultimately controlled by the problem size m. As the system size increases, the representation transitions from sparse and
+effectively discrete to dense and effectively continuous.
+
+9
+20
+
+(a) 𝑚 = 18
+
+frequency
+
+15
+
+5
+
+10
+
+0
+
+5
+
+frequency
+
+−0.5
+
+0.0
+
+0.5
+
+Pauli correlator hΠ𝑖(k) i𝜽 ∗
+
+0
+0.00
+
+1500
+
+𝛽 = 0.0
+𝛽 = 0.1
+
+10
+
+0.25
+
+(b) 𝑚 = 10, 296
+
+0.50
+
+continuous variable 𝑦𝑖 (𝜽 ∗ )
+
+0.75
+
+1.00
+
+evaluation ∆CT /WT
+∆CT /WT
+∆LT /WT
+setting
+w/ PP
+w/o PP
+simulation
+0.0
+0.0
+6.13 × 10−2
+18
+experiment 3.82 × 10−4 2.93 × 10−2 6.78 × 10−2
+m
+
+600
+400
+
+1000
+
+TABLE II. Comparison of normalized cost and loss gaps
+for the time-averaged portfolio optimization (Model 1) across
+different problem sizes m. The columns show the normalized
+cost gap ∆CT /WT with post-processing (w/ PP), the normalized cost gap ∆CT /WT without post-processing (w/o PP),
+and the normalized loss gap ∆LT /WT . Results are shown for
+both quantum circuit simulation and QPU implementations.
+Post-processing improves the normalized cost gap, particularly for QPU results, while the normalized loss gap remains
+similar between simulation and QPU.
+
+200
+0
+
+500
+
+−0.02
+
+0.00
+
+0.02
+
+60
+
+simulation 4.44 × 10−4 6.47 × 10−4 3.46 × 10−2
+experiment 5.10 × 10−4 4.00 × 10−3 3.61 × 10−2
+
+210
+
+simulation 2.92 × 10−4 5.44 × 10−4 9.96 × 10−3
+experiment 5.68 × 10−4 2.97 × 10−3 1.36 × 10−2
+
+756
+
+simulation 3.25 × 10−4 4.83 × 10−4 6.78 × 10−4
+experiment 3.58 × 10−4 2.72 × 10−3 4.19 × 10−3
+
+2,772
+
+simulation 9.34 × 10−5 3.53 × 10−4 5.33 × 10−4
+experiment 1.15 × 10−4 3.90 × 10−3 3.91 × 10−3
+
+10,296
+
+simulation 1.36 × 10−5 6.80 × 10−4 9.51 × 10−4
+experiment 1.67 × 10−5 3.04 × 10−3 2.98 × 10−3
+
+Pauli correlator hΠ𝑖(k) i𝜽 ∗
+
+0
+0.00
+
+0.25
+
+0.50
+
+continuous variable 𝑦𝑖 (𝜽 ∗ )
+
+0.75
+
+1.00
+
+FIG. 4. Frequency distributions of the sets {yi (θ ∗ )}m
+i=1 with
+(k)
+yi (θ ∗ ) = ς(2αsc ⟨Πi ⟩θ∗ ). Results are shown for β = 0.0 and
+0.1. Panels correspond to (a) m = 18 with αsc = 1.5 (α =
+6.0), and (b) m = 10,296 with αsc = 0.1 (α = 274.4). The
+main panels show the distributions of {yi (θ ∗ )}m
+i=1 , while the
+(k)
+insets display those of the corresponding sets {⟨Πi ⟩θ∗ }m
+i=1 .
+All distributions are evaluated at θ ∗ , which corresponds to
+the minimum decoded binary cost in Fig. 3 (without postprocessing). All results are obtained from state-vector simulations.
+
+Accordingly, the role of β changes from promoting binary
+state transitions in the small-m regime to becoming unnecessary, and eventually detrimental, once continuous
+updates can be transmitted reliably to decoded binary
+solutions. This interpretation is supported by the hyperparameter dependence shown in Appendix A, where
+run-to-run variability decreases with increasing m.
+
+TABLE III. Match probability (fraction of identical components) between portfolios obtained by quantum circuit simulation (PCE simulation), QPU experiments (PCE experiment), and optimal solutions (optimal) for Model 1, evaluated
+across different problem sizes m. For the PCE-based method,
+the portfolios correspond to the complete PCE workflow, including sign-based decoding and greedy post-processing. The
+optimal solution was obtained using the commercial solver
+Gurobi (version 12.0.3) [18], with the MIP optimality tolerance (relative gap 10−4 ).
+PCE simulation PCE simulation PCE experiment
+vs.
+vs.
+vs.
+optimal
+PCE experiment
+optimal
+18
+1.0000
+0.6667
+0.6667
+60
+0.7000
+0.7833
+0.6167
+210
+0.6905
+0.6238
+0.5714
+756
+0.7606
+0.6852
+0.6071
+2,772
+0.7691
+0.5278
+0.5191
+10,296
+0.6527
+0.5125
+0.5125
+size m
+
+C.
+
+Quantum Hardware Validation
+
+In addition to the simulation results, we perform experiments on a quantum processing unit (QPU) to assess
+the practical feasibility of the proposed framework. All
+experiments are carried out using circuit parameters θ ∗
+optimized in noiseless state-vector simulations, thereby
+isolating the effect of hardware noise from that of variational parameter optimization.
+The experiments are conducted on the IonQ Forte
+QPU available via Amazon Braket [28]. This device is
+based on trapped-ion technology and provides all-to-all
+qubit connectivity, which is well suited to the present implementation, as the Pauli correlation encoding (PCE)
+involves nonlocal interactions among qubits.
+For each problem instance, the optimized circuit pa-
+
+rameters are fixed, and a single round of expectationvalue measurement, decoding, and cost evaluation is performed, without any feedback or parameter updates on
+hardware. This setup enables a direct comparison between ideal simulation and hardware execution. To ensure consistent statistical precision, a fixed number of
+4,001 shots is used for each measurement basis. The
+
+10
+Pauli correlators are grouped into mutually commuting
+sets corresponding to the X, Y , and Z bases, and measurements are performed independently for each basis,
+resulting in a total of 3 × 4,001 shots per circuit execution.
+The resulting performance is summarized in Table II, which reports the normalized cost gap ∆CT /WT
+with post-processing (w/ PP), the normalized cost gap
+∆CT /WT without post-processing (w/o PP), and the
+normalized loss gap ∆LT /WT for both simulations and
+QPU experiments. We observe that the normalized loss
+gap remains close between simulation and QPU across
+all problem sizes, indicating that the expectation values of the parametrized circuits are largely preserved
+under hardware noise. In contrast, the cost without
+post-processing is significantly degraded in the QPU results, indicating that the decoding step is sensitive to
+sampling noise and small fluctuations in the continuous
+variables. This sensitivity is particularly pronounced for
+correlators located near zero, because sign-based decoding can change discontinuously under small estimation
+errors. Specifically, in the present experiments, each
+measurement basis was sampled using Nshot = 4,001
+shots. Under finite-shot sampling, the statistical
+√ uncertainty of an estimated correlator scales as O(1/ Nshot ),
+corresponding
+√ to a characteristic resolution of approximately 1/ 4001 ≈ 0.0158. Consequently, correlators
+(k)
+whose expectation values satisfy |⟨Πi ⟩θ | ≲ 0.016 are
+particularly sensitive to statistical fluctuations, which
+can induce sign errors during decoding. This observation provides a quantitative explanation for the increased
+sensitivity of the decoded QPU solutions to finite-shot
+noise. It is also consistent with the correlator distributions shown in Appendix B 2, where noticeable deviations from the ideal state-vector distributions are observed in the QPU results, particularly for large problem
+sizes. Such deviations are consistent with the combined
+effects of finite-shot fluctuations and hardware imperfections, which can perturb correlator values near the decoding boundary and increase the probability of sign errors
+during decoding. Consequently, correlators close to the
+decoding boundary require a larger number of measurement shots to determine their signs reliably.
+Importantly, applying greedy post-processing substantially improves the quality of the decoded solutions,
+bringing the normalized cost gap close to the corresponding simulation results for all problem sizes. This demonstrates that the combination of PCE and post-processing
+can effectively mitigate the impact of hardware noise on
+the final binary solutions.
+To further assess the consistency of the obtained solutions, we evaluate the match probability between portfolios obtained from simulations, QPU experiments, and
+optimal solutions, as summarized in Table III. Each portfolio is represented as a binary vector x ∈ {0, 1}m , and
+the match probability is defined as the fraction of components that take identical values between two vectors.
+The match probability between simulation and QPU
+
+results is moderate for small to intermediate problem
+sizes, indicating that a non-negligible fraction of binary
+variables is preserved under hardware noise, although
+discrepancies in individual variables persist. For larger
+instances (m = 2,772 and 10,296), the match probability decreases to values close to 0.5, which corresponds
+to the expected agreement between approximately balanced, uncorrelated binary configurations in the present
+problem setting. This indicates that the correspondence
+between configurations becomes nearly indistinguishable
+from random agreement.
+Furthermore, the match probability between simulation and optimal solutions is consistently higher than
+that between QPU experiments and optimal solutions,
+suggesting that the degradation observed in hardware
+primarily arises from sampling noise and measurement
+errors, rather than from the variational ansatz itself.
+In particular, the match probability between simulation
+and optimal solutions remains in the range of approximately 0.65–0.77 for larger problem sizes, indicating that
+the variational optimization successfully captures a large
+fraction of the optimal binary structure.
+Importantly, despite the relatively low match probability, the corresponding normalized cost gaps remain close
+to optimal values, especially for larger problem sizes.
+This indicates that multiple distinct binary configurations can yield similarly low cost, which is consistent with
+the increasing degeneracy of near-optimal solutions discussed in Sec. IV A.
+Taken together, these observations indicate that, while
+hardware noise affects the fidelity of individual binary
+variables, the overall structure of the optimized portfolios
+is reasonably well preserved, and the proposed framework
+remains effective in producing high-quality approximate
+solutions on current quantum hardware.
+
+D.
+
+Time-Resolved Portfolio Accuracy and Stability
+(Model 2)
+
+We next evaluate the time-dependent optimization
+(Model 2). For each instance, we use the same parameter
+settings as in Table I for Model 1, except for the number
+of iterations niter . The circuit parameters θ ∗ obtained
+in Model 1 serve as an initialization, but are further updated via variational optimization with respect to the
+time-resolved objective in Eq. (1). The resulting solutions are then converted to binary form and refined by
+greedy post-processing.
+Figure 5 summarizes the deviation from the procurement target and stability through |Pt −Pttarget | and σt /Pt
+for m = 60, 756, and 10,296. For m = 60 and 756, the
+PCE-based method closely follows the optimal solution in
+time slots where optimality is verified, while consistently
+outperforming the greedy (random) baseline in both deviation and variability.
+The relative improvement depends on the problem size.
+For m = 60, differences in deviation are small, but the
+
+11
+| [MWh]
+
+0.004
+
+taget
+
+0.100
+
+deviation |𝑃𝑡 − 𝑃𝑡
+
+0.0100
+
+0.002
+0.001
+0.000
+
+(c) 𝑚 = 10, 296
+
+0.125
+
+0.0125
+
+0.003
+
+coefficient of variation 𝜎𝑡 /𝑃𝑡
+
+0.150
+
+0.0150 (b) 𝑚 = 756
+
+(a) 𝑚 = 60
+
+0.0075
+
+0.075
+
+0.0050
+
+0.050
+
+0.0025
+
+0.025
+
+0.0000
+
+0.000
+
+greedy (all-zero)
+greedy (random)
+PCE simulation
+optimal
+suboptimal
+
+0.12 (d) 𝑚 = 60
+
+0.12 (e) 𝑚 = 756
+
+0.12 (f) 𝑚 = 10, 296
+
+0.10
+
+0.10
+
+0.10
+
+0.08
+
+0.08
+
+0.08
+
+0.06
+
+0.06
+
+0.06
+
+0.04
+
+0.04
+
+0.04
+
+0.02
+
+0.02
+
+0.02
+
+0.00
+
+11 12 13 14 15 16 17 18 19 20
+
+time 𝑡
+
+0.00
+
+11 12 13 14 15 16 17 18 19 20
+
+time 𝑡
+
+0.00
+
+11 12 13 14 15 16 17 18 19 20
+
+time 𝑡
+
+FIG. 5. Time-resolved deviation from the target power and coefficient of variation for three problem sizes (m = 60, m = 756,
+and m = 10,296). (a),(b),(c) |Pt − Pttarget |. (d),(e),(f) σt /Pt , where σt is the standard deviation at time t. Panels (a),(d)
+correspond to m = 60, (b),(e) to m = 756, and (c),(f) to m = 10,296. Results obtained by the greedy algorithm include those
+from the all-zero initialization [greedy (all-zero)] and from random initialization [greedy (random)] averaged over 1,000 runs
+with independent random initial bit strings; error bars indicate standard deviations over these random-initialization runs. The
+optimal solutions were computed using the commercial solver Gurobi (version 12.0.3) [18] with the MIP optimality tolerance
+(relative gap 10−4 ). For m = 10,296, the solver did not reach convergence within a 24-hour time limit at t = 15, 19, and 20.
+In these cases, the suboptimal solutions are shown with white diamond markers. The optimality gaps remain large for t = 15
+and 19, while the gap at t = 20 is below 0.1%. For the PCE-based method, all results are obtained from the complete PCE
+workflow, including greedy post-processing after sign-based decoding.
+
+coefficient of variation (CV) reveals a clear reduction in
+variability. For m = 756, a clear reduction in deviation is
+observed, whereas the CV remains comparable between
+the PCE-based method and the greedy (random) baseline, indicating that the primary improvement appears in
+accuracy rather than variability.
+For the largest instance (m = 10,296), the PCE-based
+solutions are nearly indistinguishable from both the optimal solutions and the greedy (random) baseline in time
+slots where optimality is verified, with differences too
+small to be visually resolved in the plots. In contrast,
+the classical solver (Gurobi) does not reach certified optimality for time slots t = 15, 19, and 20. Among these,
+the suboptimal solutions at t = 15 and 19 exhibit significantly larger deviations and CV, leading to clearly
+degraded performance. The near-indistinguishability observed in the optimal time slots indicates that, in the
+large-system regime, the cost landscape becomes increasingly flat around the optimum, so that many distinct
+configurations yield nearly identical cost values. This
+behavior is consistent with the increasing degeneracy of
+near-optimal solutions observed in Model 1. As a result, solutions obtained from different methods tend to
+converge to effectively equivalent performance. In this
+regime, the benefit of structured initialization is reduced,
+and even simple greedy refinement from random initial
+configurations can approach high-quality solutions.
+
+Overall, PCE provides reliable time-dependent solutions across system sizes, with clear advantages in intermediate regimes. These results highlight the role of variational optimization in constructing structured continuous representations that improve solution quality prior
+to binary decoding.
+
+V.
+
+DISCUSSION
+
+The present results clarify three main aspects of Pauli
+correlation encoding (PCE) for large-scale binary optimization.
+First, PCE provides a qubit-efficient variational representation for fully connected quadratic optimization
+problems with real-valued and nonuniform coefficients.
+In the present application to electric power demand portfolio optimization, a large number of binary variables is
+represented through expectation values of Pauli correlation operators acting on a comparatively small number
+of qubits. This compression enables dense large-scale
+instances to be treated without requiring a direct onequbit-per-variable encoding.
+Second, the optimization behavior of PCE is fundamentally governed by the interplay between the continuously relaxed loss landscape and the discretized binary
+objective. Optimization is performed over continuous
+
+12
+variables derived from Pauli correlators, whereas the final solution is evaluated after threshold-based decoding.
+As a result, improvements in the relaxed loss do not always translate into improvements in the decoded binary
+cost. To clarify the underlying mechanism of this interplay, it is instructive to analyze its system-size dependence. For small systems, the correlator representation
+is effectively low-resolution, and continuous updates do
+not always induce changes in the decoded binary state.
+For large systems, the distributions become effectively
+continuous, allowing updates in the relaxed variables to
+be transmitted more reliably to the binary solution. Consequently, the optimization becomes increasingly consistent with the binary objective. This mechanism also explains the size-dependent role of regularization. While
+finite regularization can facilitate transitions between binary configurations in small systems, it becomes unnecessary or even detrimental in larger systems, where the
+representation already provides sufficient effective resolution. The decreasing run-to-run variability with increasing system size further supports this interpretation.
+Importantly, this resolution-dependent behavior also explains the scalability observed in Sec. IV. As the system
+size increases, the optimization landscape may become effectively smoother, and the number of near-optimal configurations may increase. This is consistent with both the
+decrease in normalized cost gap and the match probability analysis, which shows that distinct binary solutions
+can yield similarly low cost values for large problem sizes.
+We emphasize that the observed improvement with increasing problem size does not necessarily imply that the
+optimization problem becomes intrinsically harder and
+is subsequently solved more effectively. Indeed, averaging effects associated with large portfolios, together with
+the increasing degeneracy of near-optimal configurations,
+may make large instances easier from the viewpoint of
+optimization. Therefore, the improved performance observed for large problem sizes should be interpreted together with these problem-dependent effects. An additional open question concerns the relationship between
+representational compression and ansatz expressibility.
+Although PCE enables a combinatorial increase in the
+number of representable variables, the extent to which
+the required expressibility of the variational ansatz increases with the correlation order k or the number of encoded variables m remains unclear. In particular, maximizing the number of representable variables through the
+choice k = n/2 may increase the complexity of the correlator space that must be explored by a finite-depth variational circuit. Understanding whether larger representational capacity requires systematically deeper or more
+expressive ansatz is therefore an important question. A
+systematic investigation of the relationship among correlation order, ansatz depth, expressibility, and optimization performance is beyond the scope of the present work
+and remains an important direction for future research.
+Third, the hardware results demonstrate that the PCE
+representation retains useful problem-dependent struc-
+
+ture under finite sampling and device noise. For small
+and intermediate systems, QPU-generated bit strings
+outperform the greedy (random) baseline, indicating that
+nontrivial information survives in the measured correlators. For larger systems, the correlator distributions
+approach random-like behavior, and the decoded costs
+converge toward the greedy baseline. This degradation
+is directly reflected in the correlator distributions, which
+broaden and concentrate near zero under hardware noise.
+Finally, the scaling advantage considered in this work
+primarily concerns representational scalability, namely
+the ability to represent a large number of optimization
+variables using a comparatively small number of qubits.
+This should be distinguished from overall computational
+scalability, which additionally depends on measurement
+overhead, objective-function evaluation cost, and postprocessing cost. Accordingly, the present results should
+not be interpreted as a demonstration of end-to-end computational scalability or quantum advantage, but rather
+as an investigation of the representational and optimization properties of PCE. For the present implementation,
+all Pauli correlators can be estimated from measurements
+in only three global bases (X, Y , and Z), since the correlators are grouped into mutually commuting sets. Consequently, the number of distinct quantum state preparations and measurement configurations remains strictly
+constant at three, regardless of the problem size m. This
+property substantially reduces the measurement-setting
+overhead that typically scales with the number of terms
+in conventional variational algorithms. However, the statistical precision required to determine correlator values
+and their signs may increase as correlators approach zero,
+potentially increasing the shot requirements for reliable
+decoding in large-scale instances. In addition, the classical evaluation of the dense QUBO objective scales as
+O(m2 ), while the greedy post-processing procedure scales
+as O(m). Therefore, although PCE substantially reduces
+the number of required qubits, the overall computational
+cost remains influenced by both quantum measurement
+resources and classical processing costs.
+
+VI.
+
+CONCLUSION
+
+In this work, we have introduced a representationally scalable variational framework based on Pauli correlation encoding (PCE) and demonstrated its effectiveness for fully connected quadratic optimization problems
+with real-valued and nonuniform coefficients, using electric power demand portfolio optimization as a representative application. By representing binary variables
+through expectation values of Pauli correlation operators, the proposed approach enables a compact encoding
+of a large number of variables within a limited number of
+qubits, while retaining sufficient information to recover
+high-quality discrete solutions.
+A central finding of this study is that the optimization behavior of PCE is governed by the interplay be-
+
+13
+tween continuous relaxation and discrete binary structure. By analyzing the distribution of Pauli correlators,
+we have shown that the effective resolution of the correlator representation determines how reliably improvements
+in the continuous loss landscape are reflected in the decoded binary solutions. In particular, the transition from
+sparse, effectively discrete distributions to dense, effectively continuous ones provides a unifying explanation
+for the observed dependence on system size and regularization. This reveals that the success of the method
+is not solely determined by optimization heuristics, but
+is intrinsically linked to the statistical structure of the
+underlying quantum state.
+From a practical perspective, we have demonstrated
+that the proposed framework achieves near-optimal performance over a wide range of problem sizes, and remains robust under realistic conditions, including finite
+sampling and hardware noise on a trapped-ion quantum
+processor. These results indicate that the continuous relaxation induced by Pauli correlators preserves sufficient
+information about the discrete optimization landscape to
+enable reliable solution recovery even in non-ideal experimental settings.
+More broadly, our results establish PCE as a physically motivated and qubit-efficient framework that connects combinatorial optimization to the statistical structure of quantum states. This perspective provides a principled way to design variational algorithms in which discrete variables are encoded through measurable correlation functions, offering a complementary approach to
+conventional qubit-based encodings. We expect that this
+framework can be extended to a wider class of optimization problems and may serve as a foundation for developing qubit-efficient quantum optimization methods in the
+NISQ regime and beyond.
+
+ACKNOWLEDGMENTS
+
+K.F. is supported by MEXT Quantum Leap Flagship Program (MEXTQLEAP) Grants No.
+JPMXS0118067394 and No. JPMXS0120319794. This
+work is supported by JST COI-NEXT program Grant
+No. JPMJPF2014.
+
+Appendix A: Hyperparameter Dependence of the
+Optimization Performance
+
+In this Appendix, we present a systematic exploration
+of the hyperparameters α and β in the PCE solver for
+Model 1. The parameter α controls the sharpness of
+the sigmoid relaxation that maps Pauli correlators to
+continuous variables, while β determines the strength of
+the quadratic regularization term that biases the relaxed
+variables toward yi = 1/2.
+Figure 6 shows the normalized cost gap ∆CT /WT
+without post-processing as a function of the scaled pa-
+
+rameter αsc for several values of β and problem sizes.
+The scaling αsc = α/n⌊k/2⌋ is introduced to compare different system sizes on an equal footing.
+The results show that the optimization performance
+depends sensitively on both α and β. For small α, the
+relaxation is too smooth to induce effective binary separation, whereas excessively large α can lead to saturation of the relaxed variables. Similarly, too small β
+provides insufficient regularization in the small-system
+regime, whereas too large β can overconstrain the variables around yi = 1/2.
+Importantly, the optimal choice of β exhibits a clear
+size dependence. For smaller instances (m = 18, 60,
+and 210), finite β (e.g., β = 0.1) consistently yields
+better performance, whereas for larger instances (m =
+756, 2,772, and 10,296), β = 0 provides more stable and
+lower-cost solutions. This trend is consistent with the
+mechanism discussed in the main text: for small systems, sparse and effectively discrete correlator distributions make the decoded binary state sensitive to small
+changes in the relaxed variables, whereas for large systems, the correlator distributions become effectively continuous, making explicit regularization unnecessary. The
+same analysis also shows that the run-to-run variability is
+substantially larger for small systems and decreases with
+increasing problem size, further supporting the interpretation that the small-system regime is more strongly affected by the interplay between the continuously relaxed
+loss and the discretized binary objective.
+A second notable feature is the strong size dependence of the run-to-run variability. For small systems,
+the spread between the minimum and maximum values
+across independent runs is substantial, indicating strong
+sensitivity to the initial circuit parameters. By contrast,
+this spread becomes systematically smaller as the problem size increases. This behavior is consistent with the
+interpretation that the optimization instability in small
+systems originates not only from the loss landscape itself,
+but from a mismatch between the continuously relaxed
+loss and the discretized binary objective: small changes
+in the relaxed variables can lead to large differences after
+decoding. As the system size increases and the correlator
+representation becomes effectively denser, this mismatch
+is progressively mitigated, and the optimization becomes
+more reproducible across independent runs.
+Based on these observations, we select the near-optimal
+values of α and β summarized in Table I in the main text.
+
+Appendix B: Additional Analysis of QPU Results
+(Model 1)
+
+In this Appendix, we provide additional quantitative
+analyses of the results obtained from quantum circuit
+simulations and QPU experiments. These analyses complement the summary metrics presented in the main
+text by explicitly examining the underlying distributions,
+thereby clarifying the origin of the observed performance
+
+14
+5
+
+×10−2
+
+×10−3
+
+(a) 𝑚 = 18
+
+4
+
+normalized cost gap Δ𝐶𝑇 /𝑊𝑇 w/o PP
+
+3
+
+×10−3
+
+5 (b) 𝑚 = 60
+
+5 (c) 𝑚 = 210
+
+4
+
+4
+
+3
+
+3
+
+2
+
+2
+
+2
+
+1
+
+1
+
+1
+
+0
+
+0
+×10−3
+
+1
+
+2
+
+3
+
+(d) 𝑚 = 756
+
+3
+
+0
+
+0
+×10−3
+
+1
+
+2
+
+3
+
+(e) 𝑚 = 2, 772
+
+3
+
+0
+
+2
+
+2
+
+1
+
+1
+
+1
+
+0
+
+1
+
+2
+
+3
+
+0
+
+0
+
+1
+
+𝛼sc
+
+2
+
+3
+
+𝛼sc
+
+0
+
+1
+
+2
+
+3
+
+(f) 𝑚 = 10, 296
+
+3
+
+2
+
+0
+
+0
+×10−3
+
+𝛽 = −0.1
+𝛽 = 0.0
+𝛽 = 0.1
+𝛽 = 0.2
+0
+
+1
+
+2
+
+3
+
+𝛼sc
+
+FIG. 6. Normalized cost gap ∆CT /WT without post-processing (w/o PP) for the time-averaged formulation (Model 1), shown
+as a function of the scaled parameter αsc for different values of β in the PCE solver. Panels (a)–(f) correspond to problem
+sizes m = 18, 60, 210, 756, 2,772, and 10,296, respectively. For each parameter setting, the marker indicates the mean over five
+independent optimization runs with different random initial circuit parameters, while the shaded vertical range indicates the
+minimum and maximum values obtained across those runs. A clear size-dependent preference for β is observed, with finite
+β favored for small systems and β = 0 for large systems. The parameter α controls the sharpness of the relaxation, while β
+determines the strength of the quadratic regularization toward the continuously relaxed variables yi ∈ [0, 1] centered at 1/2.
+
+differences between simulation and hardware implementations.
+1.
+
+Cost Distributions
+
+Figure 7 shows the distributions of normalized cost
+gaps obtained by applying greedy post-processing to randomly initialized bit strings for different problem sizes.
+These distributions correspond to the data used to compute the mean values and standard deviations of the
+greedy (random) results shown in Fig. 2, where they
+are summarized as error bars. Since the final postprocessing step of PCE is also based on greedy local
+greedy search, this baseline provides a reference for assessing how informative the decoded binary state is before post-processing.
+Across all problem sizes, the cost values obtained from
+state-vector simulations are consistently lower than those
+obtained from QPU experiments. Moreover, the simulation results remain below the typical range of the
+greedy (random) distribution, showing that the decoded
+bit strings obtained from PCE provide systematically
+better starting points for greedy refinement than random
+initializations.
+For larger instances (m = 2,772 and m = 10,296),
+the QPU results take values close to the mean of the
+greedy (random) distribution, indicating that the decoded QPU states become close to effectively random
+
+initializations at the level of post-processed cost. For
+smaller and intermediate sizes, however, the QPU results
+yield consistently lower costs than the greedy (random)
+baseline, demonstrating that the decoded bit strings still
+retain useful problem-dependent structure before postprocessing. These trends are consistent with the behavior
+observed in Fig. 2.
+
+2.
+
+Correlator Distributions
+
+Figure 8 presents the distributions of Pauli correlators
+(k)
+⟨Πi ⟩θ across different problem sizes, comparing statevector simulations and QPU experiments. These distributions are particularly useful for interpreting the behavior of the QPU results relative to the greedy (random)
+baseline in Fig. 2, since they reveal how much problemdependent structure remains in the measured correlators
+before decoding and post-processing. Each histogram
+(k)
+is constructed from the full set of correlators {⟨Πi ⟩},
+which take values in [−1, 1]. Since the distributions are
+strongly concentrated near zero, we focus on the interval
+[−0.1, 0.1] to resolve their structure.
+A clear size-dependent transition is observed in the
+simulation results. For smaller problem sizes [Figs. 8(a)–
+(c)], the correlator distributions exhibit discrete peak
+structures, reflecting the finite number of variables and
+the limited resolution of the representation. In contrast,
+
+15
+×102
+
+(a) 𝑚 = 18
+
+density
+
+2.0
+
+greedy
+(random)
+mean
+PCE simulation
+PCE experiment
+
+1.5
+1.0
+
+8
+
+×103
+
+(b) 𝑚 = 60
+
+4 (c) 𝑚 = 210
+
+6
+
+3
+
+4
+
+2
+
+2
+
+0.5
+0.0
+
+0
+
+1
+
+2
+
+3
+
+4
+
+×10−2
+
+×104
+
+1
+
+0
+0
+
+2
+
+4
+
+6
+
+(e) 𝑚 = 2, 772
+
+1.0
+
+4
+
+0.5
+
+2
+
+0
+
+×10−3
+
+×104
+
+(d) 𝑚 = 756
+
+density
+
+×102
+
+0.5
+
+1.0
+
+1.5
+
+×105
+
+×10−3
+
+4 (f) 𝑚 = 10, 296
+3
+2
+1
+
+0.0
+3
+
+4
+
+5
+
+6
+
+7
+
+normalized cost gap Δ𝐶𝑇 /𝑊𝑇
+
+×10−4
+
+0
+0.75
+
+1.00
+
+1.25
+
+1.50
+
+normalized cost gap Δ𝐶𝑇 /𝑊𝑇
+
+1.75
+
+×10−4
+
+0
+
+1.5
+
+2.0
+
+normalized cost gap Δ𝐶𝑇 /𝑊𝑇
+
+×10−5
+
+FIG. 7. Distributions of normalized cost gaps ∆CT /WT for the time-averaged formulation (Model 1), for (a) m = 18, (b)
+m = 60, (c) m = 210, (d) m = 756, (e) m = 2,772, and (f) m = 10,296. The horizontal axis represents the normalized
+cost gap, and the vertical axis shows the frequency. The histograms correspond to the distributions obtained by applying
+a greedy algorithm to randomly initialized bit strings. The blue and red vertical lines indicate the normalized cost gaps
+∆CT /WT obtained from the complete PCE workflow, including greedy post-processing after sign-based decoding, for statevector simulation and QPU experiment, respectively.
+
+for larger problem sizes [Figs. 8(d)–(f)], the distributions
+become effectively continuous.
+In the large-scale regime, the simulation results further
+exhibit a characteristic double-peak structure around
+zero, with peaks symmetrically located at finite values
+(k)
+of ⟨Πi ⟩. This behavior indicates that the correlator
+representation develops a broader and more structured
+distribution, which enables small continuous changes to
+be transmitted more reliably to the decoded binary variables. By contrast, in small systems, the correlator distributions remain sparse and effectively discrete, so that
+continuous updates are less likely to induce changes in
+the decoded binary state.
+The QPU results show systematic deviations from the
+ideal simulation behavior, which can be attributed to
+finite sampling noise and hardware imperfections. For
+large problem sizes [Figs. 8(e) and (f)], the QPU distributions closely resemble a centered binomial distribution,
+indicating that the correlators are broadly distributed
+around zero with substantially reduced structural features. This loss of structure is consistent with the observation in Appendix B 1 that the corresponding postprocessed costs approach the greedy (random) baseline.
+For the intermediate case [Fig. 8(d)], the simulation
+exhibits a broadened double-peak structure, whereas the
+QPU result shows a predominantly single-peaked distribution with slight broadening. A comparison with the
+binomial reference suggests that the central weight is reduced and weak side structures persist, which can be
+
+interpreted as a residual signature of the simulation distribution.
+For smaller problem sizes [Figs. 8(a)–(c)], the QPU
+results exhibit broadened and dispersed peaks relative
+to the discrete simulation distributions. This broadening originates√primarily from finite-shot fluctuations
+(bounded by 1/ Nshot ≈ 0.016), which smear the discrete expectation values while still preserving visible
+problem-dependent structure.
+Overall, although quantitative discrepancies between
+simulation and QPU results are evident, the observed
+distributions can be consistently interpreted in terms of
+three effects: (i) regularization-induced concentration of
+correlators near zero, (ii) finite-sampling fluctuations in
+expectation value estimation, and (iii) hardware noise.
+These observations support the interpretation presented
+in the main text, namely that the optimization behavior
+is governed by how effectively the correlator representation can transmit continuous updates to the decoded
+binary solution.
+
+Appendix C: Detailed Power Procurement Profiles
+
+Figures 9 and 10 show detailed power procurement profiles for problem instances with m = 60 and m = 756
+consumers, respectively. These figures correspond to the
+accuracy and stability metrics summarized in Fig. 5,
+namely the absolute deviation |Pt − Pttarget | and the co-
+
+16
+
+relative frequency
+
+0.6
+0.4
+0.2
+
+0.0
+−1.0
+−0.5
+0.06
+(d) 𝑚 = 756
+relative frequency
+
+0.20
+
+(a) 𝑚 = 18
+
+0.0
+
+0.5
+
+1.0
+
+simulation
+experiment
+
+0.20
+
+(b) 𝑚 = 60
+
+0.15
+
+0.15
+
+0.10
+
+0.10
+
+0.05
+
+0.05
+
+0.00
+−0.10 −0.05 0.00
+0.06
+(e) 𝑚 = 2, 772
+
+0.05
+
+0.10
+
+0.00
+−0.10 −0.05 0.00
+0.06
+(f) 𝑚 = 10, 296
+
+0.04
+
+0.04
+
+0.04
+
+0.02
+
+0.02
+
+0.02
+
+0.00
+−0.10
+
+−0.05 0.00
+0.05
+Pauli correlator hΠ𝑖 i𝜽 ∗
+
+0.10
+
+0.00
+−0.10
+
+−0.05 0.00
+0.05
+Pauli correlator hΠ𝑖 i𝜽 ∗
+
+0.10
+
+(c) 𝑚 = 210
+
+0.00
+−0.10
+
+0.05
+
+0.10
+
+−0.05 0.00
+0.05
+Pauli correlator hΠ𝑖 i𝜽 ∗
+
+0.10
+
+(k)
+
+Pt
+±σt
+
+target
+
+0.25
+
+Pt
+
+0.20
+0.15
+0.10
+0.05
+0.00
+
+7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+
+time t
+
+0.30
+
+(b) PCE simulation
+
+Pt
+±σt
+
+target
+
+0.25
+
+Pt
+
+0.20
+0.15
+0.10
+0.05
+0.00
+
+7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+
+time t
+
+Procured power Pt [MWh]
+
+0.30 (a) greedy (all-zero)
+
+Procured power Pt [MWh]
+
+Procured power Pt [MWh]
+
+FIG. 8. Histograms of the sets {⟨Πi ⟩θ∗ }m
+i=1 for the time-averaged formulation (Model 1), for different problem sizes: (a)
+m = 18, (b) m = 60, (c) m = 210, (d) m = 756, (e) m = 2,772, and (f) m = 10,296. The parameters θ ∗ are obtained
+using the hyperparameters α and β listed in Table I. All distributions are evaluated in the same manner as in Fig. 4. Results
+obtained from state-vector simulations and QPU experiments are overlaid. For reference, the centered binomial distribution
+corresponding to independent {−1, 1} variables with probability p = 0.5 is also shown for sufficiently large instances, while it
+is omitted for the smallest case (m = 18) due to the limited number of correlators.
+
+0.30
+
+(c) optimal
+
+Pt
+±σt
+
+target
+
+0.25
+
+Pt
+
+0.20
+0.15
+0.10
+0.05
+0.00
+
+7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+
+time t
+
+FIG. 9. Power procurement profiles for the time-resolved formulation (Model 2) with m = 60 consumers. Solutions obtained
+by (a) the greedy method, (b) the Pauli correlation encoding (PCE)-based method, and (c) the optimal solution. In each
+panel, the target power Pttarget is indicated by a black dashed line, the expected procured power Pt is shown as a solid line,
+and the shaded region represents the uncertainty range of ±σt . The stacked area plot visualizes procured power from selected
+consumers, color-coded by consumer, where the top of the stack corresponds to Pt . Results are shown for hourly time steps
+from t = 11 to 20, each optimized independently. The optimal solution was obtained using the commercial solver Gurobi
+(version 12.0.3) [18], with the MIP optimality tolerance (relative gap 10−4 ).
+
+efficient of variation (CV) σt /Pt , and provide a timeresolved visualization of how demand-side flexibility from
+multiple consumers is aggregated to meet the target
+power in a stable manner.
+For the smaller instance with m = 60 consumers
+(Fig. 9), the stacked representation reveals that the PCEbased solution closely follows the optimal procurement
+pattern, indicating that the method captures the underlying structure of the optimal portfolio.
+For the larger instance with m = 756 consumers
+
+(Fig. 10), individual contributions are visually aggregated. Compared with the greedy baseline, the PCEbased solution exhibits a narrower uncertainty band and
+improved alignment with the procurement target, consistent with the reduced deviation and CV observed in
+Fig. 5.
+For the largest instance (m = 10,296), a similar stacked
+visualization is not shown, as the large number of consumers leads to substantial visual crowding. Instead, the
+aggregate performance is summarized through the deviation and CV metrics in Fig. 5.
+
+3.0
+
+Pt
+±σt
+
+target
+
+Pt
+
+2.5
+2.0
+1.5
+1.0
+0.5
+0.0
+
+7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+
+time t
+
+3.5
+
+(b) PCE simulation
+
+Pt
+±σt
+
+3.0
+
+target
+
+Pt
+
+2.5
+2.0
+1.5
+1.0
+0.5
+0.0
+
+7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+
+time t
+
+Procured power Pt [MWh]
+
+3.5 (a) greedy (all-zero)
+
+Procured power Pt [MWh]
+
+Procured power Pt [MWh]
+
+17
+3.5
+
+(c) optimal
+
+Pt
+±σt
+
+3.0
+
+target
+
+Pt
+
+2.5
+2.0
+1.5
+1.0
+0.5
+0.0
+
+7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+
+time t
+
+FIG. 10. Same as Fig. 9, but for the instance with m = 756 consumers.
+
+[1] Alberto Peruzzo, Jarrod McClean, Peter Shadbolt, ManHong Yung, Xiao-Qi Zhou, Peter J. Love, Alán AspuruGuzik, and Jeremy L. O’Brien, A variational eigenvalue
+solver on a photonic quantum processor, Nature Communications 5, 4213 (2014).
+[2] Edward Farhi, Jeffrey Goldstone, and Sam Gutmann,
+A quantum approximate optimization algorithm (2014),
+arXiv:1411.4028 [quant-ph].
+[3] Jacob Biamonte, Peter Wittek, Nicola Pancotti, Patrick
+Rebentrost, Nathan Wiebe, and Seth Lloyd, Quantum
+machine learning, Nature 549, 195–202 (2017).
+[4] K. Mitarai, M. Negoro, M. Kitagawa, and K. Fujii, Quantum circuit learning, Phys. Rev. A 98, 032309 (2018).
+[5] M. Cerezo, Andrew Arrasmith, Ryan Babbush, Simon C.
+Benjamin, Suguru Endo, Keisuke Fujii, Jarrod R. McClean, Kosuke Mitarai, Xiao Yuan, Lukasz Cincio, and
+Patrick J. Coles, Variational quantum algorithms, Nature
+Reviews Physics 3, 625–644 (2021).
+[6] Stuart Hadfield, Zhihui Wang, Bryan O’Gorman,
+Eleanor G. Rieffel, Davide Venturelli, and Rupak Biswas,
+From the quantum approximate optimization algorithm
+to a quantum alternating operator ansatz, Algorithms
+12, 10.3390/a12020034 (2019).
+[7] Benjamin Tan, Marc-Antoine Lemonde, Supanut
+Thanasilp, Jirawat Tangpanitanon, and Dimitris G. Angelakis, Qubit-efficient encoding schemes for binary optimisation problems, Quantum 5, 454 (2021).
+[8] Adam Glos, Aleksandra Krawiec, and Zoltán Zimborás,
+Space-efficient binary optimization for variational quantum computing, npj Quantum Information 8, 39 (2022).
+[9] Kosei Teramoto, Rudy Raymond, Eyuri Wakakuwa,
+and Hiroshi Imai, Quantum-relaxation based optimization algorithms: Theoretical extensions (2023),
+arXiv:2302.09481 [quant-ph].
+[10] Zichang He, Rudy Raymond, Ruslan Shaydulin, and
+Marco Pistoia, Non-variational quantum random access
+optimization with alternating operator ansatz, Scientific
+Reports 15, 29191 (2025).
+[11] Monit Sharma, Yan Jin, Hoong Chuin Lau, and Rudy
+Raymond, Quantum relaxation for solving multiple knapsack problems, in 2024 IEEE International Conference
+on Quantum Computing and Engineering (QCE), Vol. 01
+(2024) pp. 692–698.
+[12] Hiromichi Matsuyama,
+Wei-hao Huang,
+Kohji
+Nishimura, and Yu Yamashiro, Efficient internal
+
+strategies in quantum relaxation based branch-andbound, in 2024 IEEE International Conference on
+Quantum Computing and Engineering (QCE), Vol. 01
+(2024) pp. 470–480.
+[13] Marco Sciorilli, Lucas Borges, Taylor L. Patti, Diego
+Garcı́a-Martı́n, Giancarlo Camilo, Anima Anandkumar,
+and Leandro Aolita, Towards large-scale quantum optimization solvers with few qubits, Nature Communications 16, 476 (2025).
+[14] M. Sciorilli, G. Camilo, T. O. Maciel, and A. Canabarro,
+A competitive nisq and qubit-efficient solver for the labs
+problem (2025), arXiv:2506.17391 [quant-ph].
+[15] Monit Sharma and Hoong Chuin Lau, A comparative
+study of quantum optimization techniques for solving
+combinatorial optimization benchmark problems (2025),
+arXiv:2503.12121 [quant-ph].
+[16] Vicente P. Soloviev and Michal Krompiec, Large-scale
+portfolio optimization using pauli correlation encoding,
+Scientific Reports 16, 25158 (2026).
+[17] Jacobo Padı́n-Martı́nez, Vicente P. Soloviev, Alejandro Borrallo-Rentero, Antón Rodrı́guez-Otero, Raquel
+Alfonso-Rodrı́guez, and Michal Krompiec, Pauli correlation encoding for budget-constrained optimization
+(2026), arXiv:2602.17479 [quant-ph].
+[18] Gurobi Optimization, LLC, Gurobi optimizer reference
+manual, https://www.gurobi.com (2026).
+[19] M.H. Albadi and E.F. El-Saadany, A summary of demand
+response in electricity markets, Electric Power Systems
+Research 78, 1989–1996 (2008).
+[20] Peter Palensky and Dietmar Dietrich, Demand side management: Demand response, intelligent energy systems,
+and smart loads, IEEE Transactions on Industrial Informatics 7, 381–388 (2011).
+[21] Tsuyoya Tsurumi and Kenichi Syoji, A design method
+for electric power demand portfolio and its basic investigation – Proposition of a method for a resource aggregator to procure negawatt effectively –, Tech. Rep. C18005
+(Central Research Institute of Electric Power Industry,
+Tokyo, Japan, 2019) cRIEPI Technical Report.
+[22] Ricardo Faia, Tiago Pinto, Zita Vale, and Juan Manuel
+Corchado, Portfolio optimization of electricity markets
+participation using forecasting error in risk formulation,
+International Journal of Electrical Power and Energy
+Systems 129, 106739 (2021).
+[23] Akshay Ajagekar and Fengqi You, Quantum computing
+
+18
+for energy systems optimization: Challenges and opportunities, Energy 179, 76–89 (2019).
+[24] Takuya Yoshioka, Keita Sasada, Yuichiro Nakano, and
+Keisuke Fujii, Electric power demand portfolio optimization by fermionic qaoa with self-consistent local field
+modulation, in 2024 IEEE International Conference on
+Quantum Computing and Engineering (QCE), Vol. 01
+(2024) pp. 469–475.
+[25] Takuya Yoshioka, Keita Sasada, Riku Usuki, and Keisuke
+Fujii, Performance analysis of pauli correlation encoding
+for electric power portfolio optimization under varying
+procurement levels, in 2026 IEEE International Conference on Quantum Computing and Engineering (QCE)
+(2026) accepted for publication.
+
+[26] Sustainable open Innovation Initiative, Energy management system, https://www.ems-opendata.jp (2026).
+[27] Yasunari Suzuki, Yoshiaki Kawase, Yuya Masumura,
+Yuria Hiraga, Masahiro Nakadai, Jiabao Chen, Ken M.
+Nakanishi, Kosuke Mitarai, Ryosuke Imai, Shiro Tamiya,
+Takahiro Yamamoto, Tennin Yan, Toru Kawakubo,
+Yuya O. Nakagawa, Yohei Ibe, Youyuan Zhang, Hirotsugu Yamashita, Hikaru Yoshimura, Akihiro Hayashi,
+and Keisuke Fujii, Qulacs: a fast and versatile quantum
+circuit simulator for research purpose, Quantum 5, 559
+(2021).
+[28] Amazon Web Services, Amazon braket documentation,
+https://docs.aws.amazon.com/braket/ (2026).
+
+

@@ -1,0 +1,235 @@
+                                                 Bias-field digitized counterdiabatic quantum algorithm for higher-order binary optimization
+
+                                                                     Sebastián V. Romero ,1, 2 Anne-Maria Visuri ,1 Alejandro Gomez Cadavid ,1, 2
+                                                                           Anton Simen ,1, 2 Enrique Solano ,1 and Narendra N. Hegade 1, ∗
+                                                                             1
+                                                                              Kipu Quantum GmbH, Greifswalderstrasse 212, 10405 Berlin, Germany
+                                                      2
+                                                          Department of Physical Chemistry, University of the Basque Country UPV/EHU, Apartado 644, 48080 Bilbao, Spain
+                                                                                                     (Dated: August 26, 2025)
+                                                               Combinatorial optimization plays a crucial role in many industrial applications. While classical computing
+                                                            often struggles with complex instances, quantum optimization emerges as a promising alternative. Here, we
+                                                            present an enhanced bias-field digitized counterdiabatic quantum optimization (BF-DCQO) algorithm to address
+                                                            higher-order unconstrained binary optimization (HUBO). We apply BF-DCQO to a HUBO problem featuring
+                                                            three-local terms in the Ising spin-glass model, validated experimentally using 156 qubits on an IBM quantum
+                                                            processor. In the studied instances, our results outperform standard methods such as the quantum approximate
+                                                            optimization algorithm, quantum annealing, simulated annealing, and Tabu search. Furthermore, we provide
+arXiv:2409.04477v2 [quant-ph] 24 Aug 2025
+
+
+
+
+                                                            numerical evidence of the feasibility of a similar HUBO problem on a 433-qubit Osprey-like quantum processor.
+                                                            Finally, we solve denser instances of the MAX 3-SAT problem in an IonQ emulator. Our results show that
+                                                            BF-DCQO offers an effective path for solving large-scale HUBO problems on current and near-term quantum
+                                                            processors.
+
+
+                                                                     INTRODUCTION                                      In parallel with quantum algorithms, quantum-inspired al-
+                                                                                                                    gorithms run on classical hardware, especially those based on
+                                               Combinatorial optimization problems arise in a multitude             tensor networks (TNs) [18–22], have evolved rapidly in the re-
+                                            of situations in science and industry, from logistics and               cent years. They were developed over the past three decades
+                                            scheduling to computational chemistry and biology. In com-              mostly for the study of condensed-matter physics [21, 23]
+                                            binatorial optimization, the best or near-optimal solution is           and have been adopted as efficient simulators of quantum
+                                            searched within a finite but large discrete configuration space.        hardware, as classical benchmarks for quantum algorithms,
+                                            Theoretical tools from statistical physics have given insights          and in hybrid approaches combining TNs and quantum algo-
+                                            into these problems, as their connection to disordered systems          rithms [24–27]. The recent kicked-Ising-model experiment
+                                            was identified early on [1]. These problems generally belong            of IBM on a 127-qubit device [28–32] and D-Wave’s simula-
+                                            to the NP-hard complexity class, requiring a computation time           tion of quantum quench dynamics across a spin-glass phase
+                                            that grows exponentially with the problem size on classical             transition [33, 34] highlighted the interplay of quantum sim-
+                                            computers. While complex problem instances test the limits              ulations and TNs. For combinatorial optimization, new ap-
+                                            of classical computing, quantum computing has emerged as                proaches have combined generative machine learning mod-
+                                            a suitable counterpart to drive the state of the art in this field.     els with TNs [35–37], and ground-state search methods have
+                                            This is possible due to the rapid development of quantum tech-          been applied to problems with up to quadratic terms on higher-
+                                            nologies combined with the natural mapping of combinatorial             dimensional graphs [38–40].
+                                            optimization problems to the widely studied Ising spin glass               Compared to quadratic problems, higher-order ones are sig-
+                                            model, whose ground state encodes the optimal solution [2].             nificantly more difficult to solve. While a number of experi-
+                                            Several methods have been proposed so far, including adia-              ments have recently demonstrated higher-order unconstrained
+                                            batic quantum optimization [3] and the quantum approximate              binary optimization (HUBO) implementations on quantum
+                                            optimization algorithm (QAOA) [4], which can be thought as              hardware [41–44], there are hardware limitations that compli-
+                                            a digitized version of adiabatic quantum computing [5].                 cate the effective implementation of these protocols on large-
+                                                                                                                    and even intermediate-scale problems. These include short
+                                               In addition to the capacity of quantum hardware to embed
+                                                                                                                    decoherence times, qubit connectivities, and the presence of
+                                            large-scale systems, the potential of quantum computing to
+                                                                                                                    noise. Several alternative methods, such as counterdiabatic
+                                            surpass classical optimization methods has been demostrated
+                                                                                                                    driving (CD) protocols, have been proposed to overcome these
+                                            through dedicated quantum algorithms [6–13]. Among these,
+                                                                                                                    issues [45–50]. By suppressing diabatic transitions, CD pro-
+                                            QAOA has emerged as one of the front-runner candidates for
+                                                                                                                    tocols can find better solutions in different scenarios.
+                                            showing quantum speedup in optimization. Recent studies on
+                                                                                                                       In this work, we develop and exploit an improved version
+                                            8-SAT problems with up to 20 variables [14] show that the
+                                                                                                                    of the recently introduced bias-field digitized counterdiabatic
+                                            time to solution for QAOA outperforms best-known classical
+                                                                                                                    quantum optimization (BF-DCQO) formulation [51] to ad-
+                                            methods. Similar evidence of quantum speedup for solving
+                                                                                                                    dress HUBO problems on both ideal simulators and hardware.
+                                            the low autocorrelation binary sequence (LABS) problem has
+                                                                                                                    We make use of the entire new 156-qubit IBM quantum com-
+                                            also been found [15–17].
+                                                                                                                    puter ibm fez and a matrix product state (MPS) simulation of
+                                                                                                                    the upcoming IBM Osprey processor with 433 qubits. To test
+                                                                                                                    BF-DCQO on denser instances, we consider a MAX 3-SAT
+                                                                                                                    problem at the critical density and employ the 25-qubit IonQ
+                                            ∗ narendrahegade5@gmail.com
+                                                                                                                    Aria 1 emulator with a noise model. All results are compared
+                                                                                                                                                       2
+
+with those obtained through well-established classical opti-            its many-body structure and the necessity for the knowledge
+mization methods as well as the D-Wave quantum annealing                of the full energy spectrum. To overcome these issues, sev-
+platform. Unlike these methods, BF-DCQO does not require                eral approximate implementations have been proposed [57–
+additional qubits for mapping the initial HUBO problem into             61]. One such proposal is the approximation of the adiabatic
+a quadratic one. Even though our work addresses problems                gauge potential by a nested-commutator series expansion
+with up to three-body terms, our method is equally applicable
+                                                                                                              l
+to higher-order optimization problems, including the LABS                                                     X
+problem [17], MAX k-SAT [52], factorization [53] and pro-                                         A(lλ = i            αk (t)O2k−1 (t),                (5)
+                                                                                                              k=1
+tein folding [54, 55], among others.
+                                                                        where O0 (t) = ∂λ Had and Ok (t) = [Had , Ok−1 (t)]. In the limit
+                                                                        l → ∞, this expansion converges to the exact gauge poten-
+                                METHODS                                 tial. The coefficients αk are obtained by minimizing the ac-
+                                                                        tion S l = tr[G2l ] with Gl = ∂λ Had − i Had , A(lλ . For sim-
+                                                                                                                                
+   Digitized counterdiabatic quantum optimization (DCQO)                plicity, we consider the first-order (l = 1) nested-commutator
+                                                                        term (see Supplementary Note 1 for a step-by-step derivation),
+   Adiabatic quantum optimization aims to prepare the ground            which takes the form
+state of a given problem Hamiltonian. An initial state is                                 hX             X
+evolved within the time window t ∈ [0, T ] under the adia-                       O1 = −2i      hzi σyi +   Ji j (σyi σzj + σzi σyj )
+batic protocol Had (λ) = (1 − λ)Hi + λH f . Here, λ(t) is a                                        i                  i< j
+                                                                                        X                                                       i     (6)
+time-dependent scheduling function that describes the adia-                         +            Ki jk (σyi σzj σzk + σzi σyj σzk + σzi σzj σyk ) .
+batic evolution of the system, starting from an initial Hamilto-                        i< j<k
+nian Hi , whose corresponding ground state is easy to prepare,
+towards the problem Hamiltonian H f . Relying on the adia-              Higher-order terms demand significantly more computational
+batic theorem, this protocol reaches the desired ground state           resources, and their complexity increases with the system size.
+of H f in the adiabatic limit λ̇(t) → 0. We consider the disor-            In the fast evolution regime, the adiabatic term Had (λ)
+dered Ising Hamiltonian with up to three-body terms:                    in Eq. (4) can be omitted, reducing the number of required
+              X            X                X                           quantum gates and thereby decreasing hardware noise, while
+       Hf =      hzi σzi +   Ji j σzi σzj +   Ki jk σzi σzj σzk , (1)   still maintaining the quality of the solution [51, 55, 62, 63].
+               i            i< j                  i< j<k                This approach is adopted in the present study, where only the
+                                                                        CD contribution is considered without compromising perfor-
+in contrast to Ref. [51], which only considers up to quadratic          mance. The time evolution of such Hamiltonians remains a
+terms. We use here natural units with ℏ = 1. The ground state           challenge on current analog quantum platforms, and may even
+of this Hamiltonian is called a p-spin glass with p = 3 [56],           be highly difficult due to the nonstoquasticity [64]. To ad-
+and the model is commonly known in quantum optimization                 dress this issue, digitized counterdiabatic quantum protocols
+as the higher-order Ising chain [41, 42]. In the following, we          have been proposed for implementation on digital quantum
+use λ(t) = sin2 (π sin2 (πt/2T )/2) as the scheduling function.         computers [65]. The resulting time-evolution operator can
+The initial Hamiltonian is                                              be decomposed using a first-order Trotter-Suzuki decompo-
+                         X               X                              sition [66] and digitized with a gate-based approach,
+                   Hi =      h xj σ xj +   hbj σzj          (2)
+                                                                                                       ntrot nY
+                                                                                                              terms
+                                j             j                                                        Y                 h                i
+                                                                                   U(T, 0) =                          exp −iγ j (k∆t)∆tH j ,          (7)
+with h xj (hbj ) the transverse- (longitudinal bias-) field contribu-                                  k=1 j=1
+
+tions acting on the jth spin. We set h xj = −1 and hbj = 0, thus        where Hcd (t) =
+                                                                                              Pnterms
+                                                                                                 j=1 γ j (t)H j is encoded in nterms differ-
+Hi = − N−1          x
+          P
+            j=0 σ j , so that the N-qubit ground state of Hi is         ent Pauli operators H j and ntrot are the Trotter steps consid-
+                                                                        ered with ∆t = T/ntrot . We use T = 1 in units of the in-
+                                                  !¹N
+                           ¹N         |0ð + |1ð                         verse energy scale relevant for each problem as defined be-
+                     |+ð            =    √              .        (3)    low, and ntrot = 3, thus one effective Trotter step is imple-
+                                           2
+                                                                        mented. The number of gates required for implementation is
+    In order to overcome the intrinsic slow adiabatic evolution,        reduced by optimally decomposing the desired circuit follow-
+it is possible to introduce an auxiliary counterdiabatic driving        ing Refs. [67, 68]. Furthermore, we set a gate-cutoff threshold
+contribution which accelerates the original protocol and sup-           θcutoff in our experiments, such that any term of Eq. (7) with
+presses diabatic transitions [45, 46]. The transitionless proto-        an angle with absolute value below this threshold is discarded,
+col takes the form                                                      thus if |γ j (k∆t)∆t| mod 2π < θcutoff is met. The larger the
+                                                                        θcutoff , the lower is the amount of resources that are required,
+                     Hcd (λ) = Had (λ) + λ̇Aλ ,                  (4)    but the obtained circuit expressivity is also lower. Therefore,
+                                                                        it is crucial to select an appropriate value of this parameter to
+where Aλ is the adiabatic gauge potential [57]. Neverthe-               significantly reduce the amount of gates to implement without
+less, its exact implementation is severely impractical due to           compromising the quality of the outcomes.
+                                                                                                                                                                           3
+
+                                                                                                              X
+                                                                                                              N 1
+                                                                                                 H̃i = Hi +         hbj (hσzj i)σzj
+                                                                                                              j=0
+
+                                                                                     åntrot
+             x2                                                                          ...                                                                     hσz0 i
+
+
+
+
+                                                                                                                      Probabilities
+                               x3
+                                                                                                                                                                 hσz1 i
+        x1                                                                               ...
+                                                                                                                                                                   ..
+                                                                                                                                                                    .
+                                                                  |ψ̃i i                                                                                          z
+                                                                                                                                                                hσN 2 i
+                                                                                                                                                                hσzN 1 i
+                                                                                         ...
+                  x5                                                                                                                          α
+                                                                                                                                                  Energy
+   x4                    x6                                                              ...
+
+    (a) Optimization problem                                 (b) Digitized counterdiabatic evolution                                  (c) CVaR-based updating
+FIG. 1. Schematic of the BF-DCQO protocol. Given a binary optimization problem of arbitrary order (depicted in a) encoded as a p-spin
+glass [Eq. (1)], the BF-DCQO algorithm performs DCQO iteratively, updating the input bias hbj from the solutions obtained from the previous
+step. Each iteration consists of running the corresponding DCQO circuit (depicted in b), sampling the final state, and updating the bias fields.
+It amounts to the use of (i) the CVaR-based approach, which considers only a subset of the low-energy samples, and (ii) the updating strategy
+as a function of the expectation value, i.e., hbj (ïσzj ð) (depicted in c).
+
+
+                       Bias-field updating protocol                                            • Unsigned antibias(+)/bias(−): hbj = ± ïσzj ð. This strat-
+                                                                                                 egy offers bias fields whose strength is exactly the lon-
+   State initialization is crucial for the performance of quan-                                  gitudinal component. This is a sensible choice when a
+tum optimization routines, where an initial state with a                                         qubit is effectively close to an equal superposition, such
+nonzero overlap with the desired final state is advanta-                                         that there is no clear direction of bias.
+geous [69, 70]. Several warm-starting techniques have been
+                                                                                               • Signed antibias(+)/bias(−): hbj = ± sgn ïσzj ð. This strat-
+proposed, where a relaxed version of the problem is solved
+classically and its solution fed into the quantum algorithm,                                     egy offers bias fields that are equivalent to the effective
+leveraging the complexity and cost of the quantum routine                                        orientation of the qubit, regardless the magnitude. This
+while ensuring a better performance [71, 72].                                                    is a sensible choice when a qubit has a clear preferred
+   In BF-DCQO, the standard DCQO is performed iteratively,                                       direction of bias.
+so that the solution from each step serves as the input bias                               Once a suitable updating method has been selected, BF-
+for the next iteration [50, 51, 69]. See Fig. 1 for a schematic                         DCQO iteratively measures the final state after time evolu-
+diagram of the protocol. The initial Hamiltonian is changed                             tion in the computational basis and the longitudinal bias fields
+after each bias-field update,                                                           hbj are updated accordingly. In the following, we set hbj = 0
+                                       N−1
+                                                                                        for the first bias-field iteration. According to the findings of
+                                                                                        Ref. [51], modifying the selected updating strategy through-
+                                       X
+                       H̃i = Hi +             hbj (ïσzj ð)σzj ,                (8)
+                                        j=0
+                                                                                        out the entire routine can circumvent local minima and lead
+                                                                                        to faster convergence. For our results, we use the unsigned
+so that its ground state also changes and has to be pre-                                bias followed by a final iteration with a weighted signed
+pared for the circuit execution.    The smallest    eigenvalue of                       bias. Specifically, the strength of hbj is increased by rescal-
+                                                                                        ing hbj 7→ κhbj with κ > 0. In our experiments, we rescale by a
+                              h             i
+the single-body operator hix σix − hbi σzi is given by λmin i   =
+  q                                                                                     factor of five to ensure that the magnitude of the bias is signif-
+− (hbi )2 + (hix )2 , and its associated eigenvector is |φ̃ði =                         icantly larger than the transverse term, restricting the search
+                                 b      
+                                 h +λ
+Ry (θi ) |0ði where θi = 2 tan−1 i hx min . Therefore, the ground                       space near the previous solution. Since the solution provided
+                                                i                                       by DCQO, from the first iteration, samples low-energy states
+state of H̃i can be prepared using N y-axis rotations as                                of the spin-glass Hamiltonian [Eq. (1)], the expectation val-
+                                                                                        ues of local Pauli-z operators can be used as an effective bias
+                             N                N
+                             O                O                                         in subsequent iterations, facilitating convergence.
+                  |ψ̃i ð =          |φ̃ði =         Ry (θi ) |0ði .            (9)         Although this updating strategy is employed in our exper-
+                              i=1             i=1
+                                                                                        iments, alternative approaches might be more convenient de-
+                                                                                        pending on the nature of the problem at hand. Using κ ∈ (0, 1)
+  In each iteration, the bias field hbj for the jth qubit is updated                    grants more importance to the transverse contribution in H̃i ,
+based on the measured longitudinal component of the qubit                               whose ground state is an equal superposition of the computa-
+ïσzj ð. This update follows the rule hbj = hbj (ïσzj ð), where the                      tional basis. Thereby, a broader energy landscape is explored
+functional form of hbj represents the specific bias-field strategy                      by flattening the expected sampling distribution. The algo-
+employed. In this work, we explore the following strategies:                            rithm is less prone to getting stuck in local minima with this
+

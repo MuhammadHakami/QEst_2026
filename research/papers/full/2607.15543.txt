@@ -1,0 +1,1626 @@
+Benchmarking Hybrid Quantum-Classical Algorithms for Power Grid Optimization
+Problems
+Igor Gaidai 1, 2, ∗ and Rick Mukherjee1, 2, †
+
+arXiv:2607.15543v1 [quant-ph] 17 Jul 2026
+
+1
+
+Department of Physics and Astronomy, University of Tennessee, Chattanooga, USA
+2
+Quantum Center, University of Tennessee, Chattanooga, USA
+
+Alternating Current Optimal Power Flow Unit Commitment (AC-OPF-UC) is a difficult mixedinteger nonlinear optimization problem that combines binary generator commitment decisions with
+nonconvex continuous AC power-flow constraints. In this work, we investigate whether hybrid
+quantum-classical variational algorithms can improve the solution of single-period AC-OPF-UC relative to classical approaches. To the best of our knowledge, this is the first study to directly evaluate
+quantum or hybrid quantum-classical algorithms for the full AC-OPF-UC problem. We consider two
+candidate algorithms for improving AC-OPF-UC solution quality relative to purely classical methods on ideal quantum hardware. The first applies QAOA directly to a fully discretized formulation
+of the problem, with equality and inequality constraints incorporated through penalty terms and
+slack variables. Although conceptually straightforward, this approach requires a prohibitively large
+number of qubits even for small instances. The second, qubit-efficient approach encodes only the binary generator status variables on a quantum computer, while optimizing the continuous power-flow
+variables classically for each sampled bitstring. We benchmark this method on randomly generated
+AC-OPF-UC instances with 5 to 13 generators and compare it against SCIP, SMAC, and uniform
+random sampling. Our simulations show that the qubit-efficient hybrid method does not outperform uniform sampling. These results suggest that in order to establish potential advantage of the
+variational hybrid strategy considered here over the best classical algorithms, if any, much larger
+system sizes (25+ generators) need to be tested, which is beyond our computational capacity. Alternatively, different approaches, such as quantum versions of branch-and-bound methods, may be
+more promising.
+Keywords:
+Variational quantum algorithms; Quantum approximate optimization algorithm; Hybrid
+quantum-classical optimization; Mixed-integer nonlinear programming; AC optimal power flow; Unit commitment; Power grid optimization
+
+I.
+
+INTRODUCTION
+
+Power grid optimization is a class of optimization problems concerned with cost-efficient energy production, distribution of power and reliability in power networks. One
+such problem that we focus on in this work is called Alternating Current Optimal Power Flow Unit Commitment
+(AC-OPF-UC) problem. Roughly speaking, the problem asks to find node voltages, phase angles and power
+output levels of generators in the network, such that the
+consumer load demand is satisfied, power production cost
+is minimized and voltages are kept as close to nominal as
+possible. The exact problem statement can be found in
+Section III. This problem is notoriously difficult, combining hard combinatorial optimization over binary variables
+with a non-convex optimization of continuous variables.
+Finding any feasible solution, much less an optimal one,
+for even a simpler variation of the problem (AC-OPF,
+without the binary variables) is known to be strongly
+NP-hard. [1]
+Classical methods for the AC-OPF-UC problem are
+best understood as different ways of managing two coupled sources of difficulty: binary generator commitment
+decisions and nonlinear AC power-flow constraints. The
+
+∗ igor-gaidai@utc.edu
+† rick-mukherjee@utc.edu
+
+most direct approach is to preserve both parts of the
+model and solve the problem as a nonconvex MixedInteger Nonlinear Programming (MINLP) or MixedInteger Quadratically Constrained Quadratic Programming (MIQCQP) problem. This class of methods can
+provide the strongest solution guarantees, typically in
+the form of feasible incumbent solutions together with
+primal-dual optimality gaps. However, these guarantees
+come at high computational cost, since the mixed-integer
+search can grow exponentially in the worst case. As a result, direct global methods are most useful for small and
+moderate benchmark systems, but do not by themselves
+resolve the scalability problem [2, 3].
+A common way to improve tractability is to simplify
+the network model before optimization. For example, replacing the AC network with a linearized Direct Current
+(DC) approximation leads to Mixed-Integer Linear Programming (MILP) or Mixed-Integer Quadratic Programming (MIQP) formulations that are much easier to solve.
+The resulting schedules can then be checked or repaired
+using AC feasibility tests. This approach is computationally attractive, but it generally cannot guarantee feasibility or optimality for the original AC problem because
+voltage magnitudes, reactive power, losses, and nonlinear
+branch-flow constraints are not fully represented [4, 5].
+Between these two extremes, much of the recent literature uses convex relaxations that retain more of the AC
+network structure than DC approximations while remain-
+
+2
+ing more tractable than the original nonconvex formulation. Semidefinite Programming (SDP), Second-Order
+Cone Programming (SOCP), and Mixed-Integer SecondOrder Cone Programming (MISOCP) formulations replace the original nonconvex constraints with tractable
+lower-bounding problems [6, 7]. When the relaxation is
+exact, the solution of the relaxed problem is also globally
+optimal for the original nonconvex problem, so the relaxation provides a certificate of global optimality [6, 7].
+When the relaxation is not exact, it can still provide useful lower bounds, but the corresponding relaxed solution
+may not be feasible for the original AC formulation and
+may require feasibility restoration or local AC-OPF polishing [7]. These relaxations are often combined with
+decomposition, which separates the problem into smaller
+continuous and mixed-integer subproblems and improves
+scalability in AC network-constrained UC applications
+[5, 8–10]. This direction has produced strong practical
+results on standard benchmark systems, but exactness
+and feasibility recovery remain instance-dependent.
+Despite these advances, the problem remains difficult
+for large system sizes, which makes it a natural candidate for investigation of whether quantum computing can
+alleviate its difficulty. Quantum and hybrid quantumclassical approaches to power-grid optimization have so
+far been applied mainly to simplified subproblems, not
+to the full AC-OPF-UC problem considered here. For
+power-flow and OPF models, one line of work uses quantum linear-system solvers, such as HHL [11] or variational
+quantum linear solvers [12], either directly for power-flow
+equations [13, 14] or inside Newton and interior-point iterations [15–18]. In these approaches, the quantum computer accelerates the repeated solution of linear systems
+arising from the KKT or Newton equations. This gives a
+plausible asymptotic motivation, but it is not directly a
+solver for AC-OPF-UC, since by itself it does not handle
+binary commitment decisions, branch-and-bound search,
+or the nonconvex mixed-integer structure of the full problem. Existing demonstrations are also mostly small, simulated, or limited to DC-OPF, AC-OPF, or power-flow
+equations, and they generally reproduce classical interiorpoint behavior without showing a practical speedup [13–
+18].
+A second direction encodes unit commitment as a
+QUBO or Ising Hamiltonian and applies QAOA [19],
+quantum annealing [20], or related hybrid methods [21–
+24]. Here the quantum computer is used to search over
+binary generator-status variables. This is more naturally connected to the commitment part of AC-OPFUC, but it does not straightforwardly include continuous AC voltages, reactive powers, nonlinear powerflow equations, or line-current constraints. Those variables must either be discretized, which greatly increases
+qubit requirements, or optimized classically in a decomposition scheme. Related hybrid decompositions have
+also been studied for DC-OPF-UC and distributed UC,
+where quantum routines are embedded inside ADMM,
+Lagrangian relaxation, or surrogate Lagrangian frame-
+
+works [25–28]. These methods are closer in spirit to ACOPF-UC, but most rely on DC power flow, simplified
+network constraints, or separable subproblems, so their
+extension to the full nonconvex AC formulation is not
+automatic.
+Overall, the studies reviewed above suggest that quantum methods may be useful as components inside hybrid decompositions, especially for linear algebra [17, 18]
+or binary search subroutines [21–28]. However, current
+evidence does not establish a practical advantage over
+strong classical baselines for realistic grid-optimization
+problems, and no existing approach directly resolves the
+combined difficulty of binary commitment and nonlinear
+AC feasibility. To the best of our knowledge, no other
+work studied whether quantum algorithms are viable for
+AC-OPF-UC, how much improvement can they bring and
+at what cost. Thus, the goal of this paper is to close this
+gap and answer these questions.
+
+II.
+A.
+
+BACKGROUND
+
+Time-Dependent Picture
+
+Consider an arbitrary circuit element in an Alternating
+Current (AC) circuit. Voltage at the element oscillates
+sinusoidally:
+√
+(1)
+v(t) = 2V̄ cos(ωt + ϕv )
+where V̄ is the root mean square (RMS) voltage, ω is
+oscillation frequency, t is time, and ϕv is a phase.
+Typically, current through the element also oscillates
+sinusoidally with the same frequency, but may, in general, have a different phase (because of reactive circuit
+elements, such as inductors and capacitors):
+√
+i(t) = 2I¯ cos(ωt + ϕi )
+(2)
+where I¯ is RMS current.
+Power of a circuit element is a measure of the rate of
+work that element performs. Power can be calculated as
+a product of voltage and current:
+p(t) = v(t)i(t) = 2V̄ I¯ cos(ωt + ϕv ) cos(ωt + ϕi )
+¯
+= V̄ I(cos(ϕ
+v − ϕi ) + cos(2ωt + ϕv + ϕi ))
+¯
+(3)
+= V̄ I(cos(φ)+
+cos(2ωt + 2ϕv ) cos(φ) + sin(2ωt + 2ϕv ) sin(φ))
+= P (1 + cos(2ωt + 2ϕv )) + Q sin(2ωt + 2ϕv )
+where φ = ϕv − ϕi , P = V̄ I¯ cos(φ) is called active power
+and Q = V̄ I¯ sin(φ) is called reactive power. The amount
+of power consumed by a circuit element on average per
+period (T ) is equal to P :
+1
+T
+
+Z T
+p(t)dt = P
+0
+
+(4)
+
+3
+B.
+
+Phasors
+
+In many cases, periodic oscillations of physical quantities, such as voltage or current, do not matter because
+the relevant behavior can instead be described by periodaveraged quantities, as in Eq. (4). In these cases, it is
+convenient to use phasors notation. A phasor is a complex number whose amplitude corresponds to the RMS
+value of the represented quantity and angle corresponds
+to its phase. For example, current phasor representing
+Eq. (2) is given by
+¯ iϕi
+I = Ie
+
+(5)
+
+A time-dependent representation of the current can be
+recovered from its phasor by
+√
+(6)
+i(t) = 2Re(Ieiωt )
+Voltage phasor is also defined similarly:
+V = V̄ eiϕv
+
+(7)
+
+Voltage and current phasors are related through a generalization of Ohm’s law: V = IZ, where Z is a complex
+number called impedance, which is a generalization of resistance. Impedance is defined as Z = R + iX, where
+R is resistance and X is reactance. An inverse property
+Y = 1/Z is called admittance.
+Similarly to Eq. (3), a product of voltage and
+(complex-conjugated) current phasors gives us a quantity S, called complex power.
+¯ iφ = P + iQ
+S = V I ∗ = V̄ Ie
+
+(8)
+
+Note that S is not a phasor of power per se, since we cannot recover time-dependent p(t) from it using an equivalent of Eq. (6), but it still gives us information about the
+values of P and Q, which is sufficient for many purposes.
+
+C.
+
+Distributed Power Networks
+
+Real-life electrical networks are complicated structures
+connecting together a large number of power consumers
+and sources (generators). At some level of abstraction,
+they can be represented as a graph where nodes represent so-called buses. A bus is a junction point in the
+network where multiple consumers and generators can
+be connected. The edges between nodes represent electrical lines, typically long-range conductors, connecting
+different buses into a single network.
+Electricity typically requires closed current paths. In
+real networks these paths also involve additional conductors (e.g. other phase conductors) together with the
+source and load connections. These additional conductors are not explicitly included in the graph abstraction
+since it is assumed that their electrical quantities can be
+inferred from the model variables, so they introduce no
+
+additional degrees of freedom. For example, in a typical 3-phase system under normal circumstances voltages
+and currents in each of the 3 phase conductors have the
+same amplitude, frequency, and only differ by phase (0
+and ±2π/3).
+Local connections between a power station (where
+buses are located) and final consumers or generators are
+assumed to be ideal and are also not explicitly included in
+the graph model. Thus, graph nodes can also be thought
+of as representing neighborhoods powered by a particular
+power station.
+Individual consumers are typically not modeled explicitly either. Instead a total cumulative load from all consumers at each node is considered (a single constant complex number). Of course, individual power consumers are
+typically not constant in time. However if the number of
+consumers is sufficiently large it is usually a good approximation to treat the cumulative load as constant.
+On the other hand, the number of power sources (generators) is typically much smaller than the number of
+consumers, so each individual generator is modeled explicitly.
+The continuous variables that need to be optimized in
+the network model are the voltage phasors at each bus Vi
+(where voltage magnitudes are defined with respect to a
+common implicit reference) and complex power outputs
+of each generator Sg . Because of the network equations
+and constraints (see Eqs. (10)–(15) below) these variables
+are not independent, and typically cannot be controlled
+directly in real systems, so they should not be regarded
+as primary control knobs of the system. Instead, they
+should be treated as a consequence of the primary controls (typically electromotive force), whose optimized values can be used to recover the optimal settings of the
+system.
+
+III.
+A.
+
+THEORY
+
+Power Network Model
+
+In this work we consider the following problem. As an
+input we get a graph describing configuration and parameters of a given power network (Figure 1). Each node i of
+the graph has its associated voltage phasor (Vi = vi eiδi )
+and specifies the minimum and maximum values of voltage magnitudes (vimin , vimax ), as well as its cumulative
+power load from all consumers Li (complex) and a list
+of connected generators Gi = {gij }. Each edge specifies its admittance (Yij ) and maximum supported current
+(|Iij |max ).
+Each generator g ∈ Gi (subscripts on g are implicit for
+less cluttered notation) has an associated power output
+Sg = Pg + iQg , status ug (off=0 or on=1) and specifies its minimum and maximum values of active and reactive powers (Pgmin , Pgmax , Qmin
+, Qmax
+) and cost terms
+g
+g
+(ag , bg , cg ). The cost of producing a given level of power
+
+4
+of line reactance (Xij ), which could be both positive (inductive behavior, more common) or negative (capacitive
+behavior).
+The goal of the problem is to find the values of the
+variables (Vi , Sg and ug ) such that the total cost (C) of
+power production due to all generators in the network
+and voltage magnitude deviation from nominal (=1) due
+to all nodes in the network is minimized
+X
+X
+C=
+Cg + λ
+(vi − 1)2
+(14)
+g
+
+Figure 1. A section of an input graph. The nodes represent
+buses and have associated voltage phasors (V ), cumulative
+loads (L), and connected generators (g). The edges represent
+electrical lines and have associated admittances (y).
+
+i
+
+the nodal power balance is satisfied,
+Si = 0
+
+(15)
+
+RMS current through each line is within its capacity,
+output (Cg ) is given by
+
+|Iij | ≤ |Iij |max
+
+Cg (ug , Pg ) = ug (ag Pg2 + bg Pg + cg )
+
+(9)
+
+The reason Q is not a part of the cost is because it
+affects the instantaneous amplitude of power, but does
+not contribute to net power consumption per period, see
+Eq (4). Note that cg is a flat cost of turning the generator
+on, which does not depend on the amount of generated
+power.
+The net power at node i is the total power produced by all generators connected to the node minus
+the power consumed by consumers and plus/minus power
+flow from/to other nodes, i.e.
+X
+X
+Si =
+ug Sg − Li −
+Sij
+(10)
+g∈Gi
+
+j∈N (i)
+
+where N (i) is a set of neighbors of node i and Sij =
+Pij + iQij is the complex power flow from node i to node
+j. Negative values of Pij or Qij mean that the corresponding power (active or reactive) is flowing in the opposite direction (from j to i). The power leaving node i
+toward node j (Sij ) is given by
+∗
+Sij = Vi Iij
+
+(12)
+
+Note that the line itself always absorbs active power,
+i.e.
+Pij + Pji = Rij |Iij |2
+
+and the limiting values of the variables are respected.
+Pgmin ≤ Pg ≤ Pgmax
+
+(17)
+
+Qmin
+≤ Qg ≤ Qmax
+g
+g
+vimin ≤ vi ≤ vimax
+
+(18)
+(19)
+
+Here, λ is an arbitrary weight factor balancing the cost of
+voltage deviation objective relative to power production
+cost.
+The voltage phases δi only make sense relative to one
+another, so to remove the global phase degeneracy we
+fix the phase of node 0 (chosen arbitrarily) to 0, which
+removes one of the model variables (δ0 ).
+To summarize, there is a total of 2N − 1 + 2|G| real
+continuous variables and |G| binary variables to optimize,
+where N is the total number of nodes, and |G| is the total
+number of generators across all nodes. The total number
+of equality constraints in real variables is 2N and the
+total number of inequality constraints is 2N + 4|G| + E,
+where E is the total number of edges in the graph.
+
+(11)
+
+where Iij is the current phasor for line i → j, and given
+by
+Iij = Yij (Vi − Vj )
+
+(16)
+
+(13)
+
+Assuming a power flow from i to j, active power received
+by node j (−Pji ) will always be less than the active power
+sent by node i (Pij ), since line resistance Rij > 0. Reactive power received by node j can be more or less than
+the reactive power sent by node i depending on the sign
+
+B.
+
+Constraints in Model Variables
+
+Eqs. (10) and (16) are specified in terms of Si and |Iij |,
+which can be expressed in terms of model variables, but
+are not model variables themselves. In this section we
+derive the expressions for those constraints in terms of
+model variables: (ug , Pg , Qg , vi , δi ).
+First, let us derive the equations for the real and imaginary parts of line power flows Sij :
+∗
+Sij = Pij + iQij = Vi Iij
+= Yij∗ (|Vi |2 − Vi Vj∗ )
+
+= (αij − iβij )(vi2 − vi vj (cos δij + i sin δij ))
+where Yij = αij + iβij and δij = δi − δj .
+
+(20)
+
+5
+cost function becomes
+
+Therefore,
+Pij = αij vi2 − vi vj (αij cos δij + βij sin δij )
+
+(21)
+
+C̃ = C + λ2
+
+X
+
+d2k
+
+(28)
+
+k
+
+Qij = −βij vi2 + vi vj (βij cos δij − αij sin δij )
+
+(22)
+
+and Si = 0 constraint translates to
+X
+X
+ug Pg − Re(Li ) −
+Re(Si ) =
+Pij = 0
+
+(23)
+
+g∈Gi
+
+Im(Si ) =
+
+X
+
+j∈N (i)
+
+X
+
+ug Qg − Im(Li ) −
+
+g∈Gi
+
+Qij = 0
+
+(24)
+
+j∈N (i)
+
+where the values of Li are given constants.
+Squared magnitude of current phasor in terms of model
+variables is
+|Iij |2 = |Yij |2 |Vi − Vj |2
+
+= |Yij |2 vi2 + vj2 − 2vi vj cos(δij )
+
+(25)
+
+Then the capacity constraint (Eq. (16)) can be equivalently written as
+2
+
+max 2
+
+|Iij | ≤ (|Iij |
+C.
+
+)
+
+(26)
+
+Full Encoding Algorithm
+
+Variational quantum algorithms (VQAs), such
+as Quantum Approximate Optimization Algorithm
+(QAOA), have been commonly used for other power grid
+problems [21–23, 26, 29]. As such, we are first going to
+consider a straightforward application of QAOA for this
+problem with full encoding of the cost function on the
+quantum computer.
+In short, QAOA applies alternating layers of two unitary operators, the mixing operator and the cost operator,
+to an initial quantum state. In the standard construction,
+used here, the initial state is the uniform superposition
+over all computational-basis bitstrings. More structured
+initial states can bias the search distribution [30–32], but
+require additional state-preparation or circuit-synthesis
+primitives [33–38].
+Mixing operator (B̂) is problem-independent and is
+typically chosen as
+X
+B̂ =
+X̂i
+(27)
+i
+
+where X̂i is Pauli-X operator. Another common choice is
+constraint-preserving mixers [39–42], but they are challenging to design for non-trivial constraints, therefore we
+will stick to the default choice of Eq. (27).
+Since constraints are not enforced by the mixer, they
+will need to be added as penalty terms to the cost function. Therefore, in this approach our total (penalized)
+
+where C is defined in Eq. (14), dk is the left-hand side
+of an equality constraint of the form dk = 0, the sum
+is over all model constraints, and λ2 is a variable factor
+that adjusts the cost of constraint violation with respect
+to the cost of the primary objective value.
+Inequality constraints are converted to equality constraints via the slack variable approach [43]. Namely,
+each inequality constraint of the form dk ≤ 0 is written
+as an equivalent equality constraint dk + sk = 0, where a
+new variable sk ≥ 0 is introduced, called a slack variable.
+The cost operator for QAOA is usually a unitary operator corresponding (via exponentiation) to a Hamiltonian
+(ĤC ) such that
+ĤC |x⟩ = C̃(x) |x⟩
+
+(29)
+
+where x is a bitstring encoding the values of all model
+variables, although alternatives exist as well [44].
+Binary variables can be encoded straightforwardly –
+they map to the qubits directly. Continuous variables
+will be encoded on a discrete grid of values. Specifically,
+each generic continuous variable y ∈ {P, Q, v, δ, s} is represented on a grid starting from ymin and with a fixed
+step size of ∆y as
+ny −1
+
+y = ymin + ∆y
+
+X
+
+2k yk
+
+(30)
+
+k=0
+
+where yk ∈ {0, 1} is the value of k-th bit in the binary
+encoding of y and ny is the total number of bits used
+for the encoding. Using higher values of ny allows more
+precise continuous variable encoding, but also requires
+more qubits.
+Note that non-negativity of slack variables is automatically enforced by defining non-negative grids for them.
+Similarly, simple box constraints, such as Eqs. (17) and
+(18), can also be enforced by defining their grids within
+their respective bounds, so these inequalities do not need
+slack variables.
+To avoid trigonometric terms in the constraints (see
+Sec. (III B)), voltage phasor can be parametrized in rectangular coordinates instead:
+Vi = VR,i + iVI,i
+
+(31)
+
+Because of the new parametrization, the following
+equations will change. Voltage magnitude constraint
+(Eq. (19)) stops being a simple box constraint and instead becomes
+2
+2
+(vimin )2 ≤ VR,i
++ VI,i
+≤ (vimax )2
+
+(32)
+
+6
+Complex power flow equation (Eq. (20)) becomes
+
+D.
+
+Sij = Yij∗ (|Vi |2 − Vi Vj∗ )
+2
+2
+= (αij − iβij )(VR,i
++ VI,i
+− VR,i VR,j − VI,i VI,j (33)
+
++ i(VR,i VI,j − VI,i VR,j ))
+Then real and imaginary flow equations (Eqs. (21) and
+(22)) become
+Pij = Re(Sij )
+2
+2
+= αij (VR,i
++ VI,i
+− VR,i VR,j − VI,i VI,j )
+
+(34)
+
++ βij (VR,i VI,j − VI,i VR,j )
+Qij = Im(Sij )
+= αij (VR,i VI,j − VI,i VR,j )
+
+(35)
+
+2
+2
+− βij (VR,i
++ VI,i
+− VR,i VR,j − VI,i VI,j )
+
+Current phasor magnitude expression (Eq. (25)) becomes
+|Iij |2 = |Yij |2 |Vi − Vj |2
+= |Yij |2 (VR,i − VR,j )2 + (VI,i − VI,j )2
+
+
+
+(36)
+
+Finally, instead of setting δ0 = 0 we set VI,0 = 0 and
+VR,0 ≥ 0.
+Plugging Eq. (30)-(36) into Eq. (28), one can obtain
+the cost function in terms of individual binary variables
+xk (from Eq. (29)). Then the cost Hamiltonian can be
+obtained by the usual substitution
+xk →
+
+1 − Ẑk
+2
+
+(37)
+
+where Ẑk is the Pauli-Z operator acting on k-th qubit.
+The continuous variable grid in Eq. (30) can be sequentially refined. Specifically, once a set of optimal values on
+their corresponding grids is found in a particular run, one
+can redefine the grids to make them denser around the
+optimal values, or shift the grid if optimum is on the edge,
+thus obtaining more precise values in the next run. This
+way the number of qubits necessary to achieve a given
+precision level in continuous variables can be reduced at
+the cost of larger number of runs. Of course, if the initial grid is too coarse it is possible to miss the global
+minimum entirely, so some parameter tuning might be
+necessary.
+Accounting for slack variables, the total number of continuous model variables becomes 4N −1+2|G|+E. Then
+the total number of qubits required, assuming constant
+ny , is ny (4N − 1 + 2|G| + E) + |G|.
+As an example, assuming average node degree = 3 (so
+E = 3/2N ), N = |G| and ny = 2 we get ≈16|G| qubits,
+so even a small 10 generator problem would require 160
+qubits to fully encode the problem even at this minimal
+discretization level.
+
+Qubit-Efficient Algorithm
+
+The direct application of QAOA to AC-OPF-UC considered in the previous section requires a very large number of qubits even for small instances. In order to reduce
+qubit requirements, one could encode only a part of the
+problem variables on a quantum computer, instead of encoding all of them as in Section III C. The primary candidates for the encoding are the binary variables (ug ), since
+they are harder to optimize classically and map naturally
+to qubits. Encoding only binary variables requires only
+|G| qubits, which is a dramatic decrease compared to the
+≈16|G| result of Section III C. The main issue with this
+approach is that without encoding other variables it is
+no longer possible to evaluate the cost function directly
+on a quantum computer, so QAOA cannot be used.
+Several recent studies [45–47] of related problems get
+around this issue by considering surrogate cost functions,
+which are simpler to evaluate and optimize functions that
+typically do not depend on all variables and/or depend
+on them in a simplified way, but are expected to have
+their minimum in the vicinity of the true cost function’s
+minimum. Ideally, coinciding with it. If such function is
+available, then finding the minimum of it, together with a
+simple local search around it, could reveal the true cost’s
+minimum. However, design of such functions is a nontrivial problem on its own, and they often do not work
+in full generality, suitable only for a particular subspace
+of parameters.
+Instead, we will use a more general approach in which
+the cost function is still exact, but is evaluated classically. Specifically, every time a particular bitstring
+ūi = u1 ...u|G| is sampled from a quantum computer, its
+cost Ci = C(ūi ) can be evaluated by running a classical
+optimization over remaining continuous variables, while
+keeping generator statuses fixed to the values of u1 ...u|G|
+(inner optimization). From the cost we can calculate the
+target metric F (Ci ), which can be the cost itself or another map such as Approximation Ratio (AR). Repeating this for many samples, we can calculate sample mean
+value of the target metric F̄ (C) for the current set of
+variational angles – an estimator for its expectation –
+and return that value to the outer optimization layer,
+which looks for variational angles that optimize the target metric expectation. The new angles suggested by the
+optimizer, which include angles for all gates (RZZ , RZ ,
+RX ) are then applied to the quantum circuit and the
+process repeats. This approach is shown schematically
+in Figure 2.
+As we sample bitstrings during the variational angle
+optimization, we keep track of the best bitstring sampled
+so far (i.e. lowest cost or highest AR bitstring) and return
+it as the answer encoding optimal generator assignments,
+once the variational angles optimization is finished. Alternatively, we could keep sampling from the optimized
+probability distribution or start optimization again from
+different initial angles until either a given quality threshold is surpassed or we run out of the optimization time
+
+7
+A.
+
+Datasets
+
+To benchmark the performance of the algorithm we
+created 9 datasets with number of generators ranging
+from 5 to 13, and 120 random problem instances in each
+set. The underlying graph for each problem was generated as a random geometric graph on a unit square
+with number of nodes equal to the number of generators (N = |G|) and connection radius chosen such that
+the expected average node degree is equal to 3. Disconnected components were made connected by adding an
+edge between their closest nodes.
+Many of the values in this benchmark were drawn from
+lognormal distributions. A random variable X is said to
+be distributed according to a lognormal distribution if
+log(X) is distributed according to a normal distribution:
+Figure 2. Schematic representation of the workflow of the
+algorithm described in Section III D. Bitstrings (ū1 , ..., ūM )
+are measured from the quantum circuit. Their costs are evaluated classically by optimizing continuous degrees of freedom.
+Then an average target metric F̄ (C) is passed to the outer optimization layer over variational angles. The new variational
+angles proposed by the optimizer are applied to the quantum
+circuit. See the text for more details.
+
+budget.
+Since the cost is evaluated classically now, we can evaluate non-polynomial functions, so we no longer need to
+resort to rectangular voltage coordinates of Eq. (31) and
+can use the equations of Sec. (III B). We also do not need
+to introduce slack variables to convert inequality constraints to equality. Instead the corresponding constraint
+violation term dk of Eq. (28) can be defined directly as
+dk = max(d˜k , 0)
+
+(38)
+
+for an inequality constraint of the form d˜k ≤ 0.
+
+IV.
+
+RESULTS
+
+The algorithm presented in Section (III C) has too high
+qubit requirement to simulate it classically, so in this section we are going to focus on the qubit-efficient algorithm
+from Section (III D).
+The VQA ansatz that we used in this benchmark consists of 1 layer made up of single-qubit Hadamard gates,
+followed by RZZ gates between all pairs of qubits, followed by RZ and RX gates on all qubits (see Figure 2).
+Thus, the total number of variational angles in our ansatz
+is equal to Q(Q − 1)/2 + 2Q = 0.5Q2 + 1.5Q where Q
+is the number of qubits in the circuit. For our binary
+encoding Q = |G|.
+
+X ∼ LogNormal(µ, σ 2 ) ↔ log(X) ∼ Normal(µ, σ 2 )
+(39)
+i.e. log(X) has mean µ and standard deviation σ.
+Instead of parameterizing our lognormal distributions
+by µ and σ directly, we parameterize them by the mean
+value of X (=m) and its spread factor, defined as a number F such that 90% of the distribution is contained
+within the range of [m/F, mF ], i.e.
+m
+
+P
+≤ X ≤ mF = 0.9
+(40)
+F
+The value of σ corresponding to a given value of F can
+be found numerically by solving
+
+
+
+
+σ log(F )
+σ log(F )
+Φ
++
+−
+−Φ
+= 0.9
+(41)
+2
+σ
+2
+σ
+where Φ is the standard normal cumulative distribution
+function (CDF). The value of µ can then be calculated
+as
+µ = log(m) −
+
+σ2
+2
+
+(42)
+
+The absolute value of the complex load at each node
+in the graph (|Li |) was sampled from a lognormal distribution with m = 1 and F = 10. Reactive fraction of
+the load (fiL ) at each node was sampled from a uniform
+distribution in the [0, 0.1] range. Then the full complex
+load was calculated as
+q
+Li = |Li | 1 − (fiL )2 + i|Li |fiL
+(43)
+The voltage limits for each node were defined as [0,
+100].
+Each edge’s impedance was generated similarly. The
+absolute value (|Zij |) was initially sampled from a lognormal distribution with m = 0.01 and F = 10. Then
+the sampled value was additionally multiplied by a ratio
+of the edge length (which is well-defined for geometric
+graphs) to median edge length to give larger impedance
+
+8
+to longer edges and vice versa. Reactive fraction of the
+X
+) was sampled from a uniform distribuimpedance (fij
+tion in the [0.9, 1] range. Then the full edge impedance
+was calculated as
+q
+X )2 + i|Z |f X
+Zij = |Zij | 1 − (fij
+(44)
+ij ij
+and admittance as Yij = 1/Zij .
+The current capacity of each edge was sampled from
+a lognormal distribution with m = 8 m(|L|)
+m(d) = 8/3 and
+F = 2. Here and further m(·) denotes the mean value
+of its argument, and d is a node degree. The ratio of
+m(|L|)/m(d) gives us expected load per line, which is approximately equal to expected current per line, assuming
+voltage is close to 1. The factor of 8 just adds some room
+for variance on top of that.
+Generators were assigned to nodes randomly according
+to a degree-biased multinomial distribution. Specifically,
+the probability of assigning a generator to node i was
+defined as
+wi
+pi = P
+(45)
+j wj
+
+And the minimum and maximum values of reactive power
+were calculated as
+Qmin
+= −Qref
+g
+g LFg ,
+
+Qmax
+= Qref
+g
+g LFg
+
+The cost coefficients a, b and c for each generator were
+sampled from their respective lognormal distributions
+with means ma = 1/m(P ref )2 , mb = 1/m(P ref ) and
+mc = 1; and spreads Fa = 2, Fb = 1.5, and Fc = 2.
+After an instance is generated, a fast aggregate check
+was also run on it to filter out bad instances (e.g. apparently close to infeasible). An instance was deemed bad
+if:
+1) Total maximum active and reactive generator power
+is less than total active or reactive load (or close to it),
+i.e.
+X
+X
+Pgmax < γ
+Re(Li )
+(51)
+g
+
+i
+
+or
+X
+
+where
+
+Qmax
+<γ
+g
+
+X
+
+g
+
+
+wi = exp
+
+β
+(di − dmax )
+1−β
+
+
+(46)
+
+where di is node degree, dmax is the maximum node degree in the graph, and β ∈ [0, 1] is a degree-bias parameter. When β = 0, all nodes have equal probabilities of
+getting a generator. When β = 1, only maximum degree
+nodes have non-zero probability of getting a generator.
+For this benchmark β = 0.3 was chosen.
+The range of absolute value of power for each generator was parameterized via its multiplicative midpoint
+(Sgref ) and length factor (LFg ). Sgref was sampled from
+a lognormal distribution with m = 1.2m(|L|) = 1.2 and
+F = F (|L|) = 10, where F (|L|) is the value of F for
+the distribution of absolute value of a node’s load. The
+length factor was calculated as LFg = 1 + Xg , where Xg
+was sampled from a lognormal distribution with m = 0.5
+and F = 1.2. The reference values of active and reactive
+powers were calculated as
+q
+Pgref = Sgref 1 − (fgG )2
+(47)
+Qref
+= Sgref fgG
+g
+
+(48)
+
+where fgG is generators reactive fraction sampled from
+a uniform distribution in the [0, 0.1] range. Then the
+minimum and maximum values of active power were calculated as
+Pgmin = Pgref /LFg ,
+
+Pgmax = Pgref LFg
+
+(49)
+
+(50)
+
+Im(Li )
+
+(52)
+
+i
+
+where γ is an arbitrary strictness factor controlling probability of infeasibility. If this inequality is true with γ = 1
+then the instance is definitely infeasible. As the value of
+γ is increased beyond 1, infeasibility probability is getting smaller. In this benchmark the value of γ was chosen
+to be 1.2 in this and the following checks.
+2) Some generators cannot be turned on because their
+minimum active or reactive power output is already
+greater than total active or reactive load (or close to it),
+i.e.
+X
+max Pgmin > γ −1
+Re(Li )
+(53)
+g
+
+i
+
+or
+max Qmin
+> γ −1
+g
+g
+
+X
+
+Im(Li )
+
+(54)
+
+i
+
+3) Minimum necessary current that needs to be imported to any node i exceeds total incident edge capacity
+(or close to it), i.e.
+X
+|Iij |max < γ|Ii |imp
+(55)
+j∈N (i)
+
+where
+q
+|Ii |imp =
+
+(Piimp )2 + (Qimp
+)2
+i
+vimax
+
+(56)
+
+9
+and
+
+
+
+X
+
+Piimp = max 0, Re(Li ) −
+
+Pgmax 
+
+(57)
+
+g∈Gi
+
+
+
+
+X
+
+= max 0, Im(Li ) −
+Qimp
+i
+
+
+Qmax
+g
+
+(58)
+
+g∈Gi
+
+Note that while these checks only filter out obviously
+infeasible instances and do not guarantee feasibility, in
+practice they were sufficient to completely remove all infeasible instances from our datasets.
+
+B.
+
+Target Metric
+
+The target metric that we optimize in this benchmark
+is approximation ratio (AR). AR of a given bitstring i is
+defined as a ratio of optimal bitstring cost to the cost of
+bitstring i, i.e.
+ARi = Copt /C̃i
+
+(59)
+
+where C̃i is the full constraint-penalized cost calculated
+from Eq. (28) with λ2 = 107 . This value of λ2 was found
+experimentally as the smallest value that ensures that
+all infeasible bitstrings have higher total costs than the
+optimal feasible one. The values of AR are in [0, 1] range
+for any bitstring of any instance (larger = better), which
+allows us to calculate meaningful instance-average AR as
+a metric for the entire dataset, and also avoid numerical
+issues due to very large penalty costs on some of the
+infeasible bitstrings.
+In this benchmark, the value of Copt was found by
+explicitly optimizing all 2|G| bitstrings, which may not
+be a viable approach for larger instances. However, one
+can equivalently use a lower bound on Copt instead of
+its actual value. This will reduce the range of attainable
+AR values, but it can be rescaled later and it does not
+invalidate the mentioned advantages of using AR over
+plain cost.
+
+C.
+
+Number of Shots
+
+The first question that we want to answer is how many
+shots are required to reliably estimate the expectation of
+AR for a given set of variational angles. The following
+approach was used to answer that question.
+For a given instance and a given set of variational angles, we can calculate the exact probability distribution
+over all bitstrings of the instance and from that calculate exact expectation (µ) and standard deviation (σ) of
+their AR values. Then we can use that information to
+calculate the minimum number of shots (M ) such that
+
+Figure 3. Mean and maximum number of shots necessary to
+converge mean sample AR to within 0.05 of its expected value
+with probability 90%. The mean and maximum is taken over
+different random variational angles and random instances at
+a given system size N = |G|.
+
+sample mean over M shots drawn from that distribution
+(AR) falls within the range of µ ± target confidence interval half-length (r) with target probability (α). In other
+words, the goal is to find M such that AR(M ) satisfies
+P (|AR − µ| ≤ r) ≥ α
+
+(60)
+
+Using Bernstein’s inequality [48], one can calculate M
+value as
+
+
+(2σ 2 + 2r/3) log(2/(1 − α))
+M=
+(61)
+r2
+In this benchmark we used r = 0.05 and α = 0.9.
+For each instance in each dataset, we generated 100
+random angle sets, calculated their values of M and then
+calculated the mean and maximum of those values across
+all instances and all angle sets of a given dataset. The
+result is plotted vs number of generators in Figure 3. As
+one can see, with 1 layer of our ansatz, no more than
+600 shots in the worst case were necessary to accurately
+estimate AR expectation for all considered system sizes.
+These results have also been verified with Monte-Carlo
+simulation. Specifically, for each instance and each angle set, we sampled M values from the corresponding
+probability distribution, as calculated by Eq. (61), and
+calculated sample mean (AR). This was repeated 10000
+times. Then we calculated the fraction of samples that
+fell into the target range of µ ± r. Treating each sample
+as a Bernoulli trial with theoretical success probability
+
+10
+
+Figure 4. Schematic representation of the AC-OPF-UC
+solvers considered in this work. Binary and continuous variables for SCIP are optimized together with a single mixed
+integer optimizer. For other solvers they are optimized separately with 2 different optimizers indicated at the bottom.
+
+equal to α = 0.9, we calculated the tail probability of
+seeing the observed number of successes or less. If that
+probability was less than 10−3 , then the simulation was
+regarded as rejecting the tested value of M , and confirming it otherwise. Monte-Carlo simulation was carried out
+for all instances and all angles, and has never rejected
+the calculated value of M . Thus, the results of Figure 3
+were deemed reliable.
+In the results following below, the number of shots was
+chosen as M = 1000 for all tests, which is more than
+sufficient according to Figure 3.
+
+D.
+
+Solvers
+
+In order to establish whether the proposed algorithm of
+Section III D makes sense, we compared its performance
+with alternative ways to solve the problem. An overview
+of the solvers considered in this benchmark is presented
+in Figure 4.
+The most straightforward approach is to solve the
+problem by describing it exactly as stated to a classical
+mixed integer optimizer, without separating the variables
+into binary and continuous. This baseline was implemented using a mixed integer solver library called SCIP
+[49].
+Another approach is to act according to the prescription of the algorithm of Section III D, i.e. by separat-
+
+ing binary and continuous variables, optimizing continuous variables classically for fixed binary assignments, and
+feeding the result of this optimization to a separate optimization layer over the binary variables performed quantumly via VQA with a noisy classical optimizer. This
+approach will be labeled as Hybrid.
+Alternatively, we may decide not to involve quantum
+computer at all and optimize binary variables classically
+too. In this benchmark, this approach was implemented
+using a Bayesian optimization library for binary variables
+called SMAC [50]. Other than that, everything else is
+the same as in Hybrid.
+Another alternative is to not optimize binary variables
+at all, and just keep sampling them randomly with a
+uniform probability distribution until we run out of the
+optimization time budget. This approach will be labeled
+as Uniform. Once again, everything else is the same as
+in Hybrid and SMAC.
+In the case of Hybrid, we tried multiple different noisy
+optimizers for VQA, including noisyopt [51], SPSA [52],
+Adam [53], and QNSPSA [54] with different options. In
+our experience, ADAM with custom SPSA-style gradient
+demonstrated the best performance and was chosen as
+the noisy optimizer for the following tests.
+In all solvers, except for SCIP, the continuous variable subproblem was optimized using CasADi library [55]
+with IPOPT solver [56] with 30 seconds time budget per
+bitstring.
+In all tests below, the time budget given to all instances and all solvers was the same for any given system
+size. The time budget was chosen as large enough to finish variational angle optimization for at least 100 out of
+120 instances in a given dataset. Even if more than 100
+instances converged within given time budget, only the
+fastest 100 instances were used for averaging, for consistency, the same ones for all the methods.
+In the first benchmark, we compared all 4 approaches
+on a 5 generator dataset. All methods were given 30
+minutes per instance time budget. During the optimization we recorded the time of finding each improvement
+over the previous best known solution found so far, thus
+obtaining AR vs time curve for each instance. Then we
+averaged those curves over the fastest 100 random instances in the dataset. The results of it are shown in
+Figure 5.
+As one can see, SMAC, Uniform and Hybrid all finished enumerating all bitstring assignments within seconds and found the optimal solution (AR = 1) for all
+instances, which is unsurprising considering the small
+system size of only 5 generators (25 = 32 possible assignments). On the other hand, SCIP was running for
+the entire 30 minutes time budget, but was still not able
+to find any feasible solutions for most of the instances
+in the dataset, which counts as AR = 0, thus earning
+its low instance-averaged AR. We tried to experiment
+with different SCIP settings, but could not improve its
+asymptotic AR value beyond ≈0.3 at the end of the 30
+minutes budget. For this reason SCIP was deemed non-
+
+11
+
+Figure 5. Instance-averaged approximation ratio of the best
+incumbent solution vs time for the 5 generators dataset.
+SMAC, Uniform and Hybrid all have exactly the same AR
+= 1.
+
+competitive for this problem and was excluded from the
+other benchmarks below.
+One important caveat regarding the Hybrid’s accounting in these benchmarks is that the quantum part (construction of quantum state for a given set of variational
+angles) was simulated. It would not be fair to directly
+add quantum simulation time to the overall method time,
+because if we were to use an actual quantum hardware
+instead of simulation, the quantum state could have been
+built much faster. But how much faster is hard to say
+because it depends on the specific hardware architecture
+[57–59]. In these benchmarks we decided to consider the
+ideal asymptotic case of infinitely faster, not counting the
+time spent on quantum simulation towards the total time
+at all.
+Figure 6 shows a zoomed-in instance-averaged AR vs
+time curves for the 13 generators dataset. As one can see,
+all 3 remaining solvers still demonstrate nearly identical
+performance, but SMAC starts to fall a bit behind the
+other 2 solvers. For this reason, in the following comparison we focus solely on the 2 leading solvers: Hybrid and
+Uniform.
+In Figure 7, we plot the difference between ARs (Hybrid minus Uniform) vs time for number of generators
+ranging from 10 to 13. Asymptotically, in the limit of infinite time, there will be no difference between the methods since all bitstrings will be sampled one way or another and the same best solution will be found. In the
+limit of zero time, we also do not expect to see meaningful difference because VQA optimization starts from
+random angles, which are not expected to create a prob-
+
+Figure 6. Instance-averaged approximation ratio of the best
+incumbent solution vs time for the 13 generators dataset.
+
+Figure 7. AR of Hybrid minus AR of Uniform vs time for
+number of generators ranging from 10 to 13.
+
+ability distribution better than uniform, on average. As
+one can see from Figure 7, intermediate times also do not
+demonstrate any significant differences.
+The main reason for this effect is that the considered
+system sizes are too small. With M = 1000 shots per
+sample mean, all or most of their bitstring configurations will be sampled during the first few optimization
+
+12
+iterations, while the variational angles are still close to
+the initial random angles. By the time variational angle optimization achieves meaningful separation between
+the optimized and uniform probability distributions, the
+best bitstring will have long been found, and any further
+optimization will not have any effect on the AR vs time
+curves.
+As system size increases, the total number of possible
+bitstrings increases as well (exponentially), so it will take
+longer to sample the optimal bitstring randomly, which
+should give optimization more time to become meaningful. However, this effect is partially offset by the fact that
+the number of iterations necessary to finish optimization
+also increases with system size, albeit not as quickly as
+number of bitstrings (from ≈5000 iterations at 10 generators to ≈10000 iterations at 13 generators on average in
+our dataset, increased approximately linearly).
+Another issue is that performance of only one layer of
+the ansatz will continue to drop with system size, and it
+will do so faster than performance of uniform probability
+distribution, thus further bringing them closer together.
+This effect is shown in Figure 8. Specifically, the figure
+shows expected values of AR corresponding to uniform
+and variational angle-optimized probability distributions
+for each individual instance in the 10- and 13-generator
+datasets and the dashed lines show their average values.
+As one can see, going from 10 to 13 generators, averaged
+optimized expectation drops by 0.078 (∼11%), while uniform expectation drops by 0.026 (∼10%). While the relative drop is similar, the absolute value of the drop is a
+factor of 3 larger in the optimized case.
+Adding more layers should help with that in principle, but it will further increase the number of iterations
+that optimization needs, and may also increase the number of shots necessary per iteration, which will further
+push the boundary of the smallest meaningful system
+size. Moreover, AR gain with additional layers tends to
+follow diminishing returns [60, 61], requiring more and
+more layers to keep up with the system size.
+Better than random initial angles are also not expected
+to help because our ansatz is independent of the cost
+function, so the same variational angles always translate to the same probability distributions regardless of
+instance, and the same probability distribution cannot
+possibly work for all instances.
+
+V.
+
+CONCLUSIONS
+
+In this work we presented 2 possible hybrid quantumclassical algorithms that could solve AC-OPF-UC problem better than purely classical methods, at least on ideal
+quantum hardware. The first method involved direct application of QAOA to evaluate the full cost function on a
+quantum computer, but that approach requires hundreds
+of qubits even for small system sizes. For this reason we
+did not benchmark its performance.
+The second approach attempts to fix the main issue of
+
+(a) 10 generators
+
+(b) 13 generators
+
+Figure 8. ARs of individual instances for 10 and 13 generators case corresponding to Uniform and variational-angleoptimized (Hybrid) probability distributions over bitstrings.
+Instance index is just a sequential number assigned to
+each generated instance. Horizontal dashed lines show the
+instance-average values.
+
+the first by separating the problem variables into binary
+and continuous, and optimizing only binary variables on
+a quantum computer, while continuous variables are optimized classically. This dramatically decreases the number of required qubits, as intended. However, numerical
+simulations show that this approach is not better than
+
+13
+classical uniform random sampling, even in the maximally quantum-favorable case of assuming that all quantum operations take 0 time. For the reasons discussed at
+the end of Section IV D, much larger system sizes (25+
+generators, likely more) need to be tested before the hybrid algorithm even has a chance to outperform uniform
+sampling. We estimate that such system size would need
+roughly ∼107 CPU hours to be performed consistently
+with our current benchmarking methodology, which is
+beyond our computational capacity. The same benchmarking procedure can be straightforwardly adapted to
+DC and UC problems as well.
+Future directions may include the following:
+1. Even without evaluating the true cost function
+on quantum computer, an ansatz can be made
+instance-dependent by incorporating some reasonable proxy (surrogate) cost function into it. This
+could potentially enable angle transfer approaches
+[62–64] or meaningful angle initialization strategies
+[60, 65–68].
+2. Different ansatzes or training schemes could potentially reduce the required number of optimization
+iterations [61, 69–71].
+3. Other methods, such as quantum branch and
+bound methods, Benders decomposition, Lagrangian relaxation, ADMM or qudit-based approaches [5, 26, 28, 72–75] are likely more promising.
+LIST OF ABBREVIATIONS
+
+AC: Alternating current
+ADMM: Alternating direction method of multipliers
+AR: Approximation ratio
+CDF: Cumulative distribution function
+DC: Direct current
+HHL: Harrow–Hassidim–Lloyd algorithm
+IPOPT: Interior Point Optimizer
+KKT: Karush–Kuhn–Tucker
+MILP: Mixed-integer linear programming
+MINLP: Mixed-integer nonlinear programming
+MIQCQP: Mixed-integer quadratically constrained
+quadratic programming
+MIQP: Mixed-integer quadratic programming
+MISOCP: Mixed-integer second-order cone programming
+OPF: Optimal power flow
+QAOA: Quantum approximate optimization algorithm
+QNSPSA: Quantum natural simultaneous perturbation
+stochastic approximation
+QUBO: Quadratic unconstrained binary optimization
+RMS: Root mean square
+SCIP: Solving Constraint Integer Programs
+SDP: Semidefinite programming
+SMAC: Sequential Model-based Algorithm Configuration
+SOCP: Second-order cone programming
+SPSA: Simultaneous perturbation stochastic approximation
+UC: Unit commitment
+VQA: Variational quantum algorithm
+
+DECLARATIONS
+Availability of data and materials
+
+The code and data supporting the findings of this
+study are available in the GitHub repository: https:
+//github.com/GaidaiIgor/PowerGridQuantumOpt.
+
+Competing interests
+
+The authors declare that they have no competing interests.
+
+Funding
+
+This work was supported by Tennessee Valley Authority (TVA) and by NIST through the CIPP program under
+award 60NANB24D218. The funders had no role in the
+design of the study, analysis, interpretation of results, or
+writing of the manuscript.
+
+Authors’ contributions
+
+IG developed the algorithms, performed the numerical simulations, analyzed the results, and wrote the
+manuscript.
+RM acquired funding, supervised the
+project, contributed to the interpretation of the results,
+and revised the manuscript. Both authors read and approved the final manuscript.
+
+Acknowledgements
+
+The authors thank James Cummins for his help with
+the literature survey.
+
+Use of generative artificial intelligence
+
+The authors used OpenAI GPT-based generative artificial intelligence tools to assist with code development and debugging, study design and methodology,
+literature-review organization, manuscript drafting and
+editing. All scientific decisions, code, analyses, interpretations, conclusions, and final manuscript text were
+reviewed, verified, and approved by the authors.
+
+REFERENCES
+[1] Daniel Bienstock and Abhinav Verma. Strong nphardness of ac power flows feasibility. Operations Research Letters, 47(6):494–501, 2019.
+
+14
+[2] Anya Castillo, Carl Laird, César A Silva-Monroy, JeanPaul Watson, and Richard P O’Neill. The unit commitment problem with ac optimal power flow constraints.
+IEEE Transactions on Power Systems, 31(6):4853–4866,
+2016.
+[3] Jianfeng Liu, Carl D Laird, Joseph K Scott, Jean-Paul
+Watson, and Anya Castillo. Global solution strategies
+for the network-constrained unit commitment problem
+with ac transmission constraints. IEEE Transactions on
+Power Systems, 34(2):1139–1150, 2018.
+[4] Kyri Baker. Solutions of dc opf are never ac feasible. In
+Proceedings of the Twelfth ACM International Conference on Future Energy Systems, pages 264–268, 2021.
+[5] Deniz Tuncer and Burak Kocuk. An misocp-based decomposition approach for the unit commitment problem
+with ac power flows. IEEE Transactions on Power Systems, 38(4):3388–3400, 2022.
+[6] Steven H Low. Convex relaxation of optimal power
+flow—part i: Formulations and equivalence. IEEE Transactions on Control of Network Systems, 1(1):15–27, 2014.
+[7] Daniel K Molzahn and Ian A Hiskens. A survey of relaxations and approximations of the power flow equations.
+Foundations and Trends in Electric Energy Systems, 4(12):1–221, 2019.
+[8] Gonzalo E Constante-Flores, Antonio J Conejo, and Feng
+Qiu. Ac network-constrained unit commitment via relaxation and decomposition. IEEE Transactions on Power
+Systems, 37(3):2187–2196, 2021.
+[9] Fariba Zohrizadeh, Mohsen Kheirandishfard, Adnan
+Nasir, and Ramtin Madani. Sequential relaxation of unit
+commitment with ac transmission constraints. In 2018
+IEEE Conference on Decision and Control (CDC), pages
+2408–2413. IEEE, 2018.
+[10] Robert Parker and Carleton Coffrin. Managing power
+balance and reserve feasibility in the ac unit commitment
+problem. Electric Power Systems Research, 234:110670,
+2024.
+[11] Aram W Harrow, Avinatan Hassidim, and Seth Lloyd.
+Quantum algorithm for linear systems of equations.
+Physical review letters, 103(15):150502, 2009.
+[12] Carlos Bravo-Prieto, Ryan LaRose, Marco Cerezo, Yigit
+Subasi, Lukasz Cincio, and Patrick J Coles. Variational
+quantum linear solver. Quantum, 7:1188, 2023.
+[13] Rozhin Eskandarpour, Kumar Ghosh, Amin Khodaei, Liuxi Zhang, Aleksi Paaso, and Shay Bahramirad. Quantum computing solution of dc power flow. arXiv preprint
+arXiv:2010.02442, 2020.
+[14] Brynjar Sævarsson, Spyros Chatzivasileiadis, Hjörtur
+Jóhannsson, and Jacob Østergaard. Quantum computing for power flow algorithms: Testing on real quantum
+computers. arXiv preprint arXiv:2204.14028, 2022.
+[15] David Neufeld, Sajad Fathi Hafshejani, Daya Gaur, and
+Robert Benkoczi. A hybrid quantum algorithm for load
+flow. In Power, Energy and Electrical Engineering: Proceedings of the 14th International Conference (CPEEE
+2024), Tokyo, Japan, 24–26 February 2024, pages 589–
+600. SAGE Publications 1 Oliver’s Yard, 55 City Road,
+London, EC1Y 1SP, 2024.
+[16] Farshad Amani, Reza Mahroo, and Amin Kargarian.
+Quantum-enhanced dc optimal power flow. In 2023 IEEE
+Texas Power and Energy Conference (TPEC), pages 1–6.
+IEEE, 2023.
+[17] Farshad Amani and Amin Kargarian. Optimal power
+flow solution via noise-resilient quantum interior-point
+
+methods. Electric Power Systems Research, 240:111216,
+2025.
+[18] S Fathi Hafshejani, Md Mohsin Uddin, David Neufeld,
+Robert Benkoczi, and Daya Gaur. Quantum algorithms
+for optimal power flow. In 2025 15th International Conference on Power, Energy, and Electrical Engineering
+(CPEEE), pages 295–300. IEEE, 2025.
+[19] Edward Farhi, Jeffrey Goldstone, and Sam Gutmann.
+A quantum approximate optimization algorithm. arXiv
+preprint arXiv:1411.4028, 2014.
+[20] Atanu Rajak, Sei Suzuki, Amit Dutta, and Bikas K
+Chakrabarti. Quantum annealing: An overview. Philosophical Transactions of the Royal Society A: Mathematical, Physical and Engineering Sciences, 381(2241), 2023.
+[21] Akshay Ajagekar and Fengqi You. Quantum computing
+for energy systems optimization: Challenges and opportunities. Energy, 179:76–89, 2019.
+[22] Samantha Koretsky, Pranav Gokhale, Jonathan M
+Baker, Joshua Viszlai, Honghao Zheng, Niroj Gurung,
+Ryan Burg, Esa Aleksi Paaso, Amin Khodaei, Rozhin
+Eskandarpour, et al. Adapting quantum approximation
+optimization algorithm (qaoa) for unit commitment. In
+2021 IEEE International Conference on Quantum Computing and Engineering (QCE), pages 181–187. IEEE,
+2021.
+[23] Bruna Salgado, André Sequeira, and Luis Paulo Santos. A hybrid classical-quantum approach to highly
+constrained unit commitment problems. arXiv preprint
+arXiv:2412.11312, 2024.
+[24] Milad Hasanzadeh, Ali Rajabi, and Amin Kargarian. A
+survey on applications of quantum computing for unit
+commitment. arXiv preprint arXiv:2601.01777, 2026.
+[25] Reza Mahroo and Amin Kargarian. Hybrid quantumclassical unit commitment. In 2022 IEEE Texas Power
+and Energy Conference (TPEC), pages 1–5. IEEE, 2022.
+[26] Madan Rana Magar, Dilip Pandit, Duong Nguyen, and
+Nga Nguyen. Dc optimal power flow in unit commitment
+using quantum computing: An admm approach. In 2024
+56th North American Power Symposium (NAPS), pages
+1–6. IEEE, 2024.
+[27] Nima Nikmehr, Peng Zhang, and Mikhail A Bragin.
+Quantum distributed unit commitment: An application
+in microgrids. IEEE transactions on power systems,
+37(5):3592–3603, 2022.
+[28] Fei Feng, Peng Zhang, Mikhail A Bragin, and Yifan
+Zhou. Novel resolution of unit commitment problems
+through quantum surrogate lagrangian relaxation. IEEE
+Transactions on Power Systems, 38(3):2460–2471, 2022.
+[29] Zhirao Wang, Junxiang Huang, Runyu Ye, Qingyu Li,
+Qi-Ming Ding, Yiming Huang, Ting Zhang, Yumeng
+Zeng, Jianshuo Gao, Xiao Yuan, et al. A review of variational quantum algorithms: Insights into fault-tolerant
+quantum computing. arXiv preprint arXiv:2604.07909,
+2026.
+[30] Daniel J Egger, Jakub Mareček, and Stefan Woerner.
+Warm-starting quantum optimization. Quantum, 5:479,
+2021.
+[31] Reuben Tate, Jai Moondra, Bryan Gard, Greg Mohler,
+and Swati Gupta. Warm-started qaoa with custom
+mixers provably converges and computationally beats
+goemans-williamson’s max-cut at low circuit depths.
+Quantum, 7:1121, 2023.
+[32] Zichang He, Ruslan Shaydulin, Shouvanik Chakrabarti,
+Dylan Herman, Changhao Li, Yue Sun, and Marco Pis-
+
+15
+toia. Alignment between initial state and mixer improves qaoa performance for constrained optimization.
+npj Quantum Information, 9(1):121, 2023.
+[33] Lov Grover and Terry Rudolph. Creating superpositions
+that correspond to efficiently integrable probability distributions. arXiv preprint quant-ph/0208112, 2002.
+[34] Mikko Mottonen, Juha J Vartiainen, Ville Bergholm, and
+Martti M Salomaa. Transformation of quantum states using uniformly controlled rotations. arXiv preprint quantph/0407010, 2004.
+[35] Vivek V Shende, Stephen S Bullock, and Igor L Markov.
+Synthesis of quantum logic circuits. In Proceedings of the
+2005 Asia and South Pacific Design Automation Conference, pages 272–275, 2005.
+[36] Alvin Gonzales, Rebekah Herrman, Colin Campbell, Igor
+Gaidai, Ji Liu, Teague Tomesh, and Zain H Saleem. Efficient sparse state preparation via quantum walks. npj
+Quantum Information, 11(1):143, 2025.
+[37] Mostafa Atallah, Alvin Gonzales, Daniel Dilley, Igor
+Gaidai, Zain H Saleem, and Rebekah Herrman. Simulating quantum walk hamiltonians without pauli decomposition. arXiv preprint arXiv:2601.11418, 2026.
+[38] Igor Gaidai and Rebekah Herrman. Decomposition of
+sparse amplitude permutation gates with application to
+preparation of sparse clustered quantum states. Quantum
+Information Processing, 25(1):31, 2026.
+[39] Stuart Hadfield, Zhihui Wang, Bryan O’gorman,
+Eleanor G Rieffel, Davide Venturelli, and Rupak Biswas.
+From the quantum approximate optimization algorithm
+to a quantum alternating operator ansatz. Algorithms,
+12(2):34, 2019.
+[40] Franz Georg Fuchs, Kjetil Olsen Lye, Halvor Møll Nilsen,
+Alexander Johannes Stasik, and Giorgio Sartor. Constraint preserving mixers for the quantum approximate
+optimization algorithm. Algorithms, 15(6):202, 2022.
+[41] Andreas Bärtschi and Stephan Eidenbenz. Grover mixers
+for qaoa: Shifting complexity from mixer design to state
+preparation. In 2020 IEEE International Conference on
+Quantum Computing and Engineering (QCE), pages 72–
+82. IEEE, 2020.
+[42] Anthony Wilkie, Alexander DeLise, Andrew Del Real,
+Rebekah Herrman, and James Ostrowski. Learning feasible quantum states for quadratic constrained binary optimization problems. arXiv preprint arXiv:2508.02590,
+2025.
+[43] Jorge Nocedal and Stephen J. Wright. Numerical Optimization. Springer, New York, 2 edition, 2006.
+[44] Anthony Wilkie, Igor Gaidai, James Ostrowski, and Rebekah Herrman. Quantum approximate optimization
+algorithm with random and subgraph phase operators.
+Physical Review A, 110(2):022441, 2024.
+[45] Willie Aboumrad, Phani RV Marthi, Suman Debnath,
+Martin Roetteler, and Evgeny Epifanovsky. A new hybrid quantum-classical algorithm for solving the unit
+commitment problem. In 2025 IEEE International Conference on Quantum Computing and Engineering (QCE),
+volume 1, pages 1905–1915. IEEE, 2025.
+[46] Rui Xie, Yue Chen, and Pierre Pinson. Predict-andoptimize robust unit commitment with statistical guarantees via weight combination. IEEE Transactions on
+Power Systems, 2025.
+[47] Michael Azzam, S Selvan, Augustin Lefèvre, and P-A Absil. Mixed integer programming to globally minimize the
+economic load dispatch problem with valve-point effect.
+
+arXiv preprint arXiv:1407.4261, 2014.
+[48] Stéphane Boucheron, Gábor Lugosi, and Pascal Massart.
+Concentration Inequalities: A Nonasymptotic Theory of
+Independence. Oxford University Press, 2013.
+[49] Ksenia Bestuzheva, Mathieu Besançon, Wei-Kun Chen,
+Antonia Chmiela, Tim Donkiewicz, Jasper van Doornmalen, Leon Eifler, et al. Enabling research through
+the SCIP optimization suite 8.0. ACM Transactions on
+Mathematical Software, 49(2):1–21, 2023.
+[50] Marius Lindauer, Katharina Eggensperger, Matthias
+Feurer, André Biedenkapp, Difan Deng, Carolin Benjamins, Tim Ruhkopf, René Sass, and Frank Hutter.
+Smac3: A versatile bayesian optimization package for hyperparameter optimization. Journal of Machine Learning
+Research, 23(54):1–9, 2022.
+[51] Andreas Mayer. Noisyopt: A python library for optimizing noisy functions. J. Open Source Softw., 2(13):258,
+2017.
+[52] James C Spall. Multivariate stochastic approximation using a simultaneous perturbation gradient approximation.
+IEEE transactions on automatic control, 37(3):332–341,
+2002.
+[53] Diederik P Kingma and Jimmy Ba. Adam: A method for
+stochastic optimization. arXiv preprint arXiv:1412.6980,
+2014.
+[54] Julien Gacon, Christa Zoufal, Giuseppe Carleo, and Stefan Woerner. Simultaneous perturbation stochastic approximation of the quantum fisher information. Quantum, 5:567, 2021.
+[55] Joel Andersson, Joris Gillis, Greg Horn, Jim Rawlings,
+and Moritz Diehl. Casadi—a software framework for nonlinear optimization and optimal control. Mathematical
+Programming Computation, 11(1):1–36, 2018.
+[56] Andreas Wächter and Lorenz T Biegler. On the implementation of an interior-point filter line-search algorithm for large-scale nonlinear programming. Mathematical programming, 106(1):25–57, 2006.
+[57] Philip Krantz, Morten Kjaergaard, Fei Yan, Terry P Orlando, Simon Gustavsson, and William D Oliver. A quantum engineer’s guide to superconducting qubits. Applied
+physics reviews, 6(2), 2019.
+[58] Colin D Bruzewicz, John Chiaverini, Robert McConnell,
+and Jeremy M Sage. Trapped-ion quantum computing:
+Progress and challenges. Applied physics reviews, 6(2),
+2019.
+[59] Tamila Kuanysheva, Jonathan Andrade-Plascencia,
+Jayakrushna Sahoo, Brian Kendrick, and Dmitri
+Babikov. On performance and limitations of nisq hardware for simulations of quantum wave packet dynamics.
+arXiv preprint arXiv:2605.20078, 2026.
+[60] Igor Gaidai and Rebekah Herrman. Performance analysis of multi-angle qaoa for p > 1. Scientific Reports,
+14(1):18911, 2024.
+[61] Ernesto Campos, Daniil Rabinovich, Vishwanathan Akshay, and J Biamonte. Training saturation in layerwise
+quantum approximate optimization. Physical Review A,
+104(3):L030401, 2021.
+[62] Ruslan Shaydulin, Phillip C Lotshaw, Jeffrey Larson,
+James Ostrowski, and Travis S Humble. Parameter transfer for quantum approximate optimization of weighted
+maxcut. ACM Transactions on Quantum Computing,
+4(3):1–15, 2023.
+[63] Alexey Galda, Eesh Gupta, Jose Falla, Xiaoyuan Liu,
+Danylo Lykov, Yuri Alexeev, and Ilya Safro. Similarity-
+
+16
+based parameter transferability in the quantum approximate optimization algorithm. Frontiers in Quantum Science and Technology, 2:1200975, 2023.
+[64] Hang Jing, Ye Wang, and Yan Li. Data-driven quantum
+approximate optimization algorithm for power systems.
+Communications Engineering, 2(1):12, 2023.
+[65] Leo Zhou, Sheng-Tao Wang, Soonwon Choi, Hannes
+Pichler, and Mikhail D Lukin. Quantum approximate
+optimization algorithm: Performance, mechanism, and
+implementation on near-term devices. Physical Review
+X, 10(2):021067, 2020.
+[66] Stefan H Sack and Maksym Serbyn. Quantum annealing
+initialization of the quantum approximate optimization
+algorithm. quantum, 5:491, 2021.
+[67] Xinwei Lee, Ningyi Xie, Dongsheng Cai, Yoshiyuki Saito,
+and Nobuyoshi Asai. A depth-progressive initialization
+strategy for quantum approximate optimization algorithm. Mathematics, 11(9):2176, 2023.
+[68] Hyunwoo Kim and Youngseok Lee. Safe ma-qaoa:
+Surrogate-assisted and fine-tuning enhanced multi-angle
+qaoa with parameter distillation.
+arXiv preprint
+arXiv:2605.23377, 2026.
+[69] Rebekah Herrman, Phillip C Lotshaw, James Ostrowski,
+Travis S Humble, and George Siopsis. Multi-angle quan-
+
+tum approximate optimization algorithm. Scientific Reports, 12(1):6781, 2022.
+[70] Xinwei Lee, Xinjian Yan, Ningyi Xie, Dongsheng Cai,
+Yoshiyuki Saito, and Nobuyoshi Asai. Iterative layerwise training for the quantum approximate optimization
+algorithm. Physical Review A, 109(5):052406, 2024.
+[71] Enhyeok Jang, Zihan Chen, Dongho Ha, Seungwoo Choi,
+Yongju Lee, Jaewon Kwon, Eddy Z Zhang, Yipeng
+Huang, and Won Woo Ro. A cyclic layerwise qaoa training. arXiv preprint arXiv:2601.20029, 2026.
+[72] Ashley Montanaro.
+Quantum speedup of branchand-bound algorithms.
+Physical Review Research,
+2(1):013056, 2020.
+[73] M Paredes, LSA Martins, S Soares, and Hongxing Ye.
+Benders’ decomposition of the unit commitment problem
+with semidefinite relaxation of ac power flow constraints.
+Electric Power Systems Research, 192:106965, 2021.
+[74] Kapil Goswami, Peter Schmelcher, and Rick Mukherjee.
+Integer programming using a single atom. Quantum science and technology, 9(4):045016, 2024.
+[75] Kapil Goswami, Peter Schmelcher, and Rick Mukherjee. Qudit-based scalable quantum algorithm for solving the integer programming problem. arXiv preprint
+arXiv:2508.13906, 2025.
+
+

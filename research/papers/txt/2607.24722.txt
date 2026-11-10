@@ -1,0 +1,207 @@
+                                              Qubit-Efficient Variational Quantum Optimization via Pauli Correlation Encoding:
+                                                      Application to Large-Scale Power Demand Portfolio Optimization
+                                                                                       Takuya Yoshioka∗ and Keita Sasada
+                                                               Strategic Technology Center, TISI Inc., 2-2-1 Toyosu, Koto-ku, Tokyo 135-0061, Japan
+
+                                                                                         Riku Usuki and Yuichiro Nakano
+                                                                             Graduate School of Engineering Science, Osaka University,
+                                                                              1-3 Machikaneyama, Toyonaka, Osaka 560-8531, Japan
+
+                                                                                                    Keisuke Fujii
+                                                                             Graduate School of Engineering Science, Osaka University,
+                                                                              1-3 Machikaneyama, Toyonaka, Osaka 560-8531, Japan
+                                                                     Center for Quantum Information and Quantum Biology, Osaka University,
+arXiv:2607.24722v2 [quant-ph] 11 Sep 2026
+
+
+
+
+                                                                            1-2 Machikaneyama, Toyonaka, Osaka 560-0043, Japan and
+                                                              Center for Quantum Computing, RIKEN, 2-1 Hirosawa, Wako, Saitama 351-0198, Japan
+                                                                                           (Dated: September 15, 2026)
+                                                             Variational quantum algorithms offer a promising route to combinatorial optimization, but their
+                                                          applicability is limited by the challenge of encoding large-scale problems within restricted qubit
+                                                          resources. In this work, we introduce a qubit-efficient variational framework based on Pauli correla-
+                                                          tion encoding (PCE) and apply it to electric power demand portfolio optimization. Binary variables
+                                                          are represented through expectation values of Pauli correlation operators, which encode multi-body
+                                                          correlations of the quantum state and provide a continuous relaxation enabling compact representa-
+                                                          tions with few qubits. We further propose a two-stage hybrid formulation, in which a time-averaged
+                                                          problem provides initialization for a time-resolved optimization. Numerical simulations demonstrate
+                                                          near-optimal performance across problem sizes ranging from m = 18 to 10,296, with normalized cost
+                                                          gaps on the order of 10−4 relative to solutions with certified optimality. We show that the perfor-
+                                                          mance is governed by the interplay between continuous relaxation and discretization: the effective
+                                                          resolution of the correlator representation determines how reliably improvements in the continuous
+                                                          loss translate into better discrete solutions, with larger systems exhibiting more consistent behav-
+                                                          ior. Finally, we demonstrate robustness on a trapped-ion quantum processor, where high-quality
+                                                          solutions are obtained despite noise and finite sampling. These results establish PCE as a physically
+                                                          motivated and qubit-efficient framework for large-scale combinatorial optimization.
+
+
+                                                              I.   INTRODUCTION                               problem size. This becomes a major limitation for large,
+                                                                                                              fully connected quadratic optimization problems, moti-
+                                               Variational quantum algorithms have emerged as a               vating alternative encoding strategies that compress the
+                                            flexible framework for tackling combinatorial optimiza-           problem representation while retaining useful optimiza-
+                                            tion problems on near-term quantum devices [1–5]. How-            tion structure.
+                                            ever, they face a fundamental scalability challenge: cur-            Several approaches have been proposed to address the
+                                            rent hardware provides only a limited number of qubits,           qubit-scaling bottleneck, including space-efficient encod-
+                                            whereas many practically relevant optimization prob-              ings [7, 8] and quantum random access optimization
+                                            lems involve extremely large classical variable spaces to-        (QRAO) with relaxation-based extensions [9, 10]. These
+                                            gether with dense quadratic interactions and real-valued,         methods reduce qubit requirements by mapping binary
+                                            nonuniform coefficients. Addressing this gap requires             optimization problems to compressed or relaxed quan-
+                                            reconciling the discrete, high-dimensional structure of           tum representations followed by measurement and de-
+                                            classical optimization problems with the continuous and           coding. However, such compression typically introduces
+                                            resource-constrained nature of quantum representations.           trade-offs in decoding sensitivity, representational flexi-
+                                            Understanding and controlling this interplay between dis-         bility, and measurement overhead. Accordingly, balanc-
+                                            crete variables and their continuous embeddings remains           ing qubit efficiency, continuous relaxation, and sampling
+                                            a central challenge in variational quantum optimization.          cost remains an open challenge for large-scale combina-
+                                               In standard approaches such as the Quantum Approxi-            torial optimization [7–12].
+                                            mate Optimization Algorithm (QAOA) [2, 6], binary op-                These limitations motivate the exploration of alterna-
+                                            timization variables are typically mapped directly onto           tive representations based on physically meaningful ob-
+                                            qubits, so the required qubit count grows linearly with           servables of quantum states. In particular, expectation
+                                                                                                              values of Pauli operators encode multi-body correlations
+                                                                                                              of the underlying quantum state and provide a continu-
+                                                                                                              ous description of discrete degrees of freedom. This per-
+                                            ∗ takuya.yoshioka@tisi.jp
+                                                                                                              spective connects combinatorial optimization to the sta-
+                                                                                                                                       2
+
+tistical structure of quantum states. Leveraging this per-                       Following the original proposal [13], PCE has been
+spective, Pauli correlation encoding (PCE), introduced                        studied for several combinatorial optimization problems,
+by Sciorilli et al. [13], represents classical binary variables               including large-scale benchmark instances such as Max-
+not as individual qubits, but as the signs of expectation                     Cut [13], smaller-scale LABS problems on quantum hard-
+values of Pauli correlation operators generated by a vari-                    ware [14], and comparative simulation studies across mul-
+ational quantum circuit.                                                      tiple problem classes [15]. Applications to more practical
+                                                                              tasks, including portfolio optimization, have also been
+                   106                                                        explored, but mainly at moderate scales and in simula-
+                             𝑘 = b𝑛/2c       linear qubit scaling (𝑚 = 𝑛)     tion [16, 17]. However, the behavior of PCE remains in-
+                             𝑘=1             problem instances
+                   105                                                        sufficiently understood for dense quadratic problems with
+                             𝑘=2
+                             𝑘=3                                              real-valued and nonuniform coefficients.
+                             𝑘=4                                                 In this work, we study PCE in this regime through
+                   104
+  problem size 𝑚
+
+
+
+
+                             𝑘=5                                              electric power demand portfolio optimization, which nat-
+                             𝑘=6
+                                                                              urally yields fully connected QUBO instances. This ap-
+                   103       𝑘=7
+                                                                              plication provides a useful setting for examining the scal-
+                                                                              ability and optimization behavior of PCE beyond struc-
+                   102                                                        tured benchmark problems. A central issue is not only
+                                                                              whether the relaxed loss can be minimized, but whether
+                   101                                                        such improvements are reliably transmitted to the dis-
+                                                                              cretized binary solution. This motivates a systematic
+                         1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20   investigation of the relationship among continuous relax-
+                                         number of qubits 𝑛                   ation, binary decoding, and the distribution of Pauli cor-
+                                                                              relators.
+FIG. 1. Maximum representable problem size m as a func-
+tion of the number of qubits n for different correlation orders                  The novelty of the present work does not primarily
+k in Pauli correlation encoding (PCE) [13], where m = 3 nk .
+                                                                             lie in applying PCE to another optimization problem,
+The black solid curve corresponds to k = ⌊n/2⌋, which max-                    but rather in clarifying how a compact correlator-based
+imizes the number of Pauli correlators (i.e., expectation val-                representation behaves in dense quadratic optimization
+ues of Pauli correlation operators). The linear reference line                problems with real-valued and nonuniform coefficients.
+(m = n) indicates direct encodings with one-to-one qubit–                     Specifically, this work provides three contributions.
+variable mapping. Filled markers denote the (n, m) instances                     First, we investigate the behavior of PCE in a class
+considered in this work.
+                                                                              of fully connected quadratic optimization problems with
+                                                                              real-valued and nonuniform coefficients, using electric
+   For a fixed correlation order k, PCE represents classi-                    power demand portfolio optimization as a representa-
+                                                (k)
+cal variables using the expectation values {⟨Πi ⟩}m  i=1 of                   tive application. This setting differs substantially from
+k-body Pauli correlation operators. These expectation                         the benchmark problems primarily considered in previ-
+values, hereafter referred to as Pauli correlators, can be                    ous PCE studies and provides a useful testbed for ex-
+interpreted as continuous relaxations of binary variables                     amining the representational and optimization properties
+that retain information about higher-order correlations in                    of PCE in practically motivated dense QUBO instances.
+the quantum  state. Their number scales combinatorially                      We demonstrate near-optimal performance, with normal-
+as m = 3 nk , enabling the representation of a large num-                     ized cost gaps on the order of 10−4 relative to solutions
+ber of classical variables with comparatively few qubits.                     with certified optimality obtained using a state-of-the-art
+In particular, choosing k = ⌊n/2⌋ maximizes the correla-                      commercial solver [18], across a wide range of problem
+tor count, as shown in Fig. 1.                                                sizes. Second, we show that the optimization behavior
+   Throughout this study, we focus on even n and adopt                        of PCE is governed by the interplay between the contin-
+k = n/2, which maximizes the number of correlators for                        uously relaxed loss and the discretized binary objective.
+a fixed n. Importantly, this large number of available cor-                   To analyze this mechanism, we study the distribution of
+relators does not imply an equivalent increase in the num-                    Pauli correlators, which serve as continuous representa-
+ber of independent degrees of freedom. All correlators are                    tions of binary variables, and characterize how this inter-
+generated from the same underlying quantum state and                          play between continuous relaxation and discrete binary
+are therefore constrained by quantum correlations and                         structure manifests in the correlator space. As a result,
+the expressivity of the variational ansatz. Accordingly,                      we clarify how the effective resolution of the correlator
+PCE should be viewed as a compressed representation                           representation evolves with system size and influences the
+rather than an exact embedding of independently con-                          optimization behavior. Third, we validate the robustness
+trollable variables. The present work does not assume                         of this representation on trapped-ion quantum hardware
+independent control of all encoded variables, but instead                     and show that useful binary solutions can still be recov-
+investigates whether useful optimization structure can be                     ered through post-processing under finite sampling and
+represented and exploited within the constrained mani-                        hardware noise. This result provides practical evidence
+fold generated by the variational quantum circuit.                            that the continuous relaxation framework retains suffi-
+                                                                                                                                3
+
+cient information about the underlying binary structure,          The model parameters are derived from open electric-
+enabling reliable solution recovery even in the presence       ity consumption data provided by the Energy Manage-
+of hardware imperfections.                                     ment System Open Data platform [26]. The dataset con-
+   These contributions provide new insight into the repre-     sists of hourly electricity consumption records covering
+sentational capacity, optimization behavior, and practi-       a 61-day period from April 1 to May 30, and includes
+cal robustness of PCE beyond previously studied bench-         2,143 independent consumer-level time series. For each
+mark settings. Taken together, these results provide           consumer i and time step t, the available demand re-
+a unified understanding of PCE from both representa-           duction pt,i is defined as 10% of the original electricity
+tional and optimization perspectives in fully connected        consumption.
+settings with practical relevance. In particular, our find-       For problem instances with m ≤ 2,143, the portfo-
+ings clarify how continuous relaxation can faithfully en-      lio is constructed by randomly selecting m distinct con-
+code binary structures, how the interplay between contin-      sumers from the available dataset. For larger-scale in-
+uous and discrete representations governs the optimiza-        stances with m > 2,143, additional consumer profiles are
+tion mechanism, and how these properties persist under         generated using the mixup data augmentation method,
+realistic hardware conditions. This positions PCE as a         in which synthetic reduction profiles are constructed as
+viable framework for bridging compact quantum repre-           convex combinations of pairs of independent consumer
+sentations and practical combinatorial optimization, of-       time series. This combined procedure enables a system-
+fering a complementary approach to existing quantum            atic study of problem instances across a wide range of
+and classical methods in the NISQ regime.                      portfolio sizes while preserving the statistical character-
+   This paper is organized as follows. Section II intro-       istics of the original data.
+duces the power demand portfolio optimization prob-               The problem sizes considered in this work are selected
+lem and its time-averaged (Model 1) and time-resolved          to span representative points along the scaling curve en-
+(Model 2) formulations. Section III presents the PCE-          abled by Pauli correlation encoding, as shown in Fig. 1,
+based variational framework. Section IV reports the nu-        ranging from small instances to large instances approach-
+merical and hardware results. Sections V and VI provide        ing the representational limit of the available qubit re-
+discussion and conclusion. Additional analyses and sup-        sources.
+plementary results are provided in the Appendix.
+
+                                                                 B.   Cost Models: Averaged and Time-Resolved
+                                                                                  Formulations
+II.    ELECTRIC POWER DEMAND PORTFOLIO
+           OPTIMIZATION PROBLEM
+                                                                  We introduce two related formulations of the demand
+   Electric power demand portfolio optimization is a prac-     portfolio optimization problem: a time-averaged model
+tically important task in power aggregator operations,         (Model 1) and a time-resolved model (Model 2). Both
+where subsets of consumers are selected to meet procure-       are based on the same hourly procurement cost, while
+ment targets under stochastic uncertainty in available de-     differing in how temporal fluctuations are treated.
+mand reduction [19, 20]. The resulting problem is typi-           We first define the hourly cost at time step t for a given
+cally large-scale and combinatorial, with dense quadratic      portfolio configuration x as
+couplings arising from correlations among consumer de-                                                      !2 
+                                                                                        m
+mand reduction profiles [21–25]. This structure makes                                  X
+it a natural benchmark for high-dimensional QUBO-type                    Ct (x) =E        pt,i xi − Pttarget 
+optimization with real-valued, nonuniform coefficients.                                i=1
+                                                                                   m X
+                                                                                   X m
+                                                                               =             Cov(pt,i , pt,j )xi xj
+                                                                                   i=1 j=1
+  A.    Problem Definition and Data Construction                                                                      !2
+                                                                                       m
+                                                                                       X
+                                                                                   +         E[pt,i ]xi − Pttarget         .   (1)
+   We consider a power demand portfolio optimization                                   i=1
+problem in which a power aggregator selects a subset of
+demand-side consumers to procure a target amount of            This objective measures the deviation between procured
+flexible power under uncertainty [21, 24]. Let pt,i de-        power and the procurement target at each time step,
+note the available demand reduction that can be pro-           while incorporating both stochastic fluctuations and the
+cured from consumer i at time t, treated as a random           mean available demand reduction.
+variable reflecting stochastic variability in available de-      Throughout this work, the target power is set as
+mand reduction. The portfolio selection is represented
+by binary variables x = (x1 , . . . , xm ) ∈ {0, 1}m , where                                   1X
+                                                                                                  m
+xi = 1 indicates that consumer i is included in the port-                        Pttarget =          E[pt,i ],                 (2)
+                                                                                               2 i=1
+folio and xi = 0 otherwise.
+

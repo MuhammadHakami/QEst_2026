@@ -1,0 +1,1486 @@
+arXiv:2609.40327v1 [quant-ph] 30 Sep 2026
+
+Quantum Enhanced Deep Reinforcement Learning
+for Distribution Network Reconfiguration
+Daniel Germain*
+
+Mason Blanchard*
+
+Audrey Versteegen*
+
+Nora Bauer
+
+EPB Quantum
+Chattanooga, TN, USA
+germaind@epbqn.net
+
+EPB Quantum
+Chattanooga, TN, USA
+blanchardm@epbqn.net
+
+EPB Quantum
+Chattanooga, TN, USA
+versteegena@epbqn.net
+
+IonQ Inc.
+Chattanooga, TN, USA
+nora.bauer@ionq.co
+
+Jonathan Mei
+
+Claudio Girotto
+
+Paul Smith
+
+Martin Roetteler
+
+IonQ Inc.
+Chattanooga, TN, USA
+jmei@ionq.co
+
+IonQ Inc.
+Chattanooga, TN, USA
+claudio.girotto@ionq.co
+
+EPB Quantum
+Chattanooga, TN, USA
+smithpj@epb.net
+
+IonQ Inc.
+College Park, MD, USA
+martin.roetteler@ionq.co
+
+Abstract—Modern smart grids generate increasingly rich operational data and deploy greater numbers of remotely controlled
+switching assets than ever before, creating new opportunities for
+data-driven distribution network reconfiguration (DNR). DNR
+optimizes grid topology to improve efficiency, reduce power
+losses, and maintain operational constraints, but finding optimal
+switch configurations remains a computationally demanding
+combinatorial problem. In this paper, we propose a deep reinforcement learning (DRL) framework for static DNR to systematically investigate how the Q-network architecture affects both
+solution quality and learning performance. We evaluate multiple
+architectures within a controlled DRL framework, varying only
+the Q-network to isolate the contribution of each architectural
+choice. Our results show that quantum-enhanced Q-networks can
+achieve higher rewards with fewer parameters than their classical
+counterpart, suggesting that such architectures are a promising
+direction for combinatorial power systems optimization.
+Index Terms—Quantum Machine Learning, Deep Reinforcement Learning, Distribution Network Reconfiguration, Neural
+Networks, Hybrid Quantum-Classical Learning
+
+I. I NTRODUCTION
+Electrical distribution networks deliver electricity from
+transmission systems to end users. Due to their wide geographic spread and the resistive losses associated with power
+delivery, a significant portion of generated energy is dissipated
+before reaching consumers. To mitigate these losses, utilities
+have explored various strategies, with distribution network reconfiguration (DNR) emerging as an effective and economical
+solution [1], [2]. DNR involves selectively opening and closing
+network switches to modify the topology of the distribution
+system while maintaining operational constraints. Through
+appropriate reconfiguration, utilities can reduce power losses,
+improve voltage profiles, and enhance overall system reliability with minimal additional infrastructure [3].
+Despite these advantages, DNR presents a challenging optimization problem. The underlying AC power-flow equations
+*These authors contributed equally to this work. Research funded by NIST
+Grant GONANB24D219-1 “Empowering the Future Grid: Quantum Training
+for Software Innovation & Utility Applications.“ We thank Shaked Regev and
+Phil Lotshaw for their insights throughout this study.
+
+are nonlinear, while practical distribution networks are typically required to maintain a radial topology. Consequently,
+DNR is formulated as a mixed-integer nonlinear optimization problem and is generally NP-hard [4], [5]. Classical
+optimization approaches include exhaustive and branch exchange searches [1], [2], [6], metaheuristics such as genetic
+algorithms [7], and mixed-integer convex reformulations [5],
+among others [3]. These approaches can therefore become
+computationally expensive as network size increases, particularly when the optimal configuration must be repeatedly
+determined under changing operating conditions [8]. In recent
+years, the increasing deployment of smart meters and gridmonitoring infrastructure has created opportunities for datadriven approaches that can learn reconfiguration strategies
+directly from system states [9].
+A variety of machine learning approaches have been investigated for DNR, including artificial neural networks (ANNs)
+such as convolutional neural networks (CNNs) and long shortterm memory (LSTM) networks [10]. These methods have
+been used to learn relationships between network states,
+operating conditions, and desirable reconfiguration strategies
+[10], [11]. For example, CNN-based approaches have been
+developed to learn relationships between network topology
+and voltage stability, while LSTM models have been used
+to learn mappings between load distributions and optimal
+reconfiguration strategies [11]. Although these approaches can
+provide rapid inference after training, supervised learning generally requires labeled examples of optimal configurations and
+may have difficulty adapting when operating conditions differ
+from those represented in the training data. Furthermore, the
+combinatorial nature of the reconfiguration problem can make
+it difficult for conventional learning approaches to directly
+model the sequential decision process involved in selecting
+a series of switching actions.
+Reinforcement learning (RL) provides a natural framework
+for this sequential decision-making problem [12]. Rather than
+learning directly from a dataset of precomputed optimal configurations, an RL agent learns a policy by interacting with
+
+the distribution network environment and receiving rewards
+based on the resulting system state. This enables the agent to
+learn reconfiguration strategies without requiring an explicit
+mapping between every possible network state and its optimal
+configuration. RL is particularly attractive for DNR because
+the agent can repeatedly evaluate candidate switching actions
+and learn to optimize objectives such as power loss while
+satisfying operational and topological constraints. Moreover,
+once trained, the learned policy can generate decisions rapidly,
+making RL well suited to environments in which operating
+conditions vary over time [11], [13].
+Deep reinforcement learning (DRL), which combines reinforcement learning with neural networks to approximate
+the action-selection policy or value function [14], [15], has
+demonstrated success in reducing power losses in practical
+distribution networks [16]. Deep Q-network (DQN) [14] and
+NoisyNet-DQN [17] approaches have subsequently been applied to DNR, with NoisyNet introducing learnable parameterized noise to promote exploration during training [18]. Subsequent work has extended DQN-based approaches through techniques such as prioritized experience replay [19] and modified
+reward formulations, while also considering objectives beyond
+loss minimization, including reliability improvement [11],
+[20]. These results demonstrate the potential of DRL to learn
+effective reconfiguration policies without explicitly solving
+the underlying combinatorial optimization problem at every
+operating point [21].
+In parallel, quantum computing has been proposed as a
+route to solve hard power system optimization tasks [22], [23].
+Within machine learning specifically, quantum reinforcement
+learning (QRL) has emerged as a promising research direction,
+investigating whether quantum circuits can be incorporated
+into reinforcement learning architectures to improve representation, parameter efficiency, or learning performance [24].
+Approaches including quantum policy gradients [25], variational quantum policies [26], and quantum Q-networks [27],
+[28] have been investigated across a range of reinforcement
+learning problems. However, much of the existing QRL literature has focused on small-scale benchmark environments
+[26]–[28], leaving the performance of quantum reinforcement
+learning on larger, practically motivated optimization problems
+less well established.
+In an effort to scale quantum reinforcement learning to problems with higher-dimensional state spaces, hybrid quantumclassical Q-networks have been proposed with varying levels
+of success [29], [30]. In this work, we propose a hybrid
+quantum-classical Q-network for distribution network reconfiguration and evaluate its ability to minimize line losses in the
+IEEE 33 and 69 bus systems. In simulation, the proposed quantum reinforcement learning framework successfully identifies
+the known optimal network configurations for both systems.
+For the IEEE 33 bus system, a multi-seed ablation study is
+conducted to investigate the relationship between model size,
+training dynamics, and solution quality, demonstrating that
+the quantum models can achieve higher mean final rewards
+while requiring fewer trainable parameters than larger classical
+
+Q-networks. Finally, trained 12-qubit models for both the
+IEEE 33 and 69 bus systems are executed on the IonQ Forte
+Enterprise-1 trapped-ion quantum processor, with their hardware inference outputs compared against the corresponding
+noiseless-simulation results to quantify the impact of hardware
+noise on model performance.
+The remainder of this paper is organized as follows. Section
+II provides background on distribution network reconfiguration, deep reinforcement learning, and quantum reinforcement
+learning. Section III describes the proposed DRL environment
+and its formulation for network reconfiguration. Section IV
+presents the Q-network architectures considered in this study,
+and section V summarizes the experimental results. Lastly,
+section VI concludes with key findings and directions for
+future work.
+II. BACKGROUND
+A. Reinforcement Learning
+Reinforcement learning (RL) is a machine learning framework for sequential decision-making in which an agent learns
+through interactions with an environment E [12]. At time
+step t, the agent observes the environment state st ∈ S,
+selects an action at ∈ A from the set of available actions,
+receives a reward signal rt , and the environment transitions
+to a subsequent state st+1 . This interaction continues until a
+terminal condition, such as a time limit or terminal state, is
+reached.
+The RL problem can be formalized as a Markov decision
+process (MDP), defined by the tuple (S, A, P, R, γ) [12]. Here,
+S denotes the set of possible environment states, A the set
+of possible actions, and P (st+1 | st , at ) the probability of
+transitioning to state st+1 after taking action at in state st .
+The reward function R(st , at ) specifies the immediate reward
+associated with a state-action pair, while γ ∈ [0, 1] is the
+discount factor controlling the relative importance of future
+rewards. The discounted return from time step t is defined as
+Rt =
+
+T
+X
+
+′
+
+γ t −t rt′ ,
+
+(1)
+
+t′ =t
+
+where T denotes the time step at which the episode terminates.
+The objective of the agent is to learn a policy π that maximizes
+the expected return. The action-value function under policy π
+is therefore defined as
+Qπ (s, a) = Eπ [Rt | st = s, at = a] ,
+
+(2)
+
+π
+
+where Q (s, a) represents the expected discounted return obtained by taking action a in state s and subsequently following
+policy π.
+B. Q-Learning
+RL algorithms can broadly be categorized as model-based
+or model-free [12]. Model-based methods use or learn a representation of the environment dynamics, such as the transition
+probabilities P (st+1 | st , at ) and a reward model, which can
+then be used for planning. In contrast, model-free methods
+
+Fig. 1. The deep reinforcement learning training procedure used in this work. Transitions are generated through interaction with a simulated distribution
+network and are stored in the replay buffer. The replay buffer is sampled to train the online Q-network. The online and target networks are used to construct
+the Bellman target, which is compared with the predicted action value to compute the training loss.
+
+learn a policy or value function directly from interactions
+with the environment without explicitly learning a model of
+its transition dynamics. This approach is well suited to the
+DNR formulation considered in this work because the state
+resulting from a switching action can be directly evaluated
+through power-flow analysis, while the corresponding reward
+can be explicitly calculated from the resulting electrical and
+topological characteristics. Consequently, the agent does not
+need to learn an approximation of either the system transition
+dynamics or the reward function and can instead directly learn
+the long-term value of its switching actions. Q-learning is a
+model-free RL algorithm that accomplishes this by learning
+the value associated with each state-action pair [15].
+In Q-learning, the quality of taking action a in state s is
+represented by the action-value function Q(s, a). The optimal
+action-value function Q∗ (s, a) represents the maximum expected discounted return obtainable from a state-action pair
+and satisfies the Bellman optimality equation,
+h
+i
+∗
+′
+Q∗ (s, a) = E rt + γ max
+Q
+(s
+,
+a
+)
+|
+s
+=
+s,
+a
+=
+a
+.
+t+1
+t
+t
+a′
+(3)
+The Bellman equation expresses the value of a state-action
+pair recursively as the immediate reward plus the discounted
+value of the best action available from the subsequent state.
+During Q-learning, this relationship is used to construct the
+one-step Bellman target
+′
+
+yt = rt + γ max
+Q(st+1 , a ),
+′
+a
+
+(4)
+
+Q(st , at ) ← Q(st , at ) + α [yt − Q(st , at )] ,
+
+(6)
+
+where α is the learning rate controlling the magnitude of each
+update. Through repeated interactions with the environment,
+these updates progressively improve the action-value estimates
+toward the optimal action-value function Q∗ .
+Once the action values have been learned, the corresponding
+greedy policy selects the action with the highest estimated
+value,
+at = arg max Q(st , a).
+
+(7)
+
+a∈A
+
+Although the greedy policy in Eq. 7 exploits the action
+currently estimated to be optimal, relying exclusively on this
+strategy during training can prevent the agent from discovering potentially better actions. To balance exploitation of the
+current value estimates with exploration of alternative actions,
+Q-learning commonly employs an ϵ-greedy action-selection
+strategy. At each time step, the agent selects a random action
+with probability ϵ and the action with the highest estimated
+value with probability 1 − ϵ,
+
+at =
+
+
+random action,
+
+with probability ϵ,
+
+arg max Q(st , a),
+
+with probability 1 − ϵ.
+
+(8)
+
+a∈A
+
+where yt provides a target estimate for the current state-action
+value Q(st , at ). The difference between the Bellman target
+and the current estimate,
+δt = yt − Q(st , at ),
+
+is known as the temporal-difference (TD) error. In tabular Qlearning, the action-value estimate is iteratively updated toward
+the Bellman target according to
+
+(5)
+
+The parameter ϵ therefore controls the exploration-exploitation
+trade-off. During training, ϵ can be gradually decreased so
+that the agent initially explores a wider range of actions before increasingly exploiting the learned action-value estimates.
+Once training is complete, the learned policy can be executed
+
+greedily by selecting the action with the maximum estimated
+value.
+
+B
+
+L(θ) =
+
+C. Deep Q-Learning
+Traditional action-value methods often use a tabular representation of Q(s, a), requiring a separate value for each
+state-action pair. This approach becomes impractical as the
+state space grows, particularly for environments with highdimensional or continuous state representations. Deep Qlearning (DQL) addresses this limitation by approximating the
+action-value function using a neural network known as a Deep
+Q-Network (DQN) [14].
+
+1 X
+2
+[yi − Q(si , ai ; θ)]
+B i=1
+
+(11)
+
+where B is the minibatch size and yi is the target value
+computed using Eq. 10. Minimizing this loss moves the online
+network’s action-value estimates toward their corresponding
+Bellman targets. Only the online-network parameters θ are
+updated through gradient descent, while the target-network
+parameters θ− are held fixed between target-network updates
+and are periodically updated from the online network. The
+overall training procedure is illustrated in Fig. 1.
+D. Quantum Reinforcement Learning
+
+Q(s, a; θ) ≈ Q∗ (s, a),
+
+(9)
+
+where θ represents the trainable parameters of the DQN.
+The network receives the current state as input and outputs
+an estimated action value for each available action. During
+training, actions are selected according to the ϵ-greedy policy
+described in Eq. 8.
+The Bellman target introduced in Eq. 4 provides the basis
+for training the DQN. Rather than directly updating individual
+entries of a Q-table toward the Bellman target, deep Q-learning
+adjusts the network parameters θ such that the predicted
+value Q(st , at ; θ) approaches the corresponding target value.
+However, using a neural network to approximate the actionvalue function introduces additional instability because the
+value estimates used to construct the training targets change as
+the network parameters are updated. DQL therefore employs a
+separate target network, parameterized by θ− , to provide more
+stable estimates when constructing the Bellman targets [14].
+In a standard DQN, the target network is used both to select
+and evaluate the maximizing action at the subsequent state.
+Double Deep Q-Network (Double DQN) instead separates
+these two operations to reduce the overestimation of action
+values [31]. The online Q-network is used to select the action
+with the highest estimated value at the subsequent state, while
+the target network evaluates the value of the selected action.
+Given a transition (st , at , rt , st+1 ), the Double DQN target is
+therefore
+
+
+′
+−
+yt = rt + γQ st+1 , arg max Q(st+1 , a ; θ); θ
+.
+
+(10)
+
+a′
+
+Here, the online Q-network with parameters θ selects the
+maximizing action, while the target network with parameters
+θ− provides the value estimate for that action. The Double
+DQN target in Eq. 10 therefore serves the same role as the
+Bellman target in tabular Q-learning: it provides the value
+toward which the current action-value estimate is updated. The
+difference is that, rather than directly modifying a stored value
+Q(st , at ), the prediction is updated indirectly by optimizing
+the parameters of the Q-network.
+The online Q-network is trained by minimizing the mean
+squared error (MSE) between its predicted action value and
+the Double DQN target,
+
+Quantum reinforcement learning (QRL) encompasses a
+broad class of approaches that incorporate quantum computation into the reinforcement learning pipeline [24]. These approaches range from quantum-inspired algorithms, which augment classical reinforcement learning with quantum-inspired
+subroutines [32], to fully quantum algorithms in which
+both the state representation and learning procedure are
+implemented using quantum operations [33]. For near-term
+gate-based quantum hardware, parameterized quantum circuit
+(PQC) based QRL methods have emerged as a promising
+approach for implementing trainable function approximators.
+In these methods, PQCs replace or augment classical neural
+networks, with the circuit parameters optimized through classical reinforcement learning procedures.
+In this work, we begin with a classical neural network for
+approximating the action-value function Q(s, a) and replace
+its classical backbone with a PQC-based quantum backbone,
+while retaining a classical decision head for producing the
+final action-value estimates. This architecture therefore forms
+a hybrid quantum-classical Q-network, in which the PQC
+serves as the trainable feature-extraction backbone and its
+measured outputs are processed by a classical decision head
+to estimate the action values. The resulting approximation can
+be expressed as
+Q(s, a) ≈ Qhybrid (s, a; θq , θc ),
+
+(12)
+
+where θq denotes the trainable parameters of the quantum
+circuit and θc denotes the trainable parameters of the classical
+decision head. In this work, the integration of this hybrid
+quantum-classical Q-network within the Deep Q-Learning
+framework is referred to as Quantum Deep Q-Learning.
+III. P ROPOSED DRL A LGORITHM
+A. Environment
+Distribution network reconfiguration (DNR) can be formulated as a sequential decision-making problem suitable for
+reinforcement learning. In this formulation, an agent is trained
+to iteratively modify the distribution-network topology through
+branch-exchange operations with the objective of identifying
+configurations that improve network performance. The distribution system and its corresponding power-flow simulation
+together define the RL environment, through which the agent
+
+Fig. 2. IEEE 33-bus distribution system in its initial radial configuration. Each line is modeled as switchable, with five switches initially open and the
+remaining switches closed.
+
+interacts with the network and evaluates the consequences of
+each switching decision.
+In this work, the IEEE 33 (Fig. 2) and 69-bus distribution
+systems are used as the RL environments. Each line in the
+network is modeled as switchable and is therefore associated
+with a binary open or closed status. Each system begins
+from a predefined initial radial configuration containing no pen
+open switches, with the remaining switches closed. At each
+decision step, the agent performs a branch-exchange operation
+by closing one of the open switches and subsequently opening
+another switch on the resulting cycle. This operation modifies
+the network topology while preserving the number of open
+switches and maintaining radial operation.
+Following each branch-exchange operation, a power-flow
+analysis is performed on the resulting network configuration
+and a reward is calculated based on its performance. The
+resulting configuration then defines the environment at the
+subsequent decision step, and this process continues until a
+terminal condition is reached. If an action produces a network
+configuration for which a valid power-flow solution cannot
+be obtained, the episode is terminated and the environment is
+reset to its initial configuration.
+B. State Representation
+At each decision step t, the state is constructed from the
+current status of the network switches and select power flow
+measurements. Specifically, the agent receives the voltage
+magnitude at each bus, the current flowing through each line,
+and the binary state of each switch. The resulting state is
+defined as
+
+st = svt , sit , sst ,
+
+(13)
+
+where svt denotes the bus-voltage component,
+svt = vt1 , . . . , vtB ) | vti ∈ R,
+
+(14)
+
+with vti representing the voltage magnitude at bus i of total
+buses B, expressed in per-unit (p.u.). The line-current component is given by
+
+j
+sit = i1t , . . . , iL
+(15)
+t ) | it ∈ R,
+where ijt represents the current flowing through line j of total
+lines L, expressed in kA. Finally, the switch-status component
+is defined as
+sst ∈ {0, 1}n ,
+
+(16)
+
+where n is the number of switches and each element indicates
+whether the corresponding switch is open or closed. These
+features are provided to the neural network backbone for
+value-function approximation. More power flow measurements
+can be included in the state representation, but only these
+measurements were needed to reach the optimal configuration
+on the IEEE33 bus case.
+C. Action Space and Branch Exchange
+To execute the branch exchange operation the agent must
+make two sequential decisions: first, an open switch is selected
+and closed, and subsequently, a closed switch belonging to
+the resulting cycle is selected and opened. Let the branchexchange action be represented by the tuple
+at = (i, j),
+
+(17)
+
+where i denotes the switch selected for closing and j denotes
+the switch selected for opening. At the first stage of the action,
+the Q-network produces a score for each switch corresponding
+to the closing decision. The scores are masked according to
+the current switch configuration so that only switches that are
+currently open can be selected. The ϵ-greedy policy as defined
+in equation 8 is then applied to the masked Q-values to select
+switch i.
+Closing switch i in a radial distribution network introduces a
+single cycle into the topology. The resulting cycle is identified
+
+Fig. 3. Double decision-head architecture used to implement the branch-exchange operation. The shared backbone representation is first passed to the closing
+head to score candidate closing actions. The closing-head output is then combined with the shared representation and passed to the opening head, allowing
+the opening decision to depend on the preceding closing decision.
+
+from the modified network configuration and defines the set
+of valid switches for the second stage of the branch exchange.
+The Q-network’s second decision head produces a score for
+each switch corresponding to the opening decision. These
+scores are again masked so that only switches belonging to
+the newly formed cycle can be selected. The ϵ-greedy policy
+is then applied to the masked scores to select switch j for
+opening.
+The action mask is applied to invalid actions by assigning a
+sufficiently large negative value prior to the arg max operation
+(-1E5), preventing them from being selected during greedy
+action selection. During exploration, random actions are sampled only from the corresponding set of valid switches. The
+complete branch-exchange operation is therefore given by
+close i
+
+open j
+
+st −−−→ s̃t −−−→ st+1 ,
+
+(18)
+
+where s̃t denotes the intermediate network configuration containing the newly formed cycle and st+1 denotes the resulting
+radial configuration.
+Following completion of the branch exchange, the resulting
+switch configuration is evaluated by the environment. The
+power flow is solved for the new configuration, and the
+resulting bus voltages and line currents form the corresponding
+electrical component of the next state. Thus, the transition can
+be expressed as
+st+1 = f (st , at ),
+
+(19)
+
+where f applies the sequential branch-exchange operation
+and evaluates the resulting network through a power flow
+calculation.
+D. Reward Function
+The reward function is designed to encourage the agent
+to discover network configurations that improve electrical
+performance. The total reward R(st , at ) ∈ R is defined as
+(
+0,
+R(st , at ) =
+Re (st , at ) + Rt (st , at ),
+
+if invalid,
+if valid.
+
+(20)
+
+where Re denotes the electrical reward and Rt denotes the
+topological reward. The electrical reward evaluates the powerflow characteristics of the resulting network configuration,
+while the topological reward provides an additional incentive
+for exploring configurations that differ from the initial network
+topology.
+The electrical Re is defined as
+Re (st , at ) = Vmag + Lloss ,
+
+(21)
+
+where Vmag is the voltage-magnitude reward and Lloss is the
+active power-loss reward.
+The voltage-magnitude reward is defined as
+!
+B
+X
+p1 exp 1 − p2
+(1 − vtb )2 ,
+(22)
+b=1
+
+where vtb denotes the voltage magnitude at bus b in per-unit.
+The reward is maximized when all bus voltages are equal
+to the nominal value of 1 p.u. and decreases as the voltage
+magnitudes deviate from this value. The coefficient p2 controls
+the sensitivity of the reward to voltage deviations, while the
+scaling factor p1 scales the contribution of the voltage term to
+the total reward.
+The active power-loss reward Lloss is defined as:
+
+
+Pinit − Pt
+p4 exp
+· p3 ,
+(23)
+Pinit
+where Pinit is the total active power loss of the initial configuration and Pt is the total active power loss of the resulting
+configuration. A reduction in active power loss relative to
+the initial configuration therefore increases the reward, while
+an increase in losses decreases it. The factor p3 controls the
+sensitivity of the reward to relative changes in power loss and
+p4 controls the overall sensitivity of the reward to line loss
+changes from the initial configuration. Together, the two power
+flow loss terms encourage the agent to identify configurations
+that simultaneously maintain bus voltages near their nominal
+values and reduce active power losses.
+
+Fig. 4. Parameterized quantum circuit (PQC) architecture used for each quantum layer of the quantum MLP. Each PQC consists of a data-embedding stage
+followed by a variational ansatz with four layers in all experiments. The complete quantum backbone consists of four sequential PQC layers of this form.
+
+The topological reward Rt is calculated by
+Rt (st , at ) = p5 dH (sst , ss0 ) ,
+
+IV. Q-N ETWORK A RCHITECTURE
+(24)
+
+where dH (·, ·) denotes the Hamming distance between the
+current switch configuration sst and the initial switch configuration ss0 . The coefficient p5 controls the contribution of the
+topological exploration reward to the total reward. This term
+encourages the agent to explore configurations that differ from
+the initial network topology.
+
+Fig. 5. Power-flow reward (voltage and loss terms, no exploration bonus)
+against line loss for 22 radial IEEE 33-bus configurations. Reward parameters
+for this curve are listed in Table II of the Appendix.
+
+E. Training Procedure
+Given the state representation, action space, and reward
+function described above, the agent is trained using a Double
+Deep Q-Network (Double DQN) as described in Section II.
+During this training procedure each transition (st , at , st+1 , rt )
+is stored in a replay buffer. To improve the efficiency of
+experience replay, prioritized experience replay (PER) [19]
+is employed rather than uniform sampling. Transitions with
+larger temporal-difference errors are assigned higher sampling
+probabilities and are therefore more likely to be selected for
+subsequent network updates. This allows transitions that provide a stronger learning signal to be revisited more frequently
+while retaining the benefits of replay for reducing temporal correlations between consecutive network configurations.
+Mini-batches of size Nbatch are sampled from the replay buffer
+and used to update the online Q-network.
+
+A. Backbones
+The classical baseline uses a four-layer multilayer perceptron (MLP) backbone. The input is first projected to
+a 128-dimensional hidden representation, followed by three
+additional fully connected layers of width 128. LeakyReLU
+activations are applied between successive layers, producing
+a final 128-dimensional representation that is passed to the
+Q-network decision heads.
+The quantum backbone replaces the fully connected hidden
+layers of the classical MLP with four sequential parameterized
+quantum circuit (PQC) layers, as illustrated in Fig. 4. Each
+quantum layer follows the same general structure: its classical
+input features are transformed and encoded into a quantum
+state, a trainable variational ansatz is applied, and the resulting
+circuit is measured to produce a classical output representation.
+For the first three quantum layers, these measured outputs
+are passed to the subsequent quantum layer and re-encoded
+into a new quantum state. The output of the fourth and final
+quantum layer is instead passed to the classical portion of the
+Q-network.
+Unlike the classical backbone, no additional nonlinear
+activation function is applied between successive quantum
+layers. Nonlinearity is instead introduced through the nonlinear
+transformation applied during feature embedding and through
+the quantum circuit and measurement process. Following the
+fourth quantum layer, a LeakyReLU activation is applied, after
+which a classical linear projection maps the measured quantum
+representation to the dimensionality required by the decision
+heads. This projection provides flexibility in the interface
+between the quantum backbone and the decision heads without
+requiring modifications to the quantum circuit architecture.
+The number of qubits controls the width of each quantum
+layer and is treated as an architectural hyperparameter governing the capacity of the quantum backbone. All quantum MLP
+models are implemented using TorchQuantum and trained on
+NVIDIA H200 GPUs.
+1) Embedding Method: Before entering the quantum backbone, the environment state st is first mapped to an nq dimensional representation through a classical linear transformation, where nq denotes the number of qubits. This
+projection is necessary because the dimensionality of the
+
+TABLE I
+MLP M ODELS : 33 B US P ERFORMANCE S TATISTICS (4 SEEDS PER MODEL ). F INAL REWARD IS THE SEED MEAN ± SAMPLE STANDARD DEVIATION AT
+THE LAST TRAINING EPISODE . B OLD MARKS THE SMALLEST CLASSICAL AND QUANTUM MODELS TO REACH A HIT RATE OF 1.0.
+Metric
+Total Parameters
+Final Reward
+
+Classical (h=16)
+
+Classical (h=32)
+
+Classical (h=64)
+
+Classical (h=128)
+
+4-Qubit
+
+8-Qubit
+
+12-Qubit
+
+16-Qubit
+
+Unit
+
+7,924
+13.16 ± 0.74
+
+21,332
+13.12 ± 0.75
+
+65,044
+13.52 ± 0.40
+
+220,052
+13.37 ± 0.66
+
+1,824
+12.59 ± 0.50
+
+3,884
+12.98 ± 0.20
+
+6,328
+13.26 ± 0.39
+
+9,156
+13.37 ± 0.16
+
+count
+—-
+
+0.1396
+0.1422
+0.1403
+0.1396
+0.0026
+0.75
+0.0
+0.75
+
+0.1396
+0.1396
+0.1396
+0.1396
+0.0
+1.0
+0.0
+1.0
+
+0.1396
+0.1396
+0.1396
+0.1396
+0.0
+1.0
+0.0
+1.0
+
+0.1396
+0.1396
+0.1396
+0.1396
+0.0
+1.0
+0.0
+1.0
+
+0.1422
+0.1422
+0.1422
+0.1422
+0.0
+0.0
+1.8287
+1.0
+
+0.1422
+0.1422
+0.1422
+0.1422
+0.0
+0.0
+1.8287
+1.0
+
+0.1396
+0.1396
+0.1396
+0.1396
+0.0
+1.0
+0.0
+1.0
+
+0.1396
+0.1403
+0.1398
+0.1396
+0.0007
+0.75
+0.0
+0.75
+
+MW
+MW
+MW
+MW
+MW
+fraction
+%
+fraction
+
+Minimum Loss
+Maximum Loss
+Mean Loss
+Median Loss
+Spread (Max-Min)
+Hit Rate
+Median Gap
+Modal Agreement
+
+environment state generally differs from the number of qubits
+used by the quantum backbone. The projected features are
+additionally multiplied by trainable scaling parameters before
+application of an arctangent nonlinearity, following the approach proposed in [30]. The input feature associated with the
+ith qubit is therefore
+
+where Zi denotes the Pauli-Z operator acting on qubit i.
+Measuring all nq qubits therefore produces the nq -dimensional
+output representation
+
+x′i = arctan(xi wi ),
+
+z = [z1 , z2 , . . . , zn ]T ∈ Rnq .
+
+(25)
+
+where xi denotes the ith component of the projected classical
+representation and wi is its corresponding trainable weight.
+The transformed features are then used as rotation angles for
+single-qubit RX gates. The resulting encoded state is
+|ψ(x′ )⟩ =
+
+nq
+O
+
+RX (x′i )|0⟩,
+
+(26)
+
+i=1
+
+This angle-encoding scheme provides a one-to-one mapping
+between the transformed classical features and the qubits of the
+circuit. It was selected for its simplicity and low circuit cost,
+requiring only a single RX gate per qubit and no additional
+entangling operations during the encoding stage. This limits
+circuit depth and the number of opportunities for hardware error, making the encoding well suited for subsequent evaluation
+on quantum hardware.
+2) Ansatz and Measurement: Following angle encoding,
+each quantum MLP applies a trainable variational ansatz to
+the encoded state |ψ(x′ )⟩. Each ansatz layer consists of three
+trainable single-qubit rotations applied to every qubit, followed
+by a circular CNOT entangling layer. Denoting the unitary
+(ℓ)
+corresponding to the ℓth ansatz layer by Uansatz (θ (ℓ) ), the full
+four-layer variational transformation is
+′
+
+|ψ(x , θ)⟩ =
+
+" 4
+Y
+
+(ℓ)
+Uansatz
+
+
+
+θ
+
+(ℓ)
+
+
+
+#
+|ψ(x′ )⟩,
+
+(27)
+
+ℓ=1
+
+where θ (ℓ) contains the trainable rotation parameters of the ℓth
+ansatz layer and θ = {θ (1) , . . . , θ (4) } denotes the complete set
+of variational parameters.
+Following the four-layer variational transformation, each
+qubit is measured through the expectation value of the Pauli-Z
+observable. For the ith qubit, the resulting output is
+
+zi = ⟨ψ(x′ , θ)|Zi |ψ(x′ , θ)⟩,
+
+i = 1, . . . , n,
+
+(28)
+
+(29)
+
+As previously stated, the quantum MLP consists of four
+sequential layers of this structure. For the first three layers,
+the measured representation z is passed forward as the input
+features to the subsequent quantum layer, where it is reencoded into a new quantum state before application of the
+next variational ansatz. After the fourth quantum layer, the
+measured representation is passed to the classical decision
+head used to produce the Q-network outputs.
+B. Double Decision Head
+The output of the shared backbone is passed directly to
+a double decision head (Fig 3) that implements the branchexchange operation. The decision head consists of separate
+closing and opening heads, with the closing decision evaluated
+first and its output subsequently incorporated into the opening
+decision. This structure allows the Q-network to model the
+dependency between the branch selected for closing and the
+branch subsequently selected for opening.
+The shared backbone produces a hidden representation of
+dimension h, where h is determined by the backbone architecture. The closing head first expands the shared representation
+from h to 2h dimensions and applies layer normalization and
+a LeakyReLU activation. This representation is then passed
+through a linear layer to produce a score for each possible
+closing action. The resulting closing-action scores are subsequently combined with the shared representation to provide
+the input to the opening head. The opening head processes
+this combined representation and produces a score for each
+possible opening action.
+V. R ESULTS
+The proposed Q-network architectures are evaluated on the
+IEEE 33 and 69 bus systems. For the IEEE 33 bus system,
+ablation studies are conducted to examine the effects of model
+
+Fig. 6. Reward curves for the classical and quantum ablation studies: (a) Quantum MLP with 4, 8, 12 and 16 qubits; (b) Classical MLP with 16, 32, 64 and
+128 hidden units. Each curve is the mean over 4 seeds, smoothed with a 20-episode moving average. Both panels share the same x-axis (0–2,000 episodes)
+and y-axis, so the two families can be compared directly.
+
+capacity on performance. For the quantum models, the circuit
+width is varied from 4 to 16 qubits in increments of four, while
+for the classical models, the hidden dimension is varied from
+16 to 128. A hidden dimension of 16 is selected as the initial
+classical baseline because its parameter count is comparable
+to those of the larger quantum models, enabling comparisons
+between architectures with similar model capacities. Due to the
+cost of quantum circuit simulation, the full model-size ablation
+was not conducted on the 69 bus system.
+For the IEEE 33-bus system, multiple random seeds are
+used to assess training stability and variation in solution
+quality. The IEEE 69-bus system is evaluated using a single
+seed with a 12-qubit model, corresponding to the qubit count
+that exhibited the most stable performance across seeds in
+the IEEE 33-bus ablation study. Within each bus system,
+the classical and quantum models are trained under identical
+training conditions, with grid-specific parameter settings provided in the Appendix. Following simulation, selected trained
+quantum models are executed on IonQ Forte Enterprise-1
+hardware, and their inference outputs are compared with the
+corresponding noiseless-simulation results to characterize the
+effects of quantum hardware noise on model inference.
+A. IEEE 33 Bus Case
+1) Final Performance and Parameter Efficiency: Table I
+summarizes the performance of the classical and hybrid quantum Q-network models across the four random seeds. For each
+seed, the final reward is calculated as the mean reward obtained
+during the final episode. The reported final reward is then
+computed as the mean of these four seed-level values, with
+the accompanying standard deviation representing variation
+across seeds. Thus, final reward measures the average quality
+of the solutions produced at the end of training. The metrics
+are computed using the SciPy package in Python [34].
+Under this definition, the quantum models exhibited an
+increasing mean final reward with qubit count, rising from
+
+12.59 ± 0.50 for the 4 qubit model to 13.37 ± 0.16 for the
+16 qubit model. The decrease in standard deviation from 0.50
+to 0.16 also indicates reduced variation in final reward across
+the evaluated seeds. However, the increase in final reward was
+not accompanied by a monotonic increase in exact-optimum
+attainment. The 12 qubit model identified the true optimum
+in all four seeds (hit rate = 1.0), whereas the 16 qubit model
+did so in three of four seeds (hit rate = 0.75). Thus, within
+the evaluated quantum widths, increasing model size improved
+the average final reward but did not produce a corresponding
+improvement in the frequency of exact-optimum solutions.
+Additional seeds would be required to determine whether this
+difference is systematic.
+The quantum models also exhibited a parameter efficiency
+advantage relative to the classical models. Among the classical configurations, the hidden dimension 32 model was the
+smallest model to identify the true optimum across all four
+seeds. The 12 qubit model achieved the same perfect hit
+rate with 6,328 trainable parameters, compared with 21,332
+parameters for the classical hidden dimension 32 model,
+corresponding to a 70.3% reduction in parameter count. The
+difference is also reflected in final reward: the 12 and 16
+qubit models achieved mean final rewards of 13.26 ± 0.39 and
+13.37 ± 0.16, respectively, compared with 13.12 ± 0.75 for the
+classical hidden-dimension-32 model. These results show that
+the quantum models can achieve equal or greater performance
+with fewer trainable parameters.
+Unlike the quantum models, the classical models did not
+exhibit the same monotonic relationship between model size
+and final reward. Mean final reward increased with hidden
+dimension up to 64, after which performance decreased for
+the 128 hidden dimension model. Notably, both the 128 hidden
+dimension model and the 16 qubit quantum model achieved
+a mean final reward of 13.37, despite using 220,052 and
+9,156 trainable parameters respectively. The classical model
+therefore used approximately 2,303% more parameters to
+
+Fig. 7. The ablation study reward curves with one panel per configuration: (a) Quantum MLP by qubit count, (b) Classical MLP by hidden width. The
+dashed vertical line and its label mark the first episode where the smoothed seed-mean reward reaches 95% of that configuration’s plateau, defined as the
+mean reward over the final 50% of episodes.
+
+achieve the same mean final reward and also exhibited greater
+variation across seeds. These observations motivate extending
+the quantum width ablation to larger circuits to determine
+whether the increasing reward trend observed over 4-16 qubits
+eventually saturates or reverses. Such experiments could additionally investigate whether optimization effects, including
+gradient degradation or barren-plateau behavior, contribute to
+diminishing returns at larger circuit widths.
+2) Training Dynamics: Beyond final performance, we examined whether model size affected training speed. Figure 6
+shows side-by-side reward curves for the different qubit counts
+and classical hidden dimensions, while Figure 7 separates the
+individual curves into a grid. The vertical dashed line in each
+pane of Figure 7 indicates the convergence episode. Convergence is defined as the first episode at which the smoothed
+seed-mean reward reaches 95% of the configuration’s plateau
+reward, where the plateau is defined as the mean reward over
+the final 50% of training episodes.
+Although the 12 and 16 qubit models achieved higher
+mean final episode rewards, the classical models maintained
+slightly higher average rewards over the final 50% of training
+episodes. The quantum models nevertheless exhibited a steeper
+increase in reward near the end of training. More importantly,
+these differences in reward trajectories did not translate into
+substantial differences in convergence speed. The quantum
+models converged between episodes 892 and 942, while the
+classical models converged between episodes 892 and 937.
+Thus, across the evaluated architectures, increasing model
+capacity did not substantially accelerate convergence. The 16
+
+qubit quantum model and the 128 hidden dimension classical
+model both converged at episode 892, despite containing
+only 9,156 and 220,052 trainable parameters, respectively.
+The quantum model therefore reached the same convergence
+criterion with approximately 95.8% fewer parameters.
+Taken together, the IEEE 33-bus results demonstrate that
+the evaluated quantum architectures achieved competitive final
+performance with substantially fewer trainable parameters than
+the classical architectures. Increasing the quantum width from
+4 to 16 qubits was associated with higher mean final reward
+and lower variation across seeds, although exact-optimum
+attainment peaked at 12 qubits rather than continuing to
+increase at 16 qubits. The classical models exhibited a nonmonotonic relationship between hidden dimension and final
+reward, while the largest classical model required substantially
+more parameters to achieve a final reward comparable to that
+of the 16-qubit model. Finally, the similar convergence ranges
+across architectures indicate that this parameter-efficiency advantage did not come at the cost of slower convergence in the
+present experiments.
+B. Hardware Evaluation
+Figure 8 compares the initial voltage profiles with those obtained after reconfiguration using the trained 12 qubit quantum
+models under ideal simulation and quantum hardware execution for the IEEE 33 and 69 bus systems. For both systems,
+hardware inference was performed using 2,000 measurement
+shots on IonQ Forte Enterprise-1. Under ideal simulation, the
+quantum models identify the known optimal configurations for
+
+Fig. 8. Comparison of bus voltage magnitude profiles for the IEEE-33 (left) and IEEE-69 (right) feeders. Each panel shows the initial radial configuration
+(dashed), the known optimal configuration, and the best configuration reached by the quantum MLP DQN policy executed on IonQ’s Forte Enterprise 1
+system. All four variational layers were evaluated on hardware using 12 qubits and 2000 shots per circuit, with the agent allowed a maximum of 24 steps. For
+the IEEE-33 system, the hardware-executed policy recovers the true optimal configuration, while for the IEEE-69 system, the best hardware solution achieves
+a total line loss within 0.3% of the known optimum.
+
+both systems, corresponding to line losses of 0.1396 MW and
+0.0996 MW for the IEEE 33 and 69 bus systems, respectively.
+When executed on quantum hardware, the IEEE 33 bus model
+again identifies the known optimal configuration, achieving
+a line loss of 0.1396 MW, while the IEEE 69 bus model
+produces a configuration with a line loss of 0.0999 MW.
+These results indicate that the trained quantum models retain
+their ability to produce high-quality reconfiguration decisions
+when transferred from ideal simulation to physical quantum
+hardware. For the IEEE 33-bus system, hardware execution
+reproduces the optimal simulated result despite finite-shot
+sampling and hardware noise. For the larger IEEE 69-bus
+system, hardware execution results in a modest increase in
+line loss of 0.0003 MW, corresponding to approximately
+0.30% relative to the simulated optimum. The close agreement
+between the simulated and hardware-derived configurations
+provides evidence that the proposed hybrid quantum-classical
+Q-network can maintain its inference performance under the
+noise and sampling effects present on current quantum hardware.
+VI. C ONCLUSION
+This work investigated the use of hybrid quantum–classical
+deep reinforcement learning for distribution network reconfiguration, with an emphasis on the performance and parameter efficiency of quantum Q-network architectures. A
+hybrid Double DQN framework was developed in which a
+parameterized quantum circuit replaces the classical MLP
+backbone while retaining a classical decision architecture
+for performing sequential branch-exchange operations. The
+proposed framework was evaluated through an ablation study
+on the IEEE 33-bus distribution system, comparing quantum
+models of increasing circuit width with classical MLPs of
+increasing hidden dimension.
+The results demonstrate that the quantum models can
+achieve competitive or improved solution quality with substantially fewer trainable parameters than the evaluated classical
+architectures. Increasing the quantum model from 4 to 16
+
+qubits resulted in an increase in mean final reward from
+12.59 ± 0.50 to 13.37 ± 0.16, while also reducing variation
+across the evaluated seeds. However, exact-optimum attainment did not increase monotonically with circuit width. The
+12-qubit model identified the true optimal configuration across
+all four seeds, while the 16-qubit model achieved a hit rate of
+0.75, indicating that increases in model capacity and mean
+final reward do not necessarily correspond to more frequent
+recovery of the exact optimum.
+The strongest distinction between the quantum and classical
+models was observed in parameter efficiency. The 12-qubit
+model achieved a perfect hit rate using 6,328 trainable parameters, compared with 21,332 parameters for the smallest
+classical model to achieve the same hit rate, representing a
+70.3% reduction in trainable parameters. Similarly, the 16qubit model achieved the same mean final reward as the 128hidden-dimension classical model while using 9,156 parameters compared with 220,052. Despite this substantial difference
+in model size, the evaluated quantum and classical architectures exhibited similar convergence ranges. These results
+indicate that, for the IEEE 33-bus case considered in this work,
+the reduction in trainable parameters achieved by the quantum
+architecture did not come at the cost of slower convergence
+or reduced final solution quality.
+Execution on trapped ion quantum hardware provides an
+initial assessment of how the trained quantum policy behaves
+beyond ideal simulation. For the IEEE 33 bus system, the 12
+qubit model identifies the known optimal configuration both
+in simulation and when executed on IonQ Forte Enterprise1 hardware. For the IEEE 69 bus system, hardware execution
+results in a line loss approximately 0.30% above the simulated
+optimum. Although the optimal configuration is not recovered
+for the larger system, the small degradation in solution quality
+demonstrates that the trained quantum policy can retain strong
+performance under the noise and finite-shot sampling present
+on IonQ hardware.
+Future work should extend this analysis to bus systems
+
+whose radial configuration spaces are too large to be exhaustively enumerated using classical methods. Existing benchmarks span configuration spaces ranging from approximately
+5 × 104 states for the IEEE 33-bus system to more than 1035
+states in the Ababei benchmark set [35], [36]. Evaluating systems across this range would help establish the configurationspace sizes for which branch-exchange DQN remains effective
+and, importantly, identify the regimes in which classical and
+quantum approaches begin to degrade or fail. In this context,
+the rate of performance degradation as the configuration space
+grows may provide a more meaningful measure of DQN
+scalability than bus count alone, since the underlying learning
+problem is governed more directly by the number of feasible
+network configurations than by the number of buses.
+Additionally, the reward used includes a power loss term, a
+voltage term, and an exploration bonus based on the Hamming
+weight distance to initial configuration. Since the exploration
+bonus is not potential shaped, it is not guaranteed to preserve
+the optimal policy [37]. It is important to study the performance of the models with various magnitudes of this metric since this should have a nontrivial scaling with the bus size.
+Further work should verify this directly, checking that the
+optimum is the reward maximum over a range of exploration
+bonus magnitudes.
+Further, we would like to scale these simulations in terms of
+seeds and qubit counts. Here the comparisons rest on 4 seeds
+per model, which can expose large effects, but not necessarily
+statistical differences between close values, as studies have
+found some sensitivity to seeds in DRL [38]. Extending
+beyond 16 qubits is crucial both to understand performance
+saturation as well as potential training degradation caused by
+barren plateaus [39], as this informs circuit and model design.
+In terms of the hardware execution, the 0.3% degradation
+observed on QPU for the 69 bus case motivates noise aware
+training [40], [41], where noise is injected during training
+such that the model prefers relative ordering of expectation
+values over absolute magnitude. Then, the implementation and
+shots-tradeoff of applying error mitigation techniques should
+be considered for running DRL models on quantum hardware
+[42], [43].
+Overall, these results demonstrate that hybrid quantum–
+classical reinforcement learning can provide a parameterefficient approach to distribution network reconfiguration
+while maintaining competitive solution quality. The combination of multi-seed simulation and execution on physical
+quantum hardware provides evidence for the potential of
+hybrid quantum Q-networks for power-system optimization,
+while also identifying scalability and hardware robustness as
+important directions for continued investigation.
+ACKNOWLEDGMENT
+We thank Shaked Regev and Phil Lotshaw of ORNL and
+Elias Kokkas of IonQ for their insights throughout this study.
+This article was prepared by EPB Quantum using Federal
+funds under award GONANB24D219-1 ”Empowering the
+Future Grid: Quantum Training for Software Innovation &
+
+Utility Applications.” from the NIST Grant, U.S. Department
+of Commerce. The statement, findings, conclusions, and recommendations are those of the authors.
+R EFERENCES
+[1] S. Civanlar, J. J. Grainger, H. Yin, and S. S. H. Lee, “Distribution
+feeder reconfiguration for loss reduction,” IEEE Transactions on Power
+Delivery, vol. 3, no. 3, pp. 1217–1223, 1988.
+[2] M. E. Baran and F. F. Wu, “Network reconfiguration in distribution
+systems for loss reduction and load balancing,” IEEE Transactions on
+Power Delivery, vol. 4, no. 2, pp. 1401–1407, 1989.
+[3] H. Lotfi, M. E. Hajiabadi, and H. Parsadust, “Power Distribution
+Network Reconfiguration Techniques: A Thorough Review,” Sustainability, vol. 16, no. 23, p. 10307, Nov. 2024, [Online]. Available:
+https://doi.org/10.3390/su162310307.
+[4] D. Bienstock and A. Verma, “Strong NP-hardness of AC power flows
+feasibility,” Operations Research Letters, vol. 47, no. 6, pp. 494–501,
+2019.
+[5] M. Lavorato, J. F. Franco, M. J. Rider, and R. Romero, “Imposing
+radiality constraints in distribution system optimization problems,” IEEE
+Transactions on Power Systems, vol. 27, no. 1, pp. 172–180, 2012.
+[6] A. B. Morton and I. M. Y. Mareels, “An efficient brute-force solution
+to the network reconfiguration problem,” IEEE Transactions on Power
+Delivery, vol. 15, no. 3, pp. 996–1000, 2000.
+[7] K. Nara, A. Shiose, M. Kitagawa, and T. Ishihara, “Implementation of genetic algorithm for distribution systems loss minimum reconfiguration,” IEEE Transactions on Power Systems, vol. 7, no. 3, pp.
+1044–1051, 1992.
+[8] J. K. Skolfield and A. R. Escobedo, “Operations research in optimal
+power flow: A guide to recent and emerging methodologies and applications,” European Journal of Operational Research, vol. 286, no. 2,
+pp. 379–395, 2020.
+[9] M. J. A. Schuetz, J. K. Brubaker, and H. G. Katzgraber, “Combinatorial
+optimization with physics-inspired graph neural networks,” Nature
+Machine Intelligence, vol. 4, no. 4, p. 367–377, Apr. 2022. [Online].
+Available: http://dx.doi.org/10.1038/s42256-022-00468-6
+[10] D. Zhang, X. Han, and C. Deng, “Review on the research and practice of
+deep learning and reinforcement learning in smart grids,” CSEE Journal
+of Power and Energy Systems, vol. 4, no. 3, pp. 362–370, 2018.
+[11] N. Gholizadeh, N. Kazemi, and P. Musilek, “A Comparative Study of
+Reinforcement Learning Algorithms for Distribution Network Reconfiguration With Deep Q-Learning-Based Action Sampling,” IEEE Access,
+vol. 11, pp. 13 714–13 723, February 2023.
+[12] R. S. Sutton and A. G. Barto, Reinforcement Learning: An Introduction,
+2nd ed. Cambridge, MA, USA: MIT Press, 2018.
+[13] S. H. Oh, Y. T. Yoon, and S. W. Kim, “Online reconfiguration
+scheme of self-sufficient distribution network based on a reinforcement
+learning approach,” Applied Energy, vol. 280, p. 115900, 2020.
+[Online]. Available: https://www.sciencedirect.com/science/article/pii/
+S0306261920313672
+[14] V. Mnih, K. Kavukcuoglu, D. Silver, A. A. Rusu, J. Veness, M. G.
+Bellemare, A. Graves, M. Riedmiller, A. K. Fidjeland, G. Ostrovski,
+S. Petersen, C. Beattie, A. Sadik, I. Antonoglou, H. King, D. Kumaran,
+D. Wierstra, S. Legg, and D. Hassabis, “Human-level control through
+deep reinforcement learning,” Nature, vol. 518, no. 7540, pp. 529–533,
+2015.
+[15] C. J. C. H. Watkins and P. Dayan, “Q-learning,” Machine Learning,
+vol. 8, no. 3–4, pp. 279–292, 1992.
+[16] H. Di, Y. Bao, and B. Wang, “Research on Distribution Network
+Reconfiguration Based on Deep Q-learning Network,” in Proceedings
+of the 4th IEEE Conference on Energy Internet and Energy System
+Integration (EI2), Wuhan, China, October–November 2020, pp. 2728–
+2732.
+[17] M. Fortunato, M. G. Azar, B. Piot, J. Menick, I. Osband, A. Graves,
+V. Mnih, R. Munos, D. Hassabis, O. Pietquin, C. Blundell, and S. Legg,
+“Noisy networks for exploration,” in Proc. 6th International Conference
+on Learning Representations (ICLR), 2018.
+[18] B. Wang, H. Zhu, H. Xu, Y. Bao, and H. Di, “Distribution Network
+Reconfiguration Based on Noisynet Deep Q-Learning Network,” IEEE
+Access, vol. 9, pp. 90 358–90 365, June 2021.
+[19] T. Schaul, J. Quan, I. Antonoglou, and D. Silver, “Prioritized experience
+replay,” in Proc. 4th International Conference on Learning Representations (ICLR), 2016.
+
+[20] M. Gautam, N. Bhusal, and M. Benidris, “Deep Q-Learning-based
+Distribution Network Reconfiguration for Reliability Improvement,”
+arXiv preprint arXiv:2305.01180, May 2023, [eess.SY].
+[21] J. Duan, D. Shi, R. Diao, H. Li, Z. Wang, B. Zhang, D. Bian, and
+Z. Yi, “Deep-reinforcement-learning-based autonomous voltage control
+for power grid operations,” IEEE Transactions on Power Systems,
+vol. 35, no. 1, pp. 814–817, 2020.
+[22] R. Eskandarpour, K. J. B. Ghosh, A. Khodaei, A. Paaso, and L. Zhang,
+“Quantum-enhanced grid of the future: A primer,” IEEE Access, vol. 8,
+pp. 188 993–189 002, 2020.
+[23] S. Golestan, M. R. Habibi, S. M. S. Mousavi, J. M. Guerrero, and
+J. C. Vasquez, “Quantum computation in power systems: An overview
+of recent advances,” Energy Reports, vol. 9, pp. 584–596, 2023.
+[24] N. Meyer, C. Ufrecht, M. Periyasamy, D. D. Scherer, A. Plinge, and
+C. Mutschler, “A survey on quantum reinforcement learning,” arXiv
+preprint arXiv:2211.03464, 2024.
+[25] S. Jerbi, C. Gyurik, S. C. Marshall, H. J. Briegel, and V. Dunjko,
+“Parametrized quantum policies for reinforcement learning,” in Advances in Neural Information Processing Systems 34 (NeurIPS), 2021,
+pp. 28 362–28 375.
+[26] A. Skolik, S. Jerbi, and V. Dunjko, “Quantum agents in the Gym: a
+variational quantum algorithm for deep Q-learning,” Quantum, vol. 6,
+p. 720, May 2022.
+[27] S. Y.-C. Chen, C.-H. H. Yang, J. Qi, P.-Y. Chen, X. Ma, and H.-S.
+Goan, “Variational quantum circuits for deep reinforcement learning,”
+IEEE Access, vol. 8, pp. 141 007–141 024, July 2020.
+[28] O. Lockwood and M. Si, “Reinforcement learning with quantum variational circuits,” arXiv preprint arXiv:2008.07524v3, August 2020.
+[29] H. Y. Chen, Y. J. Chang, S. W. Liao et al., “Deep q-learning with hybrid
+quantum neural network on solving maze problems,” Quantum Machine
+Intelligence, vol. 6, p. 2, Jan. 2024.
+[30] O. Lockwood and M. Si, “Playing atari with hybrid quantum-classical
+reinforcement learning,” in NeurIPS 2020 Workshop on Pre-registration
+in Machine Learning, ser. Proceedings of Machine Learning Research,
+L. Bertinetto, J. F. Henriques, S. Albanie, M. Paganini, and G. Varol,
+Eds., vol. 148. PMLR, 11 Dec 2021, pp. 285–301. [Online]. Available:
+https://proceedings.mlr.press/v148/lockwood21a.html
+[31] H. van Hasselt, A. Guez, and D. Silver, “Deep reinforcement learning
+with double q-learning,” in Proceedings of the AAAI Conference on
+Artificial Intelligence, vol. 30, no. 1, 2016, pp. 2094–2100.
+[32] D. Dong, C. Chen, H. Li, and T.-J. Tarn, “Quantum reinforcement
+learning,” IEEE Transactions on Systems, Man, and Cybernetics, Part
+B (Cybernetics), vol. 38, no. 5, pp. 1207–1220, 2008.
+[33] V. Dunjko, J. M. Taylor, and H. J. Briegel, “Quantum-enhanced machine
+learning,” Phys. Rev. Lett., vol. 117, p. 130501, Sep 2016. [Online].
+Available: https://link.aps.org/doi/10.1103/PhysRevLett.117.130501
+[34] P. Virtanen, R. Gommers, T. E. Oliphant, M. Haberland, T. Reddy,
+D. Cournapeau, E. Burovski, P. Peterson, W. Weckesser, J. Bright, S. J.
+van der Walt, M. Brett, J. Wilson, K. J. Millman, N. Mayorov, A. R. J.
+Nelson, E. Jones, R. Kern, E. Larson, C. J. Carey, İ. Polat, Y. Feng, E. W.
+Moore, J. VanderPlas, D. Laxalde, J. Perktold, R. Cimrman, I. Henriksen, E. A. Quintero, C. R. Harris, A. M. Archibald, A. H. Ribeiro,
+F. Pedregosa, P. van Mulbregt, and SciPy 1.0 Contributors, “SciPy 1.0:
+Fundamental Algorithms for Scientific Computing in Python,” Nature
+Methods, vol. 17, pp. 261–272, 2020.
+[35] C. Ababei and R. Kavasseri, “Efficient network reconfiguration using
+minimum cost maximum flow-based branch exchanges and random
+walks-based loss estimations,” IEEE Transactions on Power Systems,
+vol. 26, no. 1, pp. 30–37, 2011.
+[36] C. Ababei, “REDS: Repository of distribution systems,” Online benchmark set, 2009, radial distribution test feeders for network reconfiguration studies.
+[37] A. Y. Ng, D. Harada, and S. Russell, “Policy invariance under reward
+transformations: Theory and application to reward shaping,” pp. 278–
+287, 1999.
+[38] P. Henderson, R. Islam, P. Bachman, J. Pineau, D. Precup, and D. Meger,
+“Deep reinforcement learning that matters,” Proceedings of the AAAI
+Conference on Artificial Intelligence, vol. 32, 2018.
+[39] J. R. McClean, S. Boixo, V. N. Smelyanskiy, R. Babbush, and H. Neven,
+“Barren plateaus in quantum neural network training landscapes,” Nature
+Communications, vol. 9, p. 4812, 2018.
+[40] H. Wang, J. Gu, Y. Ding, Z. Li, F. T. Chong, D. Z. Pan, and S. Han,
+“QuantumNAT: Quantum noise-aware training with noise injection,
+
+quantization and normalization,” in Proc. 59th ACM/IEEE Design Automation Conference (DAC), 2022, pp. 1–6.
+[41] A. Skolik, S. Mangini, T. Bäck, C. Macchiavello, and V. Dunjko,
+“Robustness of quantum reinforcement learning under hardware errors,”
+EPJ Quantum Technology, vol. 10, no. 1, p. 8, 2023.
+[42] K. Temme, S. Bravyi, and J. M. Gambetta, “Error mitigation for shortdepth quantum circuits,” Physical Review Letters, vol. 119, no. 18, p.
+180509, 2017.
+[43] Z. Cai, R. Babbush, S. C. Benjamin, S. Endo, W. J. Huggins, Y. Li,
+J. R. McClean, and T. E. O’Brien, “Quantum error mitigation,” Reviews
+of Modern Physics, vol. 95, no. 4, p. 045005, 2023.
+
+A PPENDIX
+TABLE II
+IEEE 33 B US H YPERPARAMETERS
+Category
+
+Memory
+
+Training
+
+Reward Parameters
+
+Hyperparameter
+Priority utilization, α
+Importance-sampling correction, β
+Minimum transition priority
+Replay buffer capacity
+Bootstrap steps
+Learning rate, η
+Number of episodes
+Maximum episode length
+Batch size
+Learning rate decay
+Discount factor, γ
+Initial exploration rate, ϵinit
+Minimum exploration rate, ϵmin
+Exploration decay
+Target-network update rate, τ
+Target update interval
+Evaluation interval
+Q-value reduction
+Voltage reward scale, p1
+Voltage-deviation sensitivity, p2
+Power-loss sensitivity, p3
+Power-loss reward scale, p4
+Topological reward scale, p5
+
+Value
+0.8
+0.35
+10−5
+2500
+2500
+4 × 10−4
+2000
+32
+128
+0.01
+0.90
+0.99
+0.05
+0.4× episodes
+0.006
+100
+10
+Mean
+6
+20
+6
+1
+0.2
+
+TABLE III
+IEEE 69 B US H YPERPARAMETERS
+Category
+
+Memory
+
+Training
+
+Reward Parameters
+
+Hyperparameter
+Priority utilization, α
+Importance-sampling correction, β
+Minimum transition priority
+Replay buffer capacity
+Bootstrap steps
+Learning rate, η
+Number of episodes
+Maximum episode length
+Batch size
+Learning rate decay
+Discount factor, γ
+Initial exploration rate, ϵinit
+Minimum exploration rate, ϵmin
+Exploration decay
+Target-network update rate, τ
+Target update interval
+Evaluation interval
+Q-value reduction
+Voltage reward scale, p1
+Voltage-deviation sensitivity, p2
+Power-loss sensitivity, p3
+Power-loss reward scale, p4
+Topological reward scale, p5
+
+Value
+0.8
+0.35
+10−5
+2500
+2500
+4 × 10−4
+2500
+32
+256
+0.01
+0.92
+0.99
+0.05
+0.4× episodes
+0.006
+100
+10
+Mean
+6
+20
+6
+1
+0.2
+
+

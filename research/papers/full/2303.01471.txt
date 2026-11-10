@@ -1,0 +1,5747 @@
+Quantum Hamiltonian Descent∗
+Jiaqi Leng1,3
+
+Ethan Hickman2,3
+
+Joseph Li2,3
+
+Xiaodi Wu2,3,†
+
+arXiv:2303.01471v1 [quant-ph] 2 Mar 2023
+
+1
+
+Department of Mathematics, University of Maryland, College Park, USA
+2
+Department of Computer Science, University of Maryland
+3
+Joint Center for Quantum Information and Computer Science, University of Maryland
+†
+Corresponding author. xiaodiwu@umd.edu
+
+Abstract
+Gradient descent is a fundamental algorithm in both theory and practice for continuous
+optimization. Identifying its quantum counterpart would be appealing to both theoretical and
+practical quantum applications. A conventional approach to quantum speedups in optimization
+relies on the quantum acceleration of intermediate steps of classical algorithms, while keeping the overall algorithmic trajectory and solution quality unchanged. We propose Quantum
+Hamiltonian Descent (QHD), which is derived from the path integral of dynamical systems referring to the continuous-time limit of classical gradient descent algorithms, as a truly quantum
+counterpart of classical gradient methods where the contribution from classically-prohibited
+trajectories can significantly boost QHD’s performance for non-convex optimization. Moreover, QHD is described as a Hamiltonian evolution efficiently simulatable on both digital and
+analog quantum computers. By embedding the dynamics of QHD into the evolution of the socalled Quantum Ising Machine (including D-Wave and others), we empirically observe that the
+D-Wave-implemented QHD outperforms a selection of state-of-the-art gradient-based classical
+solvers and the standard quantum adiabatic algorithm, based on the time-to-solution metric,
+on non-convex constrained quadratic programming instances up to 75 dimensions. Finally, we
+propose a “three-phase picture” to explain the behavior of QHD, especially its difference from
+the quantum adiabatic algorithm.
+
+Continuous optimization, stemming from the mathematical modeling of real-world systems, is
+ubiquitous in applied mathematics, operations research, and computer science [5, 19, 23, 27, 36].
+These problems often come with high dimensionality and non-convexity, posing great challenges for
+the design and implementation of optimization algorithms [7, 14]. It is a natural question to investigate potential quantum speedups for continuous optimization, which has been actively studied in
+past decades. A conventional approach toward this end is to quantize existing classical algorithms
+by replacing their components with quantum subroutines, while carefully balancing the potential
+speedup and possible overheads. However, proposals (e.g. [3, 6, 20, 24, 34, 35, 39]) following this
+approach usually achieve only moderate quantum speedups, and more importantly, they rarely
+improve the quality of solutions because they essentially follow the same solution trajectories in
+the original classical algorithms.
+∗
+This work was partially funded by the U.S. Department of Energy, Office of Science, Office of Advanced Scientific
+Computing Research, Quantum Testbed Pathfinder Program under Award Number DE-SC0019040, Accelerated
+Research in Quantum Computing under Award Number DE-SC0020273, and the U.S. National Science Foundation
+grant CCF-1816695 and CCF-1942837 (CAREER). We also acknowledge the research credits from Amazon Web
+Services. An accompanying website is at https://jiaqileng.github.io/quantum-hamiltonian-descent/.
+
+Gradient descent (and its variant) is arguably the most fundamental optimization algorithm
+in continuous optimization, both in theory and in practice, due to its simplicity and efficiency in
+converging to critical points. However, many real-world problems have spurious local optima [33],
+for which gradient descent is subject to slow convergence since it only leverages first-order information [32]. On the other hand, quantum algorithms have the potential to escape from local minima
+and find near-optimal solutions by leveraging the quantum tunneling effect [2, 11]. Therefore, it
+is desirable to identify a quantum counterpart of gradient descent that is simple and efficient on
+quantum computers while leveraging the quantum tunneling effect to escape from spurious local
+optima. With such features, the quality of the solutions is improved. Prior attempts (e.g., [30]) to
+quantize gradient descent, which followed the conventional approach, unfortunately fail to achieve
+the aforementioned goal, which seems to require a completely new approach to quantization.
+A
+
+Algorithms
+
+B
+
+Dynamical Systems
+continuous-time limit
+
+Quantum Mechanics
+
+Quantum
+Hamiltonian
+Descent
+Quantize
+classical
+components
+
+Classical Algorithms
+
+C
+
+
+
+Bregman Lagrangian
+
+Quantum propagator
+
+Schrodinger equation (QHD)
+
+Infinitesimal expansion
+
+Classical Gradient Methods
+
+Quantum Hamiltonian Descent
+
+II
+
+Classical Mechanics
+
+Accelerated Gradient
+Descent
+
+I
+Path I: Classical Path
+
+Time discretization
+Path II: Prohibited Path
+
+Quantum Optimization Path =
+all possible paths
+
+Figure 1: Schematic of Quantum Hamiltonian Descent (QHD). A. Road map showing the conventional and our approach of quantizing classical gradient descent (GD). Specifically, QHD is derived through
+the path-integral quantization of the dynamical system corresponding to the continuous-time limit of classical GD, and hence can be deemed as the path integral of the algorithmic trajectories of classical GD. B.
+Four major technical steps in the derivation of QHD. C. An illustrative example where classical GD with
+bad initialization will be trapped in a local minimum, while QHD can easily escape and find near-optimal
+solutions by taking the path integral of trajectories prohibited by classical mechanics.
+
+A genuine quantum gradient descent
+Our main observation is a perhaps unintuitive connection between gradient descent and dynamical
+systems satisfying classical physical laws. Precisely, it is known that the continuous-time limit of
+many gradient-based algorithms can be understood as classical physical dynamical systems, e.g., the
+Bregman-Lagrangian framework derived in [37] to model accelerated gradient descent algorithms.
+Conversely, variants of gradient-based algorithms could be emerged through the time discretization
+of these continuous-time dynamical systems [1]. This two-way correspondence inspired us a second
+approach to quantization: instead of quantizing a subroutine in gradient descent, we can quantize
+the continuous-time limit of gradient descent as a whole, and the resulting quantum dynamical
+systems lead to quantum algorithms as seen in Figure 1A. Using the path integral formulation
+of quantum mechanics (Figure 1B), we quantize the Bregman-Lagrangian framework to obtain a
+d
+Ψ(t) = Ĥ(t)Ψ(t), where Ψ(t)
+quantum-mechanical system governed by the Schrödinger equation i dt
+
+2
+
+is the quantum wave function, and the quantum Hamiltonian reads:
+
+
+1
+ϕt
+− ∆ + eχt f (x),
+Ĥ(t) = e
+2
+
+(1)
+
+where eϕt , eχt are damping parameters that control the energy flow in the system. We require
+eϕt /χt → 0 for large t so the kinetic energy is gradually drained out from the system, which is crucial
+for the long-term convergence of the evolution. Just like the Bregman-Lagrangian framework,
+different damping parameters in Ĥ(t) correspond to different prototype gradient-based algorithms.
+∆ is the Laplacian operator over Euclidean space. f (x), the objective function to minimize, is
+assumed to be unconstrained and continuously differentiable. More details of the derivation of
+QHD are available in Section A. The Schrödinger dynamics in (1) hence generates a family of
+quantum gradient descent algorithms that we will refer to as Quantum Hamiltonian Descent,
+or simply QHD.
+As desired, QHD inherits simplicity and efficiency from classical gradient descent. QHD takes in
+an easily prepared initial wave function Ψ(0) and evolves the quantum system described by (1). The
+solution to the optimization problem is obtained by measuring the position observable x̂ at the end
+of the algorithm (i.e., at time t = T ). In other words, QHD is no different from a basic Hamiltonian
+simulation task, which can be done on digital quantum computers using standard techniques as
+shown in Algorithm 1 with provable efficiency (Theorem 3). The simplicity and efficiency of QHD
+on quantum machines potentially make it as widely applicable as classical gradient descent.
+For convex problems, we prove in Theorem 1 that QHD is guaranteed to find the global solution.
+In this case, the solution trajectory of QHD is analogous to that of a classical algorithm. Non-convex
+problems, known to be NP-hard in general, are much harder to solve. Under mild assumptions on
+a non-convex f , we show the global convergence of QHD given appropriate damping parameters
+and sufficiently long evolution time (Theorem 2). Figure 1C shows a conceptual picture of QHD’s
+quantum speedup: intuitively, QHD can be regarded as a path integral of solution trajectories, some
+of which are prohibited in classical gradient descent. Interference among all solution trajectories
+gives rise to a unique quantum phenomenon called quantum tunneling, which helps QHD overcome
+high-energy barriers and locate the global minimum.
+
+Performance of QHD on hard optimization problems
+To visualize the difference between QHD and other classical and quantum algorithms, we test
+four algorithms (QHD, Quantum Adiabatic Algorithm (QAA), Nesterov’s accelerated gradient descent (NAGD), and stochastic gradient descent (SGD)) via classical simulation on 22 optimization
+instances with diversified landscape features selected from benchmark functions for global optimization problems.1 QAA solves an optimization problem by simulating a quantum adiabatic
+evolution [11], and it has mostly been applied to discrete optimization in the literature. To solve
+continuous optimization with QAA, a common approach is to represent each continuous variable
+with a finite-length bitstring so the original problem is converted to combinatorial optimization
+defined on the hypercube {0, 1}N , where N is the total number of bits (e.g., [8, 29]). In our experiment, we adopt the radix-2 representation (i.e., binary expansion) and assign 7 bits for each
+continuous variable. This allows QAA to handle the optimization instances as discrete problems
+over {0, 1}14 .2 See Section C.2.2 for the detailed setup.
+1
+
+More details of the 22 optimization instances can be found in Section C.1. In our experiment, we implement SGD
+by adding a small Gaussian perturbation to the analytical gradient. Unlike deterministic algorithms like NAGD, this
+stochastic perturbation seems to help with non-convex optimization.
+2
+Effectively, this means we discretize the continuous domain [0, 1]2 into a 128 × 128 mesh grid.
+
+3
+
+A
+
+B
+
+Figure 2: Quantum and classical optimization methods for two-dimensional test problems. A.
+Surface and heatmap plots of the Levy function. Samples from the distributions of QHD, QAA, NAGD,
+and SGD at different (effective) evolution times t = 0.1, 0.5, 2, 3, 5, 10 are shown as scatter plots. B. Final
+success probabilities of QHD, QAA, NAGD, and SGD for all 22 instances. A final solution xk is considered
+“successful” if |xk − x∗ | < 0.1, where x∗ is the (unique) global minimizer of f . Data are categorized into five
+groups by landscape features of the objective functions.
+
+In Figure 2A, we plot the landscape of Levy function, and the solutions from the four algorithms
+are shown for different evolution times t. For QHD and QAA, t is the evolution time of the quantum
+dynamics; for the two classical algorithms, the effective evolution time t is computed by multiplying
+the step size and the numer of iterations so that it is comparable to the one used in QHD and QAA.
+Compared with QHD, QAA converges at a much slower speed and little apparent convergence is
+observed within the time window. Although the two classical algorithms seem to converge faster
+than quantum algorithms, they have lower success probability because many solutions are trapped
+in spurious local minima. Our observation made with Levy function is consistent with the results of
+other functions: as shown in Figure 2B, QHD has a higher success probability in most optimization
+instances at the same choice of total effective evolution time.
+Focusing on the QHD dynamics, we find rich dynamical properties at different stages of evolution. Figure 3B shows the quantum probability densities of QHD at different evolution times.
+First, the initial wave function becomes highly oscillatory and spreads to the full search space
+(t = 0.1, 0.5). Then, the wave function sees the landscape of f and starts moving towards the
+global minimum (t = 1, 2). Finally, the wave packet is clustered around the global minimum and
+converges like a classical gradient descent (t = 5, 10). This three-stage evolution is not only seen
+4
+
+A
+
+B
+Adiabatic (ground-energy state)
+
+
+Easily Prepared
+Initial States
+
+Solultion
+States
+
+QHD (low-energy subspace)
+
+
+
+
+
+
+
+C
+
+E
+Kinetic
+
+Global Search
+
+Descent
+
+Kinetic Phase
+
+Descent Phase
+
+D
+
+Figure 3: The three-phase picture of QHD. A. Schematic of the three-phase picture of QHD. QAA is a
+long-lasting global search procedure. QHD experiences three different phases and it has faster convergence
+for continuous problems. B. Surface plots of the probability density in QHD for the Levy function. C.
+Probability spectrum of QHD. D. Success probabilities of QHD and QAA. E. The energy ratio E1 /E0 in
+QHD shown as a function of time t.
+
+for the Levy function but also observed in many other instances (for details, see our website3 ). We
+thus propose to divide QHD’s evolution in solving optimization problems into three consecutive
+phases called the kinetic phase, the global search phase, and the descent phase according to
+the above observations.
+The three-phase picture of QHD could be supported by several quantitative characterizations
+of the QHD evolution. One such characterization is the probability spectrum of QHD, which shows
+the decomposition of the wave function to different energy levels (Figure 3C). QHD begins with
+a major ground-energy component and a minor low-energy component.4 During the global search
+phase, the low-energy component is absorbed into the ground-energy component, indicating that
+QHD finds the global minimum (Figure 3D). The energy ratio E1 /E0 is another characterization
+of the three phases in QHD (Figure 3E), where E0 (or E1 ) is the ground (or first excited) energy
+of the QHD Hamiltonian Ĥ(t). In the kinetic phase, the kinetic energy − 12 ∆ dominates in the
+system Hamiltonian so we have E1 /E0 ≈ 2.5, which is the same as in a free-particle system. In the
+descent phase, the QHD Hamiltonian enters the “semi-classical regime” and the energy ratio can
+3
+4
+
+https://jiaqileng.github.io/quantum-hamiltonian-descent/.
+When applied to the Levy function, no high-energy component with energy level ≥ 10 is found in QHD.
+
+5
+
+be theoretically computed based on the objective function.5
+The three-phase picture of QHD sheds light on why QAA has slower convergence. Compared to
+QHD, QAA has neither a kinetic phase nor a descent phase. In the kinetic phase, QHD averages the
+initial wave function over the whole search space to reduce the risk of poor initialization, while QAA
+remains in the ground state throughout its evolution, so it never gains as much kinetic energy. In
+the descent phase, QHD exhibits convergence similar to classical gradient descent and is insensitive
+to spatial resolution; such fast convergence is not seen in QAA.
+In QAA, the use of the radix-2 representation scrambles the Euclidean topology so that the
+resulting discrete problem is even harder than the original problem (e.g., see Figure 11). Failing
+to incorporate the continuity structure, QAA is hence sensitive to the resolution of spatial discretization; we observe that higher resolutions often cause worse QAA performance, see Figure 9.6
+See Section D for details.
+
+Large-scale empirical study based on analog implementation
+One great promise of QHD lies in solving high-dimensional non-convex problems in the real world.
+However, a large-scale empirical study is infeasible with classical simulation due to the curse of
+dimensionality. Although theoretically efficient, implementation of QHD instances of reasonable
+sizes on digital quantum computers would cost a gigantic number of fault-tolerant quantum gates7 ,
+rendering an empirical study based on digital implementation a dead end in the near term.
+Analog quantum computers (or quantum simulators) are alternative devices that directly emulate certain quantum Hamiltonian evolutions without using quantum gates, though they usually
+have more limited programmability. However, recent experimental results suggest a great advantage of continuous-time analog quantum devices over the digital ones for quantum simulation in
+the NISQ era due to their scalability and lower overhead for some simulation tasks. Compared
+with other quantum algorithms, typically described by circuits of quantum gates, a unique feature
+of QHD is that its description is itself a Hamiltonian simulation task, which makes it possible to
+leverage near-term analog devices for its implementation.
+A conceptually simple analog implementation of QHD would be building a quantum simulator
+whose Hamiltonian exactly matches the target QHD Hamiltonian (1), which is, however, less feasible
+in practice. A more pragmatic strategy is to embed the QHD Hamiltonian into existing analog
+simulators so we can emulate QHD as part of the full dynamics.
+To this end, we introduce the Quantum Ising Machine (or simply QIM) as an abstract
+model for some of the most powerful analog quantum simulators nowadays. It is described by the
+following quantum Ising Hamiltonian:
+
+
+
+
+X
+X
+X
+A(t) 
+B(t) 
+H(t) = −
+σx(j)  +
+hj σz(j) +
+Jj,k σz(j) σz(k)  ,
+(2)
+2
+2
+j
+
+j
+
+5
+
+j>k
+
+For Levy function, the predicted semi-classical energy ratio reads E1 /E0 ≈ 1.38, which matches our numerical
+data.
+6
+Of course, a radix-2 representation is not the only way to discretize a continuous problem. One can lift QAA to
+the continuous domain by choosing its Hamiltonian over a continuous space in a general way. From this perspective,
+QHD could be interpreted as a special version of the general QAA with a particular choice of the Hamiltonian.
+However, some existing results [26] suggest that QHD may have fast convergence properties that the general theory
+of QAA fails to explain.
+7
+In Table 6, we show the count of T gates in the digital implementation of QHD. It turns out that solving
+50-dimensional problems with low resolution will cost hundreds of millions of fault-tolerant T gates.
+
+6
+
+(j)
+
+(j)
+
+where σx and σz are the Pauli-X and Pauli-Z operator acting on the j-th qubit, A(t) and
+B(t) are time-dependent control functions. The controllability of A(t), B(t), hj , Jj,k represents the
+programmability of QIMs, which would depend on the specific instantiation of QIM such as the
+D-Wave systems [18], QuEra neutral-atom system [38], or otherwise.
+At a high level, our Hamiltonian embedding technique is as follows: (i) discretize the QHD
+Hamiltonian (1) to a finite-dimensional matrix; (ii) identify an invariant subspace S of the simulator
+Hamiltonian for the evolution; (iii) program the simulator Hamiltonian (2) so its restriction to
+the invariant subspace S matches the discretized QHD Hamiltonian. In this way, we effectively
+simulate the QHD Hamiltonian in the subspace S (called the encoding subspace) of the simulator’s
+full Hilbert space. By measuring the encoding subspace at the end of the analog emulation, we
+obtain solutions to an optimization problem.
+∂2
+Precisely, consider the one-dimensional case of QHD Hamiltonian that is Ĥ(t) = eϕt (− 21 ∂x
+2)+
+eχt f . Following a standard discretization by the finite difference method [25], QHD Hamiltonian
+∂2
+becomes Ĥ(t) = − 21 eϕt L̂+eχt F̂ where the second-order derivative ∂x
+2 becomes a tridiagonal matrix
+(denoted by L̂), and the potential operator f is reduced to a diagonal matrix (denoted by F̂ ).
+We identify the so-called Hamming encoding subspace SH which is spanned by (n+1) Hamming
+states {|Hj i : j = 0, 1, . . . , n} for any n-qubit QIM.8 By choosing appropriate parameters hj , Jj,k in
+(2), the
+P subspace SH is invariant under the QIM Hamiltonian. Moreover, the restriction of the first
+term rj=1 σxj onto SH resembles the tridiagonal matrix L̂, and the restriction of the second term in
+the QIM Hamiltonian (with Pauli-Z and -ZZ operators) represents a discretized quadratic function
+F̂ . A measurement on SH can be conducted by measuring the full simulator Hilbert space in the
+computational basis and simple post-processing. The Hamming encoding construction is readily
+generalizable to higher-dimensional Laplacian operator ∆ and quadratic polynomial functions f .
+See Section F for details.
+Our Hamming encoding enables an empirical study of an interesting optimization problem
+called quadratic programming (QP) on quantum simulators. Specifically, we consider QP with box
+constraints:
+minimize
+subject to
+
+1
+f (x) = x> Qx + b> x,
+2
+0 4 x 4 1,
+
+(3a)
+(3b)
+
+where 0 and 1 are n-dimensional vectors of all zeros and all ones, respectively. QP problems
+are the simplest case of nonlinear programming and they appear in almost all major fields in the
+computational sciences [10, 27]. Despite of their simplicity and ubiquity, non-convex QP problems
+(i.e., ones in which the Hessian matrix Q is indefinite) are known to be NP-hard [4] in general.
+We implement QHD on the D-Wave system9 , which instantiates a QIM and allows for the
+control of thousands of physical qubits with decent connectivity [17]. While existing libraries of
+QP benchmark instances (e.g., [12]) are natural candidates for our empirical study, most of them
+can not be mapped to the D-Wave system because of its limited connectivity. We instead create a
+8
+Precisely, The j-th Hamming state |Hj i is the uniform superposition of bitstring states with Hamming weight
+(i.e., the number of ones in a bitstring) j:
+
+1 X
+|Hj i = p
+|bi ,
+Cj |b|=j
+where Cj is the number of states with Hamming weight j. For example, there are n bitstring states with Hamming
+weight 1: |0 . . . 001i,|0 . . . 010i,. . . ,|1 . . . 000i, and the Hamming-1 state |H1 i is the uniform superposition of all the n
+states.
+9
+We access the D-Wave advantage system6.1 through Amazon Braket.
+
+7
+
+new test benchmark with 160 randomly generated QP instances in various dimensions (5, 50, 60,
+75) whose Hessian matrices are indefinite and sparse (see Section G.1 for details) and for which
+analog implementations are possible on the D-Wave machine (referred as DW-QHD).
+We compare DW-QHD with 6 other state-of-the-art solvers in our empirical study: DW-QAA
+(baseline QAA implemented on D-Wave), IPOPT [21], SNOPT [13], MATLAB’s fmincon (with
+SQP solver), QCQP [28], and a basic Scipy minimize function (with TNC solver). In the two
+quantum methods (DW-QHD, DW-QAA), we discretize the search space [0, 1]d into a regular
+mesh grid with 8 cells per edge due to the limited number of qubits in the D-Wave machine.
+To compensate for the loss of resolution, we post-process the coarse-grained D-Wave results by
+the Scipy minimize function, which is a local gradient solver mimicking the descent phase of a
+higher-resolution QHD and only has mediocre performance by itself. The choice of classical solvers
+covers a variety of state-of-the-art optimization methods, including gradient-based local search
+(Scipy minimize), interior-point method (IPOPT), sequential quadratic programming (SNOPT,
+MATLAB), and heuristic convex relaxation (QCQP). Finally, to investigate the quality of the DWave machine in implementing QHD and QAA, we also classically simulate QHD and QAA for
+the 5-dimensional instances (Sim-QHD, Sim-QAA).10
+We use the time-to-solution (TTS) metric [31] to compare the performance of solvers. TTS is
+the number of trials (i.e., initializations for classical solvers or shots for quantum solvers) required
+to obtain the correct global solution11 up to 0.99 success probability:
+TTS = tf ×
+
+l ln(1 − 0.99) m
+,
+ln(1 − ps )
+
+(4)
+
+where tf is the average runtime per trial, and ps is the success probability of finding the global
+solution in a given trial. We run 1000 trials per instance and compute the TTS for each solver.
+In Figure 4, we show the distribution of TTS for different solvers.12 In the 5-dimensional case
+(Figure 4A), Sim-QHD has the lowest TTS, and the quantum methods are generally more efficient
+than classical solvers. Note that with a much shorter annealing time (tf = 1µs for Sim-QHD
+and tf = 800µs for DW-QHD) Sim-QHD still does better than DW-QHD, indicating the D-Wave
+system is subject to significant noise and decoherence. Interestingly, Sim-QAA (tf = 1µs) is worse
+than DW-QAA (tf = 800µs), which shows QAA indeed has much slower convergence. In the
+higher dimensional cases (Figure 4B,C,D), DW-QHD has the lowest median TTS among all tested
+solvers. Despite of the infeasibility of running Sim-QHD in high dimensions, our observation in the
+5-dimensional case suggests that an ideal implementation of QHD could perform much better than
+DW-QHD, and therefore all other tested solvers in high dimensions. See Section G for details.
+It is worth noting that DW-QHD does not outperform industrial-level nonlinear programming
+solvers such as Gurobi [15] and CPLEX [9]. In our experiment, Gurobi usually solves the highdimensional QP problems with TTS no more than 10−2 s. These solvers approximate the nonlinear
+problem by potentially exponentially many linear programming subroutines and use a branch-andbound strategy for a smart but exhaustive search of the solution.13 However, the restrictions of
+the D-Wave machine (e.g., programmability and decoherence) force us to test on very sparse QP
+instances, which can be efficiently solved by highly-optimized industrial-level branch-and-bound
+10
+
+Note that we numerically compute Sim-QHD and Sim-QAA for tf = 1µs, which is much shorter than the time
+we set in the D-Wave experiment (in DW-QHD and DW-QAA, we choose tf = 800µs.
+11
+For each test instance, the global solution is obtained by Gurobi [15].
+12
+We also provide spreadsheets that summarize the test results for the QP benchmark, see https://github.com/
+jiaqileng/quantum-hamiltonian-descent/tree/main/plot/fig4/qp_data.
+13
+In Figure 13, we show that the runtime of Gurobi scales exponentially with respect to the problem dimension for
+QP.
+
+8
+
+
+
+
+
+
+
+
+
+Figure 4: Experiment results for quadratic programming problems. Box plots of the time-to-solution
+(TTS) of selected quantum/classical solvers, gathered from four randomly generated quadratic programming
+benchmarks (A: 5-dimensional, B: 50-dimensional, C: 60-dimensional, D: 75-dimensional). The left and right
+boundaries of a box show the lower and upper quartiles of the TTS data, while the whiskers extend to show
+the rest of the TTS distribution. The median of the TTS distribution is shown as a black vertical line in the
+box. In each panel, the median line of the best solver extends to show the comparison with all other solvers.
+
+solvers. On the other hand, we believe that QHD should be more appropriately deemed as a
+quantum upgrade of classical GD, which would more conceivably replace the role of GD rather
+than the entire branch-and-bound framework in classical optimizers.
+
+Conclusions
+In this work, we propose Quantum Hamiltonian Descent as a genuine quantum counterpart of
+classical gradient descent through a path-integral quantization of classical algorithms. Similar to
+classical GD, QHD is simple and efficient to implement on quantum computers. It leverages the
+quantum tunneling effect to escape from spurious local minima and has a superior performance
+than the standard quantum adiabatic algorithm, so we believe it could replace the role of classical
+GD in many optimization algorithms. Moreover, with the newly developed Hamiltonian embedding
+technique, we conduct a large-scale empirical study of QHD on non-convex quadratic programming
+instances up to 75 dimensions via an analog implementation of QHD on the D-Wave instantiation
+of a quantum Ising Hamiltonian simulator. We believe that QHD could be readily used as a
+benchmark algorithm for other quantum (e.g., [22, 38]) or semi-quantum analog devices (e.g., [16])
+for both testing the quality of these devices and conducting more empirical study of QHD.
+
+Acknowledgment
+We thank Christian Borgs, Lei Fan, Shruti Puri, Andre Wibisono, Aram Harrow, Kyle Booth,
+Peter McMahon, Tamas Terlaky, Daniel Lidar, Wuchen Li, and Tongyang Li for helpful discussions
+at various stages of the development of this project.
+9
+
+References
+[1] Michael Betancourt, Michael I Jordan, and Ashia C Wilson, On symplectic optimization, 2018,
+arXiv:1802.03653.
+[2] Sergio Boixo, Troels F Rønnow, Sergei V Isakov, Zhihui Wang, David Wecker, Daniel A Lidar,
+John M Martinis, and Matthias Troyer, Evidence for quantum annealing with more than one
+hundred qubits, Nature physics 10 (2014), no. 3, 218–224.
+[3] Fernando GSL Brandao and Krysta M Svore, Quantum speed-ups for solving semidefinite
+programs, 2017 IEEE 58th Annual Symposium on Foundations of Computer Science (FOCS),
+pp. 415–426, IEEE, 2017.
+[4] Samuel Burer and Adam N Letchford, On nonconvex quadratic programming with box constraints, SIAM Journal on Optimization 20 (2009), no. 2, 1073–1089.
+[5] Samuel Burer and Adam N Letchford, Non-convex mixed-integer nonlinear programming: A
+survey, Surveys in Operations Research and Management Science 17 (2012), no. 2, 97–106.
+[6] Shouvanik Chakrabarti, Andrew M Childs, Tongyang Li, and Xiaodi Wu, Quantum algorithms
+and lower bounds for convex optimization, Quantum 4 (2020), 221.
+[7] Jiasi Chen and Xukan Ran, Deep learning with edge computing: A review, Proceedings of the
+IEEE 107 (2019), no. 8, 1655–1674.
+[8] Jeffrey Cohen, Alex Khan, and Clark Alexander, Portfolio optimization of 60 stocks using
+classical and quantum algorithms, 2020, arXiv:2008.08669.
+[9] IBM ILOG CPLEX, V12. 1: User’s manual for CPLEX, International Business Machines
+Corporation 46 (2009), no. 53, 157.
+[10] Zdenek Dostál, Optimal quadratic programming algorithms: with applications to variational
+inequalities, vol. 23, Springer Science & Business Media, 2009.
+[11] Edward Farhi, Jeffrey Goldstone, Sam Gutmann, Joshua Lapan, Andrew Lundgren, and
+Daniel Preda, A quantum adiabatic evolution algorithm applied to random instances of an
+NP-complete problem, Science 292 (2001), no. 5516, 472–475.
+[12] Fabio Furini, Emiliano Traversi, Pietro Belotti, Antonio Frangioni, Ambros Gleixner, Nick
+Gould, Leo Liberti, Andrea Lodi, Ruth Misener, Hans Mittelmann, et al., QPLIB: a library of
+quadratic programming instances, Mathematical Programming Computation 11 (2019), no. 2,
+237–265.
+[13] Philip E Gill, Walter Murray, and Michael A Saunders, Snopt: An SQP algorithm for largescale constrained optimization, SIAM Review 47 (2005), no. 1, 99–131.
+[14] Xavier Glorot and Yoshua Bengio, Understanding the difficulty of training deep feedforward
+neural networks, Proceedings of the thirteenth international conference on artificial intelligence
+and statistics, pp. 249–256, JMLR Workshop and Conference Proceedings, 2010.
+[15] Gurobi Optimization, LLC, Gurobi optimizer reference manual, 2022.
+
+10
+
+[16] Takahiro Inagaki, Yoshitaka Haribara, Koji Igarashi, Tomohiro Sonobe, Shuhei Tamate, Toshimori Honjo, Alireza Marandi, Peter L McMahon, Takeshi Umeki, Koji Enbutsu, et al., A
+coherent Ising machine for 2000-node optimization problems, Science 354 (2016), no. 6312,
+603–606.
+[17] D-Wave Systems Inc., D-Wave Solver Documentation, 2021, QPU-Specific Characteristics.
+[18] D-Wave Systems Inc., D-Wave System Documentation, 2021, https://docs.dwavesys.com/
+docs/latest/index.html.
+[19] Prateek Jain, Purushottam Kar, et al., Non-convex optimization for machine learning, Foundations and Trends in Machine Learning 10 (2017), no. 3-4, 142–363.
+[20] Amir Kalev, Tongyang Li, Cedric Yen-Yu Lin, Krysta M Svore, Xiaodi Wu, et al., Quantum sdp solvers: Large speed-ups, optimality, and applications to quantum learning, Leibniz
+international proceedings in informatics (2019).
+[21] Yoshiaki Kawajir, Carl Laird, and A Wachter, Introduction to Ipopt: A tutorial for downloading, installing, and using Ipopt, Tech. report, Tech. Rep., Carnegie Mellon University, 2006.
+[22] Nathan Killoran, Josh Izaac, Nicolás Quesada, Ville Bergholm, Matthew Amy, and Christian
+Weedbrook, Strawberry Fields: A software platform for photonic quantum computing, Quantum 3 (2019), 129, arXiv:1804.03159.
+[23] Yann LeCun, Yoshua Bengio, and Geoffrey Hinton, Deep learning, Nature 521 (2015), no. 7553,
+436–444.
+[24] Tongyang Li, Shouvanik Chakrabarti, and Xiaodi Wu, Sublinear quantum algorithms for
+training linear and kernel-based classifiers, International Conference on Machine Learning,
+pp. 3815–3824, PMLR, 2019.
+[25] Keith W Morton and David Francis Mayers, Numerical solution of partial differential equations: an introduction, Cambridge University Press, 2005.
+[26] Gheorghe Nenciu, Linear adiabatic theory. Exponential estimates, Communications in Mathematical Physics 152 (1993), no. 3, 479–496.
+[27] Jorge Nocedal and Stephen J Wright, Numerical optimization, Springer, 1999.
+[28] Jaehyun Park and Stephen Boyd, General heuristics for nonconvex quadratically constrained
+quadratic programming, 2017, arXiv:1703.07870.
+[29] Thomas Potok et al., Adiabatic quantum linear regression, Scientific Reports 11 (2021), no. 1,
+1–10.
+[30] Patrick Rebentrost, Maria Schuld, Leonard Wossnig, Francesco Petruccione, and Seth Lloyd,
+Quantum gradient descent and Newton’s method for constrained polynomial optimization, New
+Journal of Physics 21 (2019), no. 7, 073023.
+[31] Troels F Rønnow, Zhihui Wang, Joshua Job, Sergio Boixo, Sergei V Isakov, David Wecker,
+John M Martinis, Daniel A Lidar, and Matthias Troyer, Defining and detecting quantum
+speedup, Science 345 (2014), no. 6195, 420–424.
+
+11
+
+[32] Sebastian Ruder,
+arXiv:1609.04747.
+
+An overview of gradient descent optimization algorithms,
+
+2016,
+
+[33] Itay Safran and Ohad Shamir, Spurious local minima are common in two-layer Relu neural
+networks, International Conference on Machine Learning, pp. 4433–4441, PMLR, 2018.
+[34] Joran van Apeldoorn, András Gilyén, Sander Gribling, and Ronald de Wolf, Convex optimization using quantum oracles, Quantum 4 (2020), 220.
+[35] Joran Van Apeldoorn, András Gilyén, Sander Gribling, and Ronald de Wolf, Quantum SDPsolvers: Better upper and lower bounds, Quantum 4 (2020), 230.
+[36] E Weinan, Machine learning and computational mathematics, 2020, arXiv:2009.14596.
+[37] Andre Wibisono, Ashia C Wilson, and Michael I Jordan, A variational perspective on accelerated methods in optimization, Proceedings of the National Academy of Sciences 113 (2016),
+no. 47, E7351–E7358.
+[38] Jonathan Wurtz, Pedro Lopes, Nathan Gemelke, Alexander Keesling, and Shengtao Wang,
+Industry applications of neutral-atom quantum computing solving independent set problems,
+2022, arXiv:2205.08500.
+[39] Chenyi Zhang, Jiaqi Leng, and Tongyang Li, Quantum algorithms for escaping from saddle
+points, Quantum 5 (2021), 529.
+
+12
+
+Supplementary Materials
+Table of Contents
+A Derivation of QHD
+A.1 Review of the Bregman-Lagrangian framework . . . . . . . . . . . . . . . . . . . . .
+A.2 Derivation of QHD . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+A.3 Time dilation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+15
+15
+16
+19
+
+B Convergence of QHD
+B.1 Fast convergence in the convex case . . . . . . . . . . . . . . . . . . . . . . . . . . .
+B.2 Global convergence in the non-convex case . . . . . . . . . . . . . . . . . . . . . . . .
+B.3 QHD for quadratic model functions . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+20
+21
+23
+27
+
+C Quantum and Classical Algorithms for Nonconvex Problems
+C.1 Test problems . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+C.2 Quantum algorithms . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+C.2.1 Quantum Hamiltonian Descent (QHD) . . . . . . . . . . . . . . . . . . . . . .
+C.2.2 Quantum Adiabatic Algorithm (QAA) . . . . . . . . . . . . . . . . . . . . . .
+C.3 Classical algorithms . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+C.3.1 Nesterov’s accelerated gradient descent algrothms (NAGD) . . . . . . . . . .
+C.3.2 Stochastic Gradient Descent (SGD) . . . . . . . . . . . . . . . . . . . . . . .
+C.4 Experiment results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+30
+30
+31
+31
+32
+34
+34
+34
+36
+
+D Three Phases in QHD
+D.1 Probability spectrum of QHD . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+D.2 Three phases in QHD . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+D.3 Quantitative analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+D.3.1 Suppressed probability transition in the kinetic and descent phase . . . . . .
+D.3.2 Energy ratio and phase transitions . . . . . . . . . . . . . . . . . . . . . . . .
+D.4 Comparison with QAA . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+37
+37
+38
+39
+39
+40
+41
+
+E Digital Implementation of QHD
+42
+E.1 Implementing QHD using product formulae . . . . . . . . . . . . . . . . . . . . . . . 43
+E.2 Asymptotic complexity . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 44
+F Analog Implementation of QHD for quadratic programming
+F.1 Quantum Ising Machines . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+F.2 Implementing QHD on Quantum Ising Machines . . . . . . . . . . . . . . . . . . . .
+F.2.1 Finite difference discretization of PDEs . . . . . . . . . . . . . . . . . . . . .
+F.2.2 A relaxed implementation of QHD for quadratic programming . . . . . . . .
+F.3 Theory of analog implementation . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+F.3.1 Subspace encoding . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+F.3.2 Hamming encoding . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+F.3.3 Time-energy rescaling . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+F.3.4 Reconstructing quantum distribution . . . . . . . . . . . . . . . . . . . . . . .
+F.3.5 Correctness of our analog implementation . . . . . . . . . . . . . . . . . . . .
+F.4 Hamming encoding v.s. Radix-2 encoding: a case study . . . . . . . . . . . . . . . .
+13
+
+45
+45
+46
+46
+48
+51
+51
+52
+57
+57
+59
+59
+
+G Quadratic Programming on D-Wave
+G.1 Test problems . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+G.2 Optimization solvers and metric of performance . . . . . . . . . . . . . . . . . . . . .
+G.3 Details of the D-Wave quantum computer . . . . . . . . . . . . . . . . . . . . . . . .
+G.4 QUBO format of quadratic programming . . . . . . . . . . . . . . . . . . . . . . . .
+G.5 Details of the implementation of DW-QHD and DW-QAA . . . . . . . . . . . . . . .
+G.6 Experiment results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+G.7 Limitations of the D-Wave implementation of QHD . . . . . . . . . . . . . . . . . . .
+G.8 Resource analysis for digital and analog implementation . . . . . . . . . . . . . . . .
+
+14
+
+60
+60
+61
+61
+63
+63
+66
+66
+67
+
+A
+
+Derivation of QHD
+
+A.1
+
+Review of the Bregman-Lagrangian framework
+
+The Bregman-Lagrangian framework is a variational formulation for accelerated gradient methods
+proposed by Wibisono, Wilson and Jordan [90]. This framework is formulated using Lagrangian
+mechanics. By defining the Lagrangian function
+
+
+
+
+ 1 −α
+
+2
+βt
+t
+
+L(X, Ẋ, t) = eαt +γt 
+ 2 |e Ẋ| − e| f{z(X)}  ,
+| {z } potential energy
+
+(A.1)
+
+kinetic energy
+
+where t ≥ 0 is the time, X ∈ Rd is the position, Ẋ ∈ Rd is the velocity, and αt , βt , γt are arbitrary
+smooth functions that control the damping of energy in the system.
+Lagrangian mechanics is formulated by variational principle. For a trajectory of motion
+X(t) : [0, T ] → Rd , we define a functional S as the action of this trajectory
+Z T
+S[X(t)] =
+
+L(X, Ẋ, t) dt,
+
+(A.2)
+
+0
+
+where L is the Lagrangian of the system. A physical path X(t) from a to b is the curve X(t) such
+that X(0) = a, X(T ) = b, and it minimizes the action functional S[X(t)]. By calculus of variations,
+a least-action curve necessarily solves the Euler-Lagrange equation
+
+
+d ∂L
+∂L
+−
+= 0.
+(A.3)
+dt ∂ Ẋ
+∂X
+With the Lagrangian function (A.1), the resulting Euler-Lagrange equation is a second-order
+differential eqaution,
+Ẍ + (γ̇t − α̇t )Ẋ + e2αt +βt ∇f (X) = 0.
+
+(A.4)
+
+The convergence of the Bregman-Lagrangian framework for continuously differentiable convex
+functions is established by constructing a Lyapunov function. Suppose the global minimizer of f
+is x∗ , we define the following function Et :
+Et =
+
+2
+1 −γt
+e Ẋt + Xt − x∗ + eβt (f (Xt ) − f (x∗ )) .
+2
+
+(A.5)
+
+When f is convex, it is shown that Et is a Lyapunov function of (A.4), i.e., non-increasing along
+the solution trajectory Xt . The monotonicity of Et leads to the convergence result [90, Theorem
+2.1],
+f (X(t)) − f (x∗ ) ≤ O(e−βt ).
+
+(A.6)
+
+At a first glance, (A.6) says that any desired convergence rate can be achieved by choosing
+different βt . This is true for continuous-time flows, as different time-dependent parameters αt , βt , γt
+result in the same path in spacetime while converging at different speeds14 . However, it does
+14
+
+This invariance is called “time dilation” and it also holds in the quantum case, see Section A.3.
+
+15
+
+not imply that gradient-based methods generated by this dynamics can achieve any arbitrary
+convergence rate, which contradicts the fact that gradient-based methods can not converge faster
+than O(t−2 ) in the worst case [73]. The devil is in time discretization: when translating the
+ODE model to practical gradient-based algorithms, we have to discretize the continuous time into
+discrete steps. The authors devise a family of gradient-based algorithms via an ad-hoc discretization
+of (A.4), and these algorithms fail to convergence when e−βt decays too fast. This matches our
+intuition that gradient-based optimization is bounded in convergence rate.
+It is worth noting that the variational framework in [90] can be reformulated via Hamiltonian
+mechanics. The Lagrangian system is equivalently described by its Hamiltonian, the Legendre
+conjugate of the Lagrangian. In particular, the Hamiltonian corresponding to (A.1) takes the
+formal
+
+
+ 1 −γ 2
+
+βt
+t
+,
+H(X, P, t) = eαt +γt 
+|e
+P
+|
++
+e
+f
+(X)
+2
+
+|
+{z
+}
+| {z } potential energy
+
+(A.7)
+
+kinetic energy
+
+where X is the position, and P is the momentum. This Hamiltonian function has the form of the
+sum of the kinetic and potential energy. The dynamics of the Hamiltonian system is then given by
+the Hamilton’s equations,
+dX
+∂H
+=
+= eαt −γt P,
+dt
+∂P
+dP
+∂H
+=−
+= −eαt +βt +γt ∇f (X).
+dt
+∂X
+
+(A.8a)
+(A.8b)
+
+One can show this system of ODEs is identical to the Euler-Lagrange equation (A.4).
+Besides the variational formulation of accelerated gradient descent in [90], Maddison et. al. [67]
+propose a family of gradient-based methods via discretizations of conformal Hamiltonian dynamics,
+known as Hamiltonian descent methods. This framework assumes an additional access to a kinetic
+energy k that incorporates information about f . The resulting continuous-time trajectories achieve
+linear convergence on convex functions: f (xt ) − f (x∗ ) ≤ O(e−ct ), where c depends on k and f .
+They consider one implicit and two explicit discretization schemes in order to obtain gradient-based
+optimization algorithms. These algorithms exhibit similar convergence rates as the continuous-time
+flows.
+
+A.2
+
+Derivation of QHD
+
+Now, we quantize the Lagrangian formulation of accelerated gradient methods by introducing the
+path integral formulation of quantum mechanics. For simplicity, the derivation works with a onedimensional objective function f : R → R, while the generalization to higher dimensions is trivial.
+In classical mechanics, only the curves that solve the Euler-Lagrange equation are of interests
+because they are predicted by the variational principle. All other curves are considered “unphysical”
+because they are not stationary points of the action function S[X(t)].
+For quantum mechanics, however, Feynman postulates that not only the “physical” trajectory
+but all trajectories contribute to the quantum evolution. These trajectories contribute equal magnitudes but different phases to the total amplitude. More precisely, the probability to go from
+a point a at time ta to the point b at time tb is P (b, a) = |K(b, tb ; a, ta )|2 , where the amplitude
+function K(b, tb ; a, ta ) is the sum of contributions of all paths from a to b:
+16
+
+X
+
+K(b, tb ; a, ta ) ∝
+
+e(i/~)S[X(t)] .
+
+(A.9)
+
+paths from a to b
+
+Here, i is the imaginary unit and ~ is the Planck constant. The amplitude K(b, tb ; a, ta ) is also
+known as the propagator of the quantum dynamics because it can be used to compute the evolution
+of the wave function from ta to tb :
+Z
+K(x, tb ; y, ta )Ψ(y, ta ) dy.
+
+Ψ(x, tb ) =
+
+(A.10)
+
+R
+
+To quantize accelerated gradient methods, we begin with the Lagrangian formulation,
+
+L(X, Ẋ, t) = e
+
+−ϕt
+
+
+
+1
+|Ẋ|2
+2
+
+
+
+− eχt f (X),
+
+(A.11)
+
+where ϕt and χt are time-dependent functions that control the energy dissipation in the system.15
+Suppose the quantum particle at time t is described by the wave function Ψ(x, t). To get an
+differential equation of Ψ(x, t), we consider an infinitesimal time interval [t, t + ]. In this short
+time, the action S[X(t)] is approximately  times the Lagrangian,
+
+S[X(t)] = L
+
+
+a+b b−a
+,
+,t ,
+2
+
+
+(A.12)
+
+which is correct correct to first order in  [53, 2.5]. And the propagator can be evaluated by
+
+
+
+1
+i
+x+y x−y
+K(x, t + ; y, t) = exp
+L
+,
+,t ,
+A
+~
+2
+
+
+(A.13)
+
+where A is a normalization factor that will be specified later. Plugging (A.13) into the (A.10), we
+obtain the following equation:
+1
+Ψ(x, t + ) =
+A
+
+Z ∞
+
+
+
+i
+exp
+L
+~
+−∞
+
+
+
+
+x+y x−y
+,
+, t Ψ(y, t) dy.
+2
+
+
+(A.14)
+
+In the infinitesimal time interval, the smooth time-dependent functions ϕt , χt in (A.11) can
+be treated as constant functions. We plug the optimization Lagrangian (A.11) into (A.14), and
+introduce the change of variable y = x + η. It follows that,
+1
+Ψ(x, t + ) =
+A
+
+Z ∞
+
+i e−ϕt η 2
+exp
+~ 2
+−∞
+
+
+
+
+
+
+i 
+η 
+exp − f x + , t Ψ(x + η, t) dη.
+~
+2
+
+(A.15)
+
+15
+In [90], the authors introduced three time-dependent functions αt , βt , γt in the Bregman Lagrangian framework.
+Here, we use a simplified description with only two time-dependent parameters. The original formulation can be
+recovered by setting ϕt = αt − γt , χt = αt + βt + γt .
+
+17
+
+Note that we absorb the eχt coefficient into potential field f (x) and write them simply as f (x, t).
+Then, we expand the wave function Ψ to first order in  and second order in η. Note that the term
+f (x + η/2, t) is replaced by f (x, t) since the error term is of higher order than . It turns out that
+ −ϕt 2  
+
+
+Z
+ie η
+i
+∂Ψ
+1 ∞
+∂Ψ η 2 ∂ 2 Ψ
+exp
+1 − f (x, t) Ψ(x, t) + η
+dη. (A.16)
+Ψ(x, t) + 
+=
++
+∂t
+A −∞
+~ 2
+~
+∂x
+2 ∂x2
+On the left-hand side of (A.16), the O(0 )16 term is Ψ(x, t); meanwhile, the O(0 ) term on the
+right-hand side is Ψ(x, t) times the coefficient:
+ −ϕt 2 
+Z
+1 ∞
+ie η
+1
+exp
+dη = (2πi~eϕt )1/2 .
+(A.17)
+A −∞
+~ 2
+A
+To match the O(0 ) term on both sides of (A.16), we must have the coefficient (A.17) equal to 1,
+i.e., A = (2πi~eϕt )1/2 .
+Next, we match the higher order terms in (A.16) (up to O(1 ) and O(η 2 )). With some algebraic
+manipulation, we end up with
+
+
+
+∂Ψ
+∂Ψ
+∂2Ψ
+= C1
++ C2 2 + C3 f Ψ,
+∂t
+∂x
+∂x
+
+(A.18)
+
+where the coefficients C1 , C2 , C3 can be explicitly evaluated:
+Z
+
+1
+C1 =
+η exp ie−ϕt η 2 /2~ dη = 0,
+A R
+Z 2
+
+1
+η
+1
+C2 =
+exp ie−ϕt η 2 /2~ dη = i~eϕt ,
+A R 2
+2
+i
+C3 = − .
+~
+
+(A.19)
+(A.20)
+(A.21)
+
+Substituting the coefficients C1 , C2 , C3 to (A.18), we obtain the QHD dynamics described by
+the Schrödinger equation,
+
+  2 2 
+∂Ψ
+~ ∂
+ϕt
+χt
+i~
+−
+= e
++ e f (x) Ψ,
+∂t
+2 ∂x2
+
+(A.22)
+
+which defines the QHD dynamics.
+2
+
+In higher dimensions, the kinetic operator will be replaced by − ~2 ∇2 . We set ~ = 1, and the
+general QHD Hamiltonian operator is given by
+
+Ĥ(t) = e
+
+ϕt
+
+
+
+1 2
+− ∇ + eχt f (x).
+2
+
+(A.23)
+
+In the rest of the paper, we sometimes also consider the QHD with three time-dependent
+parameters,
+
+
+1 2
+αt −γt
+(A.24)
+Ĥ(t) = e
+− ∇ + eαt +βt +γt f (x),
+2
+16
+
+We use O(k ) to indicate the correction terms in the infinitesimal expansion (A.16). For example, O(0 ) means
+constant term, O(1 ) means the first-order correction term, etc.
+
+18
+
+where the parameters αt , βt , and γt satisfy the ideal scaling condition:
+β̇t ≤ eαt ,
+
+(A.25a)
+
+αt
+
+(A.25b)
+
+γ̇t = e .
+
+This setting is closely related to classical accelerated gradient descent because it has the same
+time-dependent parameters as in the variational formulation in [90]; see (A.7). As we will show in
+Section C, quantum and classical gradient descent have radically different behavior even with the
+same time-dependent parameters.
+The QHD Hamiltonian can be seen as a weighted sum of the kinetic and potential operator. The
+time-dependent functions ϕt and χt contribute to the limiting behavior of this quantum system.
+If these functions are constant in time, the system Hamiltonian Ĥ(t) is time-independent and the
+system energy is conserved. In this case, the wave function is indefinitely oscillatory. This is not
+what we want: as the word “descent” suggests, we want to gradually drain out the kinetic energy
+from the system so that the quantum particle will eventually land still on the rock bottom of the
+potential landscape f (x). To achieve this goal, we will consider ϕt as a decreasing function and χt
+as an increasing function so that the potential energy will dominate in the long run.
+Connections to Quantum Dynamical Descent (QDD). Verdon et. al. propose the Quantum Dynamical Descent (QDD) algorithm [89], which is formally analogous to our QHD algorithm.
+Given the similarity in their formulation, QHD and QDD have little in common in their intuition, derivation, and application. QDD is devised for quantum parametric optimization, which
+is a special case of continuous optimization. We derive QHD from first principles by quantizing
+the Bregman-Lagrangian framework, while QDD is constructed by heuristics. We have a systematic theoretical study of QHD, including the convergence for convex and non-convex problems;
+the analysis of QDD is bound to the adiabatic approximation framework. Moreover, we conduct
+a large-scale empirical study of QHD based on analog implementation. QDD is implemented on
+digital quantum computers as like a variational quantum algorithm. To our best knowledge, QDD
+has not been implemented on any real-world quantum computers.
+
+A.3
+
+Time dilation
+
+In this section, we show that QHD is closed under time dilation, i.e., time-dilated QHD evolution
+is also described by the QHD equation, but with different time-dependent parameters. This means
+the continuous-time QHD can converge at any speed along the same evolution path. This result
+generalizes [90, Theorem 2.2].
+The quantum evolution Ψ(x, t) for t ∈ [0, T ] forms a curve in the Hilbert space L2 (Rd ). We
+introduce a smooth increasing function τ : [0, T ] → R to represent the reparametrization of time.
+The reparametrized wave function is
+e
+Ψ(x,
+t) := Ψ(x, τ (t)),
+
+(A.26)
+
+which is the same curve in the Hilbert space L2 (Rd ) but with a different speed.
+d
+Proposition 1 (Time dilation). If Ψ(x, t) satisfies the Schrödinger equation i dt
+|Ψt i = H(t) |Ψt i
+with the QHD Hamiltonian
+
+
+1 2
+ϕt
+H(t) = e
+− ∇ + eχt f (x),
+(A.27)
+2
+
+19
+
+then the
+E reparametrized
+E wave function Ψ̃(x, t) defined as in (A.26) satisfies the Schrödinger equation
+d e
+e
+e t with the time-dilated QHD Hamiltonian
+i Ψt = H(t)
+Ψ
+dt
+
+
+
+1 2
+ϕτt +log(τ̇ )
+e
+H(t) = e
+− ∇ + eχτt +log(τ̇ ) f (x).
+2
+
+(A.28)
+
+Proof.
+i
+
+d
+d e
+d
+dτ
+Ψ(x, t) = i Ψ(x, τ (t)) = i Ψ(x, τ (t))
+dt
+dt
+dτ
+dt
+= H(τ (t))Ψ(x, τ (t))τ̇ (t)
+e Ψ(x,
+e
+= H(t)
+t),
+
+(A.29)
+(A.30)
+(A.31)
+
+e
+where H(t)
+in (A.31) is the same as (A.28).
+Corollary 1. If we choose ϕt = αt − γt , χt = αt + βt + γt (as in (A.24)), then the rescaled QHD
+Hamiltonian is also described by three parameters:
+α̃t = ατ (t) + log(τ̇ (t))
+
+(A.32a)
+
+β̃t = βτ (t)
+
+(A.32b)
+
+γ̃t = γτ (t) .
+
+(A.32c)
+
+Furthermore, α, β, γ satisfy the ideal scaling condition (A.25) if and only if α̃, β̃, γ̃ do.
+Proof. One can check the corollary by plugging ϕt = αt − γt and χt = αt + βt + γt into (A.28).
+Remark 1. Although we show that QHD convergence speed can be arbitrary fast by dilating the
+time-dependent functions in the QHD Hamiltonian, it does not mean we have a quantum algorithm
+that converges at arbitrary fast rate. Too fast time-dependent functions in QHD can make the
+dynamics unstable in time discretization (in digital implementation) or analog emulation (in analog
+implementation), thus unable to solve the optimization problem.
+
+B
+
+Convergence of QHD
+
+In this section, we discuss the convergence of QHD for optimization problems. In Section B.1, we
+show that QHD has fast convergence in convex optimization problems. This quantum convergence
+can be seen as a generalization of the classical convergence rate of accelerated gradient descent
+algorithms [90]. Besides the convex case, we also prove a global convergence result for QHD
+under mild assumptions of the objective f , see Section B.2. To our best knowledge, the global
+convergence behavior is not observed in the classical counterpart of QHD. Both convergence results
+in this section are formulated in continuous time.
+
+20
+
+Notations.
+
+We denote the position and momentum operators as (choosing ~ = 1):
+x̂ = x, p̂ = −i∇.
+
+(B.1)
+
+Given a quantum observable Ô, its expectation value at time t with respect to the quantum wave
+function |Ψt i is computed by
+E Z
+D
+hÔit := Ψt Ô Ψt = Ψ(t, x)ÔΨ(t, x) dx.
+(B.2)
+In particular, when Ô = f (x) is the objective function, we define
+E[f ]∼Ψt := hf it
+
+(B.3)
+
+as the (average) loss function at time t.
+
+B.1
+
+Fast convergence in the convex case
+
+To recover the convergence rate shown in [90] for QHD, we consider the QHD Hamiltonian with
+three parameters (A.24) and these parameters satisfy the ideal scaling condition (A.25).
+Theorem 1. Assume that f is a continuously differentiable convex function and the ideal scaling
+condition (A.25) holds. Let x∗ be the unique local minimizer of f . Then, for any smooth initial wave
+function |Ψ0 i, the solution |Ψt i to the Schrödinger equation i |Ψt i = Ĥ(t) |Ψt i with Hamiltonian
+(A.24) satisfies
+E[f ]∼Ψt − f (x∗ ) ≤ O(e−βt ).
+
+(B.4)
+
+Proof. Without loss of generality, we may assume x∗ = 0 and f (x∗ ) = 0. It suffices to prove that
+E[f ]∼Ψt ≤ O(e−βt ).
+
+(B.5)
+
+We take a Lyapunov function approach to prove Theorem 1. We construct the following quantum
+Lyapunov function:
+W(t) = hJˆ2 /2it + eβt hf it ,
+
+(B.6)
+
+in which we introduce the new operator Jˆ := e−γt p̂ + x̂. Jˆ is a legal quantum observable because
+both p̂ and x̂ are Hermitian operators. In Proposition 2, we show that W(t) ≤ W(0) for any t ≥ 0.
+Meanwhile, notice that Jˆ2 /2 is a positive-definite operator, so hJˆ2 /2it ≥ 0, and we have:
+eβt E[f ]∼Ψt ≤ W(t) ≤ W(0),
+
+(B.7)
+
+E[f ]∼Ψt ≤ W(0)e−βt ≤ O(e−βt ).
+
+(B.8)
+
+or equivalently,
+
+Lemma 1. Given a (time-dependent) quantum observable Ô(t) and let |Ψt i be the solution of the
+Schrödinger equation i |Ψt i = Ĥ(t) |Ψt i, we have
+d
+d
+hÔ(t)it = h Ô(t)it + hi[Ĥ(t), Ô(t)]it .
+dt
+dt
+21
+
+(B.9)
+
+Proof.
+E
+d
+d D
+hÔ(t)it =
+Ψt Ô(t) Ψt
+dt
+dt
+
+D
+E D
+E 
+d
+= Ψ̇t Ô(t) Ψt + Ψt Ô(t) Ψ̇t + Ψ̇t
+Ô(t) Ψt
+dt
+E
+E
+D
+D
+d
+= i Ψt Ĥ(t)Ô(t) Ψt − i Ψt Ô(t)Ĥ(t) Ψt + h Ô(t)it
+dt
+E
+D
+d
+= Ψt i[Ĥ(t), Ô(t)] Ψt + h Ô(t)it .
+dt
+
+(B.10)
+(B.11)
+(B.12)
+(B.13)
+
+Lemma 2 (Commutation relations). Let x̂, p̂ be the position and momentum operators, we have
+i[p̂2 , x̂2 ] = 4x̂p̂ − 2i,
+2
+
+2
+
+(B.14a)
+
+i[p̂ , x̂p̂] = 2p̂ ,
+
+(B.14b)
+
+i[f, x̂p̂] = −x̂ · ∇f.
+
+(B.14c)
+
+Proof. We note that [x̂, p̂] = i, or equivalently, p̂x̂ = x̂p̂ − i. To show (B.14a), we compute:
+
+
+i[p̂2 , x̂2 ] = i p̂2 x̂2 − x̂2 p̂2 = i p̂(x̂p̂ − i)x̂ − x̂2 p̂2
+
+= i p̂x̂(x̂p̂ − i) − ip̂x̂ − x̂2 p̂2
+
+= i p̂x̂2 p̂ − 2ip̂x̂ − x̂2 p̂2
+
+= i (x̂p̂ − i)x̂p̂ − 2ip̂x̂ − x̂2 p̂2
+
+= i x̂(x̂p̂ − i)p̂ − ix̂p̂ − 2ip̂x̂ − x̂2 p̂2
+= 2x̂p̂ + 2p̂x̂ = 4x̂p̂ − 2i.
+Similarly, one can exploit the commutation relation of x̂ and p̂ to show (B.14b). To show
+(B.14c), we introduce a smooth L2 test function ϕ:
+i[f, x̂p̂]ϕ = i (f x̂(−i∇)ϕ − x̂(−i∇)(f ϕ))
+= f x̂∇ϕ − x̂ (∇f ϕ + f ∇ϕ)
+= −x̂∇f ϕ,
+so it follows that i[f, x̂p̂] = −x̂∇f .
+Proposition 2. The function W(t) is non-increasing in time, i.e., W(t) ≤ W(0) for any t ≥ 0.
+Proof. By Lemma 1, we have
+d
+d
+W(t) = he−2γt p̂2 /2 + x̂2 /2 + e−γt (x̂p̂ − i/2) + eβt f it
+dt
+dt
+= h−γ̇t e−2γt (p̂2 ) − γ̇t e−γt (x̂p̂ − i/2) + β̇t eβt f it
++ hi[H(t), e−2γt p̂2 /2 + x̂2 /2 + e−γt (x̂p̂ − i/2) + eβt f ]it ,
+
+22
+
+(B.15)
+(B.16)
+(B.17)
+
+where H(t) = eαt −γt p̂2 /2 + eαt +βt +γt f is the QHD Hamiltonian as in (A.24). We expand the
+commutator (B.17) and simplify it using Lemma 2:
+i[H(t), e−2γt p̂2 /2 + x̂2 /2 + e−γt (x̂p̂ − i/2) + eβt f ]
+1
+
+1
+αt +β
+t −γ
+t
+
+
+= i e
+[f,
+p̂2 ] + eαt −γt [p̂2 , x̂2 ]
+
+
+2
+4
+
+
+1 αt −2γt 2
+1 αt +βt −γ
+t
+[p̂ , x̂p̂] + eαt +βt [f, x̂p̂] + e
+[p̂2 , f ]
++ e
+
+
+2
+2
+αt −γt
+αt −2γt 2
+αt +βt
+=e
+(x̂p̂ − i/2) + e
+p̂ + e
+(−x̂ · ∇f ) .
+
+(B.18)
+(B.19)
+(B.20)
+(B.21)
+
+Inserting (B.21) into (B.17), we have:
+
+
+d
+W(t) = (eαt − γ̇t ) e−2γt hp̂2 it + e−γt hx̂p̂ − i/2it + β̇t eβt hf it + eαt +βt h−x̂ · ∇f it .
+dt
+
+(B.22)
+
+By the ideal scaling condition (A.25), we have eαt − γ̇t = 0 and β̇t ≤ eαt , therefore, we have
+d
+W(t) ≤ eαt +βt hf − x · ∇f it .
+dt
+
+(B.23)
+
+Note that f is continuously differentiable and convex, and x∗ = 0, we have f (x) ≤ x · ∇f (x) for
+d
+any x ∈ Rd . We conclude that dt
+W(t) ≤ 0,
+
+B.2
+
+Global convergence in the non-convex case
+
+Non-convex optimization problems usually have many local minimum, and the theoretical result for
+convex problems does not naturally generalize. Nevertheless, we can prove the global convergence
+of QHD for non-convex problems under certain realistic assumptions.
+In this section, we consider the QHD Hamiltonian with two parameters (A.23) because the
+convergence rate is not guaranteed for non-convex problems. Also, for simplicity, we only consider
+the one-dimensional case, i.e., f : R → R. However, our argument is readily generalized to arbitrary
+finite dimensions. We denote ΠN (t) as the orthogonal projection onto the subspace spanned by the
+first N eigenstates of the operator Ĥ(t), given a fixed positive integer N .
+Assumption 1. The objective function f is continuously differentiable, unbounded at infinity, and
+has a unique global minimum at x∗ . Without loss of generality, we assume f (x∗ ) = 0.
+Assumption 2. The time-dependent parameters are slow-varying in time (i.e., |ϕ̇t |,|χ̇t |  1) and
+limt→∞ eϕt −χt = 0. The Hamiltonian Ĥ(t) has no crossing eigenvalues for t ≥ 0. Moreover,
+the semi-classical approximation holds. This means that in the regime eϕt −χt  1, the first N
+eigenstates of Ĥ(t) are approximated by the first N eigenstates of the quantum Harmonic oscillator:
+
+
+1
+eχt 00 ∗
+ĤHO := eϕt − ∇2 +
+f (x )(x − x∗ )2 .
+(B.24)
+2
+2
+Remark 2. In what follows, we will call fq := f (x∗ ) + 21 f 00 (x∗ )(x − x∗ )2 as the quadratic model of
+the function f .
+Assumption 3. The initial wave function |Ψ0 i is in the low-energy subspace of the QHD Hamiltonian at t = 0, i.e.,
+ΠN (0) |Ψ0 i = |Ψ0 i .
+23
+
+(B.25)
+
+Now, we justify why the assumptions we made are realistic for many non-convex optimization
+problems.
+• Assumption 1 is a very standard assumption on the objective function in optimization theory.
+We assume f (x) has a unique global minimum to avoid degenerate cases when we do semiclassical approximation. It is worth mentioning that the uniqueness of global minimum is
+just a technical assumption and it does not mean QHD can not solve optimization problems
+with multiple global minima!
+• The semi-classical approximation in Assumption 2 is a well-known result in the spectral
+theory of Schrödinger operators. For a Schrödinger operator H = −~∆ + ~1 f , it is shown that
+when ~ → 0, the low-energy spectrum is well approximated by that of a quantum harmonic
+oscillator H 0 = −~∆ + ~1 fq (i.e., the potential field f is replaced by its quadratic model), see
+[59, Theorem 11.3, informal]. In our assumption, we take a stronger form so not only the
+low-energy spectrum but also the low-energy eigenstates of H are approximated by those of
+H 0 as well. In Figure 5, we show the low-energy subspace of the Schrödinger operator H and
+its semi-classical limit H 0 . The numerical evidence suggests that our assumption is valid in
+practical problems.
+• Though it is difficult to prepare |Ψ0 i to satisfy Assumption 3 without enough knowledge of
+f , we observe that (I − ΠN (0)) |Ψ0 i is often very small for N ≈ 10. For example, in our 2D
+experiments, we usually have k(I − ΠN (0)) |Ψ0 i k ≤ 10−4 for |Ψ0 i as a uniform superposition
+state. The reason is that the eigenstates of Ĥ(0) form a complete basis set, so it is always
+possible to find an integer N such that the projection of |Ψ0 i onto the low-energy subspace
+is close enough to |Ψ0 i itself.
+
+Figure 5: The low-energy subspace of the Schrödinger operator, illustrated with Levy function f and its
+quadratic model fq . The ground state, the first excited state, and the second excited eigenstate of the
+Schrödinger operator are plotted for ~ = 0.1, 0.01. When ~ is small, it is clear that the low-energy subspae
+of the Schrödinger operator converges to its semi-classical limit (i.e., with the quadratic model as potential
+field).
+
+Theorem 2. Suppose Assumption 1, Assumption 2, and Assumption 3 are satisfied. Then, QHD
+will converge to the global minimum of f when t is large enough, i.e.,
+lim E[f ]∼Ψt = f (x∗ ).
+
+t→∞
+
+(B.26)
+
+Remark 3. In the proof of the theorem, we invoke the adiabatic approximation. Since the same
+technique is also used in the analysis of Quantum Adiabatic Algorithm (QAA)17 , we are no worse
+17
+
+For more details, see Section C.2.2.
+
+24
+
+than QAA (in terms of convergence time) in the worst case. In fact, as [72] suggests, QHD is likely
+to converge much faster than the standard QAA because the QHD Hamiltonian is more regular.
+Proof. Since f is continuously differentiable and unbounded at infinity, by [59, Theorem 10.7], the
+spectrum of Ĥ(t) is purely discrete for all t ≥ 0. Denote the eigen-pairs of H(t) by {En (t), |n; ti}n .
+We now represent the QHD wave function in this basis:
+X
+cn (t)eiθn (t) |n; ti ,
+(B.27)
+|Ψt i =
+n
+
+where θn (t) are real-valued functions.
+Inserting (B.27) into the Schrödinger equation i∂t |Ψt i = Ĥ(t) |Ψt i, we obtain the following
+equations:
+
+
+ X
+∂
+hm; t| Ḣ |n; ti
+ċm (t) = −cm (t) hm; t|
+cn (t)ei(θn −θm )
+|m; ti −
+.
+∂t
+En (t) − Em (t)
+|
+{z
+} n6=m
+|
+{z
+}
+Part I.
+
+(B.28)
+
+Part II.
+
+No crossing eigenvalues in Ĥ(t) implies thatDEn (t)−Em (t)
+E 6= 0. By the slow-varying assumption
+on the time-dependent parameters, we have m; t Ḣ n; t  1. Now, we invoke the adiabatic
+approximation [83, Section 5.6] and neglect Part
+ ∂ II in (B.28).
+
+As for Part I in (B.28), we note that hm; t| ∂t
+|m; ti is purely imaginary for all m. To see this,
+we differentiate the identity hm; t|m; ti = 1 w.r.t the time t and it turns out that
+
+
+
+∂
+∂
+0=
+hm; t|m; ti = 2 Re hm; t|
+|m; ti .
+(B.29)
+∂t
+∂t
+Therefore, (B.28) is simplified to the following first-order linear ODE:
+ċm (t) = −icm (t)Am (t),
+
+(B.30)
+
+in which Am (t) are real-valued functions. This simplification leads to a closed-form solution for
+cm (t):
+Rt
+
+cm (t) = cm (0)e−i 0 A (s)ds ,
+
+(B.31)
+
+which implies that |cm (t)| = |cm (0)| for all t ≥ 0. Due to Assumption 3, we conclude that |Ψt i
+remains in the low-energy subspace during the evolution:
+X
+|Ψt i =
+cm (t)eiθm (t) |m; ti .
+(B.32)
+m<N
+
+With this finite expansion of |Ψt i, we compute the expectation value:
+X
+X
+E[f ]∼Ψt = hΨt |f |Ψt i =
+|cm |2 hm; t|f |m; ti +
+cm cn e−i(θm −θn ) hm; t|f |n; ti .
+m<N
+
+(B.33)
+
+m6=n
+m,n<N
+
+For large enough t, the parameters eϕt −χt is so small that we can invoke the semi-classical
+approximation. We denote the eigenstates of ĤHO (t) as |en ; ti. By Assumption 2), we approximate
+25
+
+χt
+
+the eigenstates of Ĥ(t) by those of ĤHO (t). We write V = e2 f 00 (x∗ )(x − x∗ )2 , by Lemma 3 (using
+~2 = eϕt ),
+
+
+1 p ϕt +χt 00 ∗
+1
+hm; t|V |m; ti ≈ hem ; t|V |em ; ti =
+f (x ) m +
+.
+(B.34)
+e
+2
+2
+Note that f = e−χt V in the semi-classical limit, then it follows that
+
+
+1 p ϕt −χt 00 ∗
+1
+hm; t|f |m; ti =
+f (x ) m +
+e
+.
+2
+2
+Next, we use the Cauchy-Schwarz inequality to bound the cross terms in (B.33):
+
+ χt
+Z
+e
+2 2
+| hm; t|V |n; ti | =
+em (x)
+ω x en (x) dx
+2
+R
+Z
+ Z
+1/2
+2
+2
+≤
+V |em | dx
+V |en | dx
+R
+
+=
+
+(B.35)
+
+(B.36)
+(B.37)
+
+R
+
+1 p ϕt +χt 00 ∗ p
+f (x ) (m + 1/2)(n + 1/2),
+e
+2
+
+(B.38)
+
+and similarly, we insert f = e−χt V and end up with
+| hm; t|f |n; ti | ≤
+
+1 p ϕt −χt 00 ∗ p
+f (x ) (m + 1/2)(n + 1/2).
+e
+2
+
+Substituting both (B.35) and (B.39) to (B.33), we get an upper bound of E[f ]∼Ψt :
+
+
+
+
+X
+X p
+
+1
+1 p ϕt −χt 00 ∗ 
+f (x ) 
+m+
+e
++
+(m + 1/2)(n + 1/2)
+E[f ]∼Ψt ≤
+
+
+2
+2
+m<N
+
+1 p ϕt −χt 00 ∗
+≤
+e
+f (x )
+2
+
+
+
+(B.39)
+
+(B.40)
+
+m6=n
+m,n<N
+
+1 2 1 3 1 2
+N + N − N
+2
+2
+2
+
+
+=
+
+N 3 p ϕt −χt 00 ∗
+e
+f (x ),
+4
+
+(B.41)
+
+which will converge to the global minimum f (x∗ ) = 0 because N and f 00 (x∗ ) are fixed positive
+numbers and limt→∞ eϕt −χt = 0.
+Lemma 3. Consider the quantum harmonic oscillator
+Ĥ = K̂ + V̂ ,
+2
+
+(B.42)
+
+2
+
+∂
+1 2 2
+where K̂ = − ~2 ∂x
+is the quadratic potential field. We
+2 is the kinetic operator and V̂ = 2 ω x
+∞
+denote the eigenstates of Ĥ as {|en i}n=0 . Then, we have
+
+D
+E D
+E 1 
+1
+en K̂ en = en V̂ en = ~ω n +
+,
+(B.43)
+2
+2
+
+D
+
+E D
+E
+en K̂ en±1 = en V̂ en±1 = 0.
+
+26
+
+(B.44)
+
+Proof. We introduce the ladder operators:
+1
+â± := √
+(∓ip̂ + ωx) ,
+2~ω
+
+(B.45)
+
+∂
+where p̂ = −i ∂x
+is the momemtum operator. The â+ (or â− ) is known as the raising (or lowering)
+operator because
+
+â+ |en i ∝ |en+1 i , â− |en i ∝ |en−1 i .
+And in particular, we have (c.f. [55, Section 2.3])
+â+ â− |en i = n |en i , â− â+ |en i = (n + 1) |en i .
+We use the definition of ladder operators (B.45) to express p̂ and x,
+r
+r
+~ω
+~
+(â+ − â− ) , x =
+(â+ + â− ) .
+p̂ = i
+2
+2ω
+
+(B.46)
+
+(B.47)
+
+We are interested in K̂ and V̂ :
+
+1
+~ω 
+K̂ = p̂2 = −
+(â+ )2 − (â+ â− ) − (â− â+ ) + (â− )2 ,
+2
+4
+
+ω 2 2 ~ω 
+V̂ =
+x =
+(â+ )2 + (â+ â− ) + (â− â+ ) + (â− )2 .
+2
+4
+
+(B.48)
+(B.49)
+
+Note that (â+ )2 in K̂ or V̂ will raise |en i to |en+2 i and thus has no overlap with |en i. Similarly,
+hen | (â− )2 |en i = 0. It turns out that,
+
+
+D
+E ~ω
+~ω
+1
+hen | [(â+ â− ) + (â− â+ )] |en i =
+n+
+.
+(B.50)
+en K̂ en =
+4
+2
+2
+D
+E
+
+1
+Similarly, en V̂ en = ~ω
+2 n+ 2 .
+D
+E
+As for en K̂ en+1 , we note that |Ki maps the state |en+1 i to a linear combination of |en−1 i,
+D
+E
+|en+1 i, and |en+3 i. It has no overlap with the state |en i, thus en K̂ en+1 = 0. The same
+D
+E
+D
+E
+argument applies to show that en K̂ en−1 = 0 and en V̂ en±1 = 0.
+
+B.3
+
+QHD for quadratic model functions
+
+The Schrödinger equation describing QHD is often too complicated to solve analytically. Fortunately, we can find a closed-form solution of QHD when f is a quadratic function. In the following
+calculation, we consider the one-dimensional case f (x) = 21 x2 for simplicity. It is worth noting that
+the same method also applies to general finite-dimensional quadratic forms f (x) = 12 xT Ax with a
+positive semidefinite matrix A18 . It turns out that, if we choose the same time-dependent parameters as in Nesterov’s accelerated gradient descent, the convergence rate is E[f ]∼Ψt = O(t−3 ). This
+rate is at par with the convergence rate of the continuous-time model of Nesterov’s method [85].
+18
+
+When A is not positive semidefinite, the quadratic form f (x) is not bounded from below. We think this is not
+an interesting minimization problem to study.
+
+27
+
+Remark 4. Our result does not mean QHD can not achieve faster convergence for quadratic
+objective functions. In fact, one can use a linear function for βt , and the convergence rate can
+be exponentially fast. Here, our goal is to compare QHD to the classical ODE model of Nesterov’s
+method.
+We choose the following time-dependent parameters in the QHD Hamiltonian (A.23):
+αt = log(2/t), βt = 2 log(t), γt = 2 log(t),
+
+(B.51)
+
+and the QHD Hamiltonian is
+1 ∂2
+Ĥ(t) = − 3 2 + t3 x2 .
+t ∂x
+
+(B.52)
+
+Note that our choice of the time-dependent parameters (B.51) is the same as the ones in the
+ODE model of the Nesterov’s accelerated gradient descent algorithm [90]. It has been shown that
+this ODE model exhibits O(t−3 ) convergence rate for strongly convex functions such as 21 x2 [85].
+Proposition 3. Let f , Ĥ(t) be the same as above, and we consider the initial wave function,
+
+Ψ0 (x) =
+
+1
+2π
+
+1/4
+
+
+exp
+
+−x2
+4
+
+
+.
+
+(B.53)
+
+Let |Ψt i be the solution to the Schrödinger equation i∂t |Ψt i = Ĥ(t) |Ψt i, then we have
+E[f ]∼Ψt = Θ(t−3 ).
+
+(B.54)
+
+Proof. Since Ĥ(t) has a quadratic potential field, the quantum wave packet will remain Gaussian
+in the time evolution. We now introduce the following solution ansatz
+ 1/4
+
+
+1
+1
+−x2
+p
+ψ(t, x) =
+exp(−iθ(t)) exp
+,
+π
+2δ(t)2
+δ(t)
+√
+
+2, and the probability amplitude pλ (t, x) is given by
+
+
+
+
+1
+1
+p(t, x) := |Φ(t, x)|2 = √
+exp 2 Im(θ(t)) exp − x2 Re(1/y(t)) ,
+π |δ(t)|
+
+with θ(0) = 0, δ(0) =
+
+(B.55)
+
+(B.56)
+
+where y(t) = δ 2 (t). Since the wave function (B.55) solves the Schrödinger equation, we have
+kΦ(t, x)k2 = 1 for all t ≥ 0. It turns out that (B.56) is the density function of a Gaussian random
+variable with zero mean and variance
+σ 2 (t) =
+
+1
+.
+2 Re(1/y(t))
+
+(B.57)
+
+Substituting the ansatz (B.55) to the Schrödinger equation i∂t |Ψt i = Ĥ(t) |Ψt i, and we take
+change of variables y(t) = δ 2 (t). The equation ends up being:
+
+y 0 + i t3 y 2 − t−3 = 0
+(B.58a)
+
+θ0 =
+
+i y0
+1 1
++ 3
+4y
+2t y
+28
+
+(B.58b)
+
+θ(0) = 0, y(0) = 2.
+
+(B.58c)
+
+Since the phase θ(t) merely contributes to a normalization factor in the probability density, we
+can ignore (B.58b) and focus on the first equation (B.58a), which simplifies to the following Riccati
+equation:
+ẏ = (−it3 )y 2 + it−3 .
+
+(B.59)
+
+Introducing the change of variable y = −iu̇/t3 u, (B.59) reduces to a linear second-order ODE:
+3
+ü − u̇ + u = 0.
+t
+
+(B.60)
+
+Finally, we introduce a time scaling u = t2 v so (B.60) is transformed to the standard Bessel
+equation:
+t2 v̈ + tv̇ + (t2 − 4)v = 0.
+
+(B.61)
+
+A solution of the Bessel equation (B.61) is a linear combination of Bessel functions J2 (t) and Y2 (t),
+i.e.,
+v(t) = c1 J2 (t) + c2 Y2 (t).
+
+(B.62)
+
+It is tricky (but still possible) if we want to determine the exact coefficients c1 and c2 since Y (t)
+has a singularity at t = 0. Fortunately, since we are more interested in the asymptotic behavior
+of y(t), we do not have to compute the coefficients c1 and c2 . Instead, we consider the asymptotic
+form of Bessel functions:
+r  
+
+
+2
+kπ π
+Jk (t) =
+cos t −
+−
++ O(1/t) ,
+(B.63)
+πt
+2
+4
+r  
+
+
+2
+kπ π
+Yk (t) =
+sin t −
+−
++ O(1/t) ,
+(B.64)
+πt
+2
+4
+and it follows that v(t) ∝ t−1/2 when t → ∞.
+To compute the derivative of v, we make use of the following recursive relation for Bessel
+functions Zk (Z = J or Z = Y ):
+Żk (t) =
+
+1
+(Zk−1 (t) − Zk+1 (t)) .
+2
+
+(B.65)
+
+Therefore, we can expand the derivatives of Bessel functions as
+c1
+c1
+v̇ = c1 J˙2 + c2 Ẏ2 = (J1 − J3 ) + (J1 − J3 ),
+2
+2
+and it turns out that v̇(t) ∝ t−1/2 as well. In terms of y(t), we have
+
+
+−i 2 v̇
+y(t) = 3
++
+= Θ(t−3 ).
+t
+t
+v
+
+(B.66)
+
+(B.67)
+
+Note that v̇ and v decays at the same order so we expect v̇/v converges to a constant as t → ∞.
+It is reasonable to assume that the real and imaginary part of y(t) are at the same magnitude as t
+29
+
+becomes large, and it follows that σ 2 (t) = Θ(t−3 ). Recall that the objective/potential function is
+f (x) = 21 x2 , the expectation value of f is
+Z
+1 2
+1
+E[f ]∼Ψt =
+x |Ψ(x, t)|2 dx = σ 2 (t) = Θ(t−3 ).
+(B.68)
+2
+R 2
+
+Proposition 3 indicates that QHD has the same asymptotic convergence rate as its ODE counterpart in [85,
+ Section 3.2] when applied on the quadratic model function f . Note that we set
+βt = log t2 . Theorem 1 implies that E[f ]∼Ψt ≤ O(e−βt ) = O(t−2 ). So QHD actually does better
+on the quadratic problem f than the worst-case theoretical guarantee. However, Proposition 3 also
+rules out faster convergence.
+
+C
+
+Quantum and Classical Algorithms for Nonconvex Problems
+
+C.1
+
+Test problems
+
+We select 22 optimization instances in the literature [40, 65, 86]. The optimization problems are
+split into five categories by the landscape features, see Table 1.
+Custom Classification (no repetition)
+Features
+
+Count
+
+Function names
+
+Ridges or Valleys
+
+5
+
+Ackley 2, Dropwave, Holder Table, Levy, Levy 13
+
+Basin
+
+5
+
+Bohachevsky 2, Camel 3, Csendes, Deflected Corrugated
+Spring, Rosenbrock
+
+Flat
+
+3
+
+Bird, Easom, Michalewicz
+
+Studded
+
+4
+
+Ackley, Alpine 1, Griewank, Rastrigin
+
+Simple
+
+5
+
+Alpine 2, Hosaki, Shubert, Styblinski-Tang, Sum of Squares
+
+Table 1: A classification of the functions, separated by features we believe to be interesting to investigate in
+the comparison between QHD and alternate optimization algorithms.
+
+The category “Ridges or Valleys” is characterized by small deep sections and/or steep walls
+that divide the domain. “Basin” is characterized by flatness at function values near the global
+optimum. “Flat” is characterized by flatness at high function values. “Studded” is characterized
+by a base shape with higher frequency perturbation. Local search algorithms may be confused by
+many local minima and high gradient magnitudes. “Simple” functions are those on which standard
+gradient descent algorithms work efficiently.19 We also plot two representative instance from each
+of the five categories, as shown in Figure 6.
+To unify the simulation accuracy and comparability of the functions, we truncate the objective
+function f (x, y) over a squared domain [a, b]2 , and then rescale the function so it is supported on
+the unit suqare [0, 1]2 . The rescaled objective function is given by:
+1
+f˜(x, y) = f (a + Lx, b + Ly) − fmin ,
+L
+19
+
+These functions serve as a ‘sanity check’ on the behavior of the gradient methods and QHD
+
+30
+
+(C.1)
+
+Ridges/Valleys
+
+Basin
+
+Flat
+
+Studded
+
+Simple
+
+dropwave
+
+rosenbrock
+
+easom
+
+rastrigin
+
+alpine2
+
+holder
+
+csendes
+
+michalewicz
+
+ackley
+
+hosaki
+
+Figure 6: Representatives from the benchmark set of test functions. High function values shown in yellow,
+down to low values in blue. The unique global minimum is marked with a red star.
+
+where L = b − a and fmin is the global minimum value of f . The global minimum of the rescaled
+function f˜ is 0. The normalization factor 1/L is introduced to preserve the size of gradient and
+Hessian of f . We do this to avoid affecting the performance of the (classical) gradient-based
+algorithms, preserving fair comparison.
+
+C.2
+
+Quantum algorithms
+
+We test two quantum algorithms, Quantum Hamiltonian Descent (QHD) and Quantum Adiabatic
+Algorithms (QAA), for the 22 two-dimensional non-convex optimization instances. Both quantum
+algorithms are simulated numerically on classical computers so we can visualize the evolution of
+the probability distribution.
+C.2.1
+
+Quantum Hamiltonian Descent (QHD)
+
+As a reminder, the QHD Hamiltonian (A.23) is
+
+
+1
+H(t) = eϕt − ∇2 + eχt f (x).
+2
+The QHD evolution from t = 0 to t = T is simulated by iteratively applying the product
+formula,
+h
+i
+
+|Ψj+1 i = exp −isaj (−∇2 /2) exp(−isbj f ) |Ψj i ,
+(C.2)
+where j = 0, ..., N − 1, s = T /N is the stepsize, and aj = eϕjs , bj = eχjs . We choose the initial
+state |Ψ0 i to be the the uniform random distribution over the domain [0, 1]2 .
+We observe that the operator f is diagonal in the position basis, and ∇2 is diagonalized by the
+Fourier basis, i.e., − 12 ∇2 = Fs L (Fs )−1 , where Fs is the shifted Fourier transform (SFT)20 , and L
+20
+
+SFT is a close variant of the Fast Fourier Transform (FFT) and can be readily implemented from FFT.
+
+31
+
+is a diagonal matrix with eigenvalues of (−∇2 /2). These eigenvalues can be computed from the
+frequency number of a Fourier basis function [45, Eq.(26)]. This means that each iteration step can
+be implemented by
+h
+i
+|Ψj+1 i = Fs exp(−isaj L) (Fs )−1 exp(−isbj f ) |Ψj i .
+(C.3)
+In the literature, this method is often known as the pseudo-spectral method [43] and it is a standard
+numerical method for Schrödinger equations.
+Experiment parameters. We choose the time-dependent functions ϕt and χt so that they are
+the same as in the ODE model of the Nesterov’s accelerated gradient descent algorithm [85]. To
+avoid the singularity at t = 0 when performing numerical simulation, we slightly modify the first
+time-dependent function and the QHD Hamiltonian becomes
+
+
+
+2
+1 2
+H(t) =
+−
+∇
++ 2t3 f (x),
+(C.4)
+s + t3
+2
+where s is the stepsize. We choose s = 0.001 for all test instances, and the total evolution time is
+T = 10, hence the maximal iteration number N = T /s = 104 . We try two resolutions, 128 and 256,
+in the spatial discretization of QHD, i.e., we simulate QHD on a 128 × 128 and a 256 × 256 mesh
+grid over the unit square [0, 1]2 . The initial state is the equal uniform superposition of all points.
+C.2.2
+
+Quantum Adiabatic Algorithm (QAA)
+
+Quantum Adiabatic Algorithm (QAA) [52] is a well-known quantum algorithm for general optimization problems. QAA is formulated as a quantum adiabatic evolution described by the Schrödinger
+equation (0 ≤ t ≤ T ):
+h
+i
+
+d
+i |ψ(t)i = 1 − g(t) H0 + g(t)H1 |ψ(t)i ,
+(C.5)
+dt
+where g(t) is the annealing schedule such that g(0) = 0 and g(T ) = 1, H0 is the initial Hamiltonian,
+and H1 is the problem Hamiltonian that encodes the problem of interest. If we choose the initial
+state |ψ(0)i as the ground state of H0 and let the evolution time T be large enough, the quantum
+state |ψ(t)i remains the ground state of the system in the whole evolution, and the final state
+|ψ(T )i corresponds to a solution to the problem of interest.
+Conventionally, QAA is defined over discrete domains and thus applicable to discrete optimization problems.21 The performance of QAA heavily depends on the choice of the initial Hamiltonian
+H0 . Prior to QHD, the standard approach for solving continuous problems using QAA is to adopt
+Radix-2 representation of real numbers (i.e., binary numeral system) in the continuous domain
+so that the original problem is converted to a discrete optimization problem defined over {0, 1}N ,
+e.g., [49, 77]. In this case, the initial Hamiltonian is chosen to be the “sum of Pauli-X” operator:
+H0 = −
+
+N
+X
+
+σx(j) ,
+
+(C.6)
+
+j=1
+
+whose ground state is the uniform superposition state, and H1 is a diagonal matrix whose diagonal
+elements are evaluated from the objective functions. We will refer to this traditional approach of
+solving continuous problems using QAA as the baseline QAA, or simply QAA.
+21
+
+Note that there is no direct or natural counterpart of gradient descent/QHD in discrete domains.
+
+32
+
+In our experiment, we simulate the baseline QAA using the leapfrog scheme for time integration.
+Leapfrog integrators are time-reversible and symplectic [78], so lend themselves well to simulation
+of unitary dynamics.
+The choice of the annealing schedule g(t) has a huge impact on the performance of QAA.
+In practice, it is common to use the linear interpolation schedule g(t) = Tt , while sometimes it
+fails to achieve optimal results. For example, to achieve the quadratic quantum speedup for the
+unstructured search problem, one needs to use the local adiabatic schedule (see Figure 7A) instead
+of the plain linear interpolation [80]. For our 2D test problems, however, we find that the linear
+interpolation schedule works better than the local adiabatic schedule, potentially due to the limited
+evolution time and the continuous nature of the original problem. In Figure 7B, we show the success
+probability of the quantum adiabatic evolution (applied to the Levy function). It is clear that the
+local adiabatic schedule from [80] does not keep the state in the ground-energy subspace and it is
+outperformed by the standard linear interpolation schedule at T = 10. Actually, we also tried the
+prolonged evolution time T = 100 for the local adiabatic schedule but it is still worse than the linear
+interpolation one. For other test instances, we also observe similar behavior of the local adiabatic
+schedule. Therefore, we choose the linear interpolation schedule in our numerical experiment.
+
+A
+
+B
+
+Figure 7: A: the linear interpolation schedule and the local adiabatic schedule for T = 10. B: the success
+probability in the quantum adiabatic evolution. We choose spatial resolution 64 and simulate QAA by
+leapfrog integrator.
+
+Remark 5. Although QAA is usually applied to discrete problems, one can lift QAA to continuous
+domains by choosing H0 , H1 over a continuous space. From this perspective, QHD can be regarded
+as a special version of this general definition of QAA (by choosing H0 as the kinetic operator and
+H1 as the potential operator). However, unlike the continuous-version (baseline) QAA, we have a
+more refined theoretical analysis of QHD because of the rich structures in the QHD Hamiltonian.
+Not as many theoretical results are known for QAA due to the weak structure of general discrete
+optimization problems. Meanwhile, we also observe that QHD converges much faster than the
+baseline QAA for continuous problems in our empirical study.
+
+33
+
+Experiment parameters. We try two resolutions, 64 and 128, in the simulation of QAA. A
+higher resolution (e.g., 256) will make the problem too large for classical computers to solve in
+reasonable time.22 Also, the discrete problem becomes significantly harder with more grid points
+and QAA needs a super long time to return meaningful solution. To compare with the performance
+of QHD, we choose the total evolution time T = 10 for all instances. The initial state is the equal
+superposition of all grid points, and we choose the linear interpolation schedule g(t) = t/T .
+
+C.3
+
+Classical algorithms
+
+C.3.1
+
+Nesterov’s accelerated gradient descent algrothms (NAGD)
+
+In 1983, Nesterov proposed an accelerated gradient method [74]. It begins with initial guesses
+x0 = y0 and inductively computes the update sequence,
+xk = yk−1 − s∇f (yk−1 ),
+k−1
+yk = x k +
+(xk − xk−1 ).
+k+2
+
+(C.7a)
+(C.7b)
+
+We will refer to this method as Nesterov’s accelerated gradient descent algrothms, or NAGD, in
+what follows. It has been shown that, for any step size s ≤ 1/L, where L is the Lipschitz constant
+of ∇f , this method achieves the convergence rate O(k −2 ) for continuously differentiable and convex
+f . This rate is faster than the standard gradient descent.
+In the continuous-time limit (i.e., s → 0), NAGD is modelled as a second-order differential
+equation, Ẍ + 3t Ẋ + ∇f (X) = 0; see [85]. In the continuous-time model, the effective evolution
+time at the k-th step is tk = ks. Equivalently, this system is described by the following Hamiltonianmechanical system:
+
+
+2 1 2
+H(X, P, t) = 3
+|P | + 2t3 f (X).
+(C.8)
+t
+2
+Experiment parameters. We choose the stepsize s = 0.001 for all instances. We also fix the
+total effective evolution time T = 10, so the maximal number of iterations is N = T /s = 104 . We
+draw 1000 initial points x0 = y0 uniformly random from the feasible domain [0, 1]2 and compute
+the optimization updates paths by (C.7), respectively.
+C.3.2
+
+Stochastic Gradient Descent (SGD)
+
+Stochastic gradient descent (SGD) is widely used in continuous non-convex optimization, and has
+been very successful in training large-scale systems such as neural networks. SGD is a gradientbased method and it updates each step with the rule:
+˜ (xk ),
+xk+1 = xk − s∇f
+
+(C.9)
+
+˜ is a noisy gradient evaluated from a single data
+where s is a fixed stepsize (or learning rate), ∇f
+point or a mini-batch.
+SGD is a discrete-time algorithm. The continuous-time limit of SGD turns out to be a first-order
+stochastic differential equation (SDE), as derived in [84],
+√
+dXt = −∇f (Xt )dt + sdWt .
+(C.10)
+22
+
+Doubling the resolution in 2D therefore requires four times the storage (so four times the work per step) and
+eight times the number of steps.
+
+34
+
+With the SDE model, we can compare the evolution of the distribution in SGD to the evolution in
+QHD. In particular, we compute the effective evolution time in SGD at the k-th step by tk = sk.
+Experiment parameters. We model the noisy gradient in (C.9) by adding unit Gaussian noise
+˜ = ∇f + N (0, 1). We set the stepsize s = 0.001 for all instances,
+to the exact gradient, i.e., ∇f
+and we stop the algorithm after 104 iteration steps, i.e., the total effective evolution time for SGD
+is T = 10. We draw 1000 initial points x0 uniformly random from the feasible domain [0, 1]2 and
+compute the optimization updates paths by (C.9), respectively.
+A
+
+B
+
+Figure 8: The performance of four tested algorithms for all 22 problems. A: success probability, B: loss
+curve (expected function value). In both panels, the x data in each subplot is the evolution time t ∈ [0, 10].
+
+35
+
+C.4
+
+Experiment results
+
+As described above, we fix the same total evolution time T = 10 among all tested algorithms.
+For Levy function, we make the scatter plot showing the distributions of solutions in panel A of
+Figure 2. The final success probability (measured at t = 10) for all 22 instances is shown in panel
+B of Figure 2. We observe QHD has a higher success probability in most optimization instances.
+The full success probability data of all 22 instances is shown in Figure 8A.
+We also find that QHD is more stable than Nesterov and SGD. We use the same stepsize
+s = 0.001 for QHD and the two classical iterative methods. However, we observe that NAGD
+fails to converge for Ackley2 and Rastrigin functions, while QHD manages to converge for both
+instances. This observation suggests that our quantization approach not only improves the solution
+quality, but also the stability of the resultant quantum dynamics in time discretization.
+
+Figure 9: Performance of QHD and QAA in different rsuesolution (QHD: 128, 256; QAA: 64, 128), illustrated
+with Hosaki function. The performance of QHD is not affected by the resolution, while QAA does worse
+when the resolution is higher.
+
+In Figure 9, we show that the performance of QAA highly depends on the spatial resolution. For
+Levy function, we see the high resolution (128) in QAA causes worse performance. This observation
+also holds for several other instances. This is because the Radix-2 representation used in QAA does
+not preserve the Euclidean topology in the original problem, therefore the discrete problem can
+become much harder for higher resolution. On the contrary, QHD does not suffer this issue – the
+performance of QHD is consistent in both low and high resolution cases.
+
+36
+
+D
+
+Three Phases in QHD
+
+In Theorem 2, we have shown that there exists time-dependent parameters in QHD such that
+the convergence to global minimum is guaranteed, regardless of the shape of f . This is because
+the quantum state in QHD stays in the low-energy subspace in the evolution, and the low-energy
+subspace will eventually settle at the global minimizer of f . In this section, we introduce a more
+refined description of the global convergence in QHD. In particular, we look into the energy exchange
+between energy levels in the quantum evolution. We observe that there are three phases in QHD
+evolutions: namely, the kinetic phase, global search phase, and descent phase. We also develop
+a quantitative analysis for the three-phase picture of QHD. Serving as an explanative framework
+of QHD, the three-phase picture demystifies why QHD usually does better than QAA in solving
+non-convex problems.
+
+Kinetic Phase
+
+Descent Phase
+
+Figure 10: The three-phase picture of QHD, illustrated with Levy function.
+
+D.1
+
+Probability spectrum of QHD
+
+In Section B.2, we introduce the notion of low- and high-energy subspaces in the QHD evolution.
+We now generalize this idea and define the probability spectrum of QHD.
+Let H(t) be the QHD Hamiltonian. Suppose En (t) and
+P |n; ti are the n-th eigenvalue and
+eigenstate of H(t), we can express the Hamiltonian as H(t) = n En (t) |n; ti hn; t|. Here the integer
+n represents the energy levels of the system. Given a wave
+P function |Ψt i at time t > 0, it can be
+written as a superposition of eigenstates of H(t): |Ψt i = n cn (t) |n; ti, where cn (t) = hn; t|Ψt i is
+the probability amplitude.
+Definition 1 (Probability spectrum). The modulus squared of the amplitude (i.e., |cn (t)|2 ) represents the probability density of the wave function with respect to the energy eigenstates. We call
+the sequence {|cn (t)|2 = | hn; t|Ψt i |2 }n as the probability spectrum of |Ψt i at time t ≥ 0.
+37
+
+Since the quantum wave P
+function has unit L2 norm, the probability spectrum of wave functions
+2
+at any t ≥ 0 sum up to 1:
+n |cn (t)| = 1. With this definition, the projection of |Ψt i onto the
+N -low-energy subspace of Hamiltonian H(t) is the sum of the first N probability spectrum.
+The probability spectrum of QHD is a dynamical property of the system, and we can use it to
+characterize different stages in the quantum evolution. In Figure 10 (B), we numerically calculate
+the probability spectrum of QHD for Levy function. We also plot the quantum wave packet at
+various t in Figure 10 (A). The wave function data is from the numerical simulation of QHD as
+in Section C. The probability spectrum is depicted on a heatmap with horizontal axis being the
+time span t and vertical axis being the energy levels n. Each cell in the heatmap is colored by the
+corresponding numerical value of |cn (t)|2 = | hn; t|Ψt i |2 .
+We observe an interesting probability transition pattern in Figure 10 (B). In the very beginning
+of QHD, there are two clusters in the probability spectrum: one low-energy cluster at n = 0 and
+one high-energy cluster at n = 4, 5. There are some probability exchange in the high-energy cluster
+but it does not interact with the low-energy one. After t = 1, the high-energy cluster starts to get
+absorbed into the low-energy subspace. As time goes by, the high-energy cluster evaporates and the
+quantum state completely sits in the low-energy subspace. The same trend is repeatedly observed
+in the probability spectrum of QHD (with other test functions). Motivated by the findings, we
+introduce the three-phase picture of QHD.
+
+D.2
+
+Three phases in QHD
+
+We divide the course of QHD evolution into the following three phases based on the behavior of
+the wave function and the direction of energy/probability flows:
+Kinetic phase. In the first phase of QHD, the wave function is of ample kinetic energy and
+it rapidly bounces within the whole search space (see t = 0.1, 0.5 in Figure 10 (A)). While the
+majority of probability spectrum is in the low-energy subspace, a mid- or high-energy cluster in the
+probability spectrum prevails. The two energy clusters co-exist and almost do not interact. We call
+this phase the kinetic phase of QHD because it is characterized by the mobility of wave functions
+(as a result of the dominating kinetic energy term).
+Global search phase. In the second phase of QHD, the kinetic energy in the system starts to
+drain out. The wave function becomes less oscillatory and shows a selectivity toward the global
+minimum of f (see t = 1, 2 in Figure 10 (A)). In the probability spectrum, the high-energy cluster
+in the wave function is driven toward the low-energy subspace, and this trend does not reverse.
+We call this phase the global search phase because the quantum system manages to locate the
+global minimum of f after the screening of the whole search domain in the first phase. This phase
+separates QHD from other classical gradient methods.
+Descent phase. In the last phase of QHD, the wave function settles and becomes increasingly
+concentrated near the global minimizer of f (see t = 5, 10 in Figure 10 (A)). The wave function
+stays in the low-energy subsapce. In this phase, the quantum evolution enters the semi-classical
+regime in which the potential energy term dominates. QHD starts to behave like classical gradient
+descent as it converges to the global minimizer x∗ . We call this phase the descent phase of QHD.
+
+38
+
+D.3
+
+Quantitative analysis
+
+The probability spectrum of QHD witness a structural change only in the global search phase, in
+which a significant probability transition from the high-energy subspace to the low-energy subspace
+takes place. While in the kinetic phase and descent phase of QHD, we do not see an outstanding
+shift in the probability spectrum. This phenomenon can be explained by quantitative arguments.
+D.3.1
+
+Suppressed probability transition in the kinetic and descent phase
+
+First, we focus on the underlying mechanism in QHD that discourages the probability transition
+in the kinetic and descent phase. For simplicity, we assume the dimension d = 1 in the following
+discussion, while it can be readily generalized to arbitray
+finite
+
+ dimensions.
+1 ∂2
+ϕ
+t
+The QHD Hamiltonian takes the form H(t) = e
+− 2 ∂x2 +eχt f (x). Suppose the Hamiltonian
+P
+is written as H(t) =
+n En (t) |n; ti hn; t| where En (t), |n; ti are eigenvalues and eigenstates of
+the
+system
+at
+time
+t.
+As
+in the proofR of Theorem 2, we represent the wave function as |Ψt i =
+P
+iθn (t) |n; ti, where θ (t) = − t E (s) ds. Recall from (B.28) that the amplitudes c (t)
+c
+(t)e
+n
+n
+n n
+0 n
+are determined by the equations:
+
+ X
+∂
+hn; t| Ḣ |k; ti
+ċn (t) = −cn (t) hn; t|
+ck (t)ei(θk −θn )
+|n; ti −
+.
+∂t
+Ek (t) − En (t)
+k6
+=
+n
+{z
+}
+|
+|
+{z
+}
+Part I.
+Part II.
+
+
+∂
+|n; ti
+As we have shown, Part I does not contribute to the change in amplitudes because hn; t| ∂t
+is pure imaginary. A further understanding of the amplitude evolution amounts to investigating
+Part II in the equation.
+
+
+∂2
+In the kinetic phase, it expected that the kinetic operator − 12 ∂x
+plays a dominant role in
+2
+the system, while the potential operator f (x) is minor. In this case, QHD behaves like free particle
+evolution:
+
+
+1 ∂2
+kinetic
+H
+(t) ∝ −
+.
+(D.1)
+2 ∂x2
+We then approximate the eigenstates of H(t) by those of the kinetic operator. Suppose the QHD
+is simulated in the unit interval [0, 1] (with vanishing boundary conditions Ψ(0, t) = Ψ(1, t) = 0),
+eigenstates of the kinetic operator are sine waves: |n; ti ∝ sin(nπx). Therefore, we can compute
+the inner product in Part II:
+
+
+Z 1
+1 ∂2
+ϕt
+hn; t| Ḣ |k; ti ∝ ϕ̇t e
+sin(nπx) −
+sin(kπx) dx = 0,
+(D.2)
+2 ∂x2
+0
+for k 6= n. Given the non-degeneratcy of H(t), i.e., Ek (t)−En (t) 6= 0, we find that Part II is actually
+very close to zero in the kinetic phase. This fact implies that there is no amplitude exchange in the
+kinetic phase, which is consistent with our numerical evidence.
+In the descent phase, we do not see significant amplitude exchange in the probability spectrum
+as well. However, the underlying mechanisms are quite different. In this phase, QHD runs into
+the semi-classical regime as the potential operator becomes the major contributor to the quantum
+dynamics. As shown in Section B.2, the eigenstates of the QHD Hamiltonian can be approximated
+by those of a harmonic oscillator:
+H descent (t) ≈ ĤHO (t) = K̂(t) + V̂ (t),
+39
+
+(D.3)
+
+
+
+00 ∗ )
+∂2
+∗ 2
+where K̂(t) = eϕt − 12 ∂x
+and V̂ (t) = eχt f (x
+2
+2 (x − x ) . As a result, Ḣ(t) ≈ ϕ̇t K̂ + χ̇t V̂ and we
+use Lemma 3 to compute the inner product between adjacent energy levels in Part II:
+hn; t| Ḣ |n ± 1; ti = ϕ̇t hn; t| K̇ |n ± 1; ti + χ̇t hn; t| V̇ |n ± 1; ti = 0,
+
+(D.4)
+
+while the contributions from non-adjacent energy levels are minor due to the wider energy gaps
+(i.e., a bigger denomenator (Ek − En )). We conclude that, in the descent phase, Part II in the
+amplitude equation is very small so there is little energy exchange in QHD.
+D.3.2
+
+Energy ratio and phase transitions
+
+We consider the energy ratio E1 (t)/E0 (t), i.e., the first excited energy E1 (t) to the ground energy
+E0 (t). The energy ratio serves as a good indicator of the phase transitions in QHD; meanwhile,
+it also sheds light on the mechanism of probability transition in the global search phase. In what
+follows, we assume QHD is defined for two-dimensional problems so that we can refer to our
+experiment results in Section C.
+We begin with two extreme cases. At the very beginning of the kinetic phase (t = 0), the
+system Hamiltonian is dominated by the kinetic term (−∇2 /2). This means that we can ignore
+the structure of f and push the Hamiltonian to the kinetic limit, H(0) ≈ −∇2 /2. We denote
+the eigenstates of the kinetic operator (−∇2 /2) as |ψn i, where the index is n = (nx , ny ) with
+nx , ny = 1, 2, ...:
+√
+|ψn i = 2 sin(nx πx) sin(ny πy),
+and correspondingly, the eigenvalues are En = (n2x + n2y )π 2 /2. In particular, the ground energy
+is E0 = π 2 and the first excited energy (with degeneracy) is E1 = 5π 2 /2. The energy ratio is
+E1 /E0 = 2.5. Clearly, the deviation of the energy ratio from the kinetic limit 2.5 indicates a
+transition from the kinetic phase to the global search phase; see Figure 10 (D).
+In the descent phase, the Schrödinger operator H(t) enters the semi-classical regime so it can
+be effectively approximated by a quantum harmonic oscillator (see Section B.2). The eigenvalues
+of two-dimensional harmonic oscillators are
+En =
+
+~
+[(n1 + 1)ω1 + (n2 + 1)ω2 ] ,
+2
+
+(D.5)
+
+with n1 , n2 = 0, 1, 2, ....23 Therefore, the ground energy is E0 = ~(ω1 + ω2 )/2 and the first excited
+energy (assuming ω1 ≥ ω2 ) is E1 = ~(ω1 + 3ω2 )/2. Hence, the energy ratio at the semi-classical
+limit is
+lim
+
+E1
+
+t→∞ E0
+
+=
+
+ω1 + 3ω2
+.
+ω1 + ω2
+
+(D.6)
+
+The convergence of the energy ratio to (D.6) indicates the transition from the global search phase
+to the descent phase; see Figure 10 (E).
+In the global search phase, the energy ratio changes and it has different values than the two
+extreme cases. Usually, it decreases from the initial value 2.5 and gradually converges to the semiclassical limit. Intuitively, the shrinking energy gap between E0 and E1 makes the probability
+transition between energy levels much easier. This can be a reason why the high-energy cluster is
+absorbed into the low-energy cluster in the global search phase.
+The ~, ω here are determined by the time-dependent parameters and the neighborhood information of x∗ . Details
+can be found in Section B.2.
+23
+
+40
+
+In fact, from the energy ratio, we can theoretically predict the times at which phase transition
+happens. For example, we can approximately predict the two phase-transition times in QHD for
+Levy functions (see Figure 10 (B)): the energy ratio significantly deviates from the initial value
+2.5 after t = 0.5, which marks the first phase transition (kinetic to global search); after t = 5, the
+energy ratio curve starts to converge to the semi-classical limit, indicating the termination of the
+global search phase.
+The Levy function (for dimenson 2) is defined by
+h
+i
+h
+i
+f (w1 , w2 ) = sin(πw1 )2 + (w1 − 1)2 1 + 10 sin(πw1 + 1)2 + (w2 − 1)2 1 + sin(2πw2 )2 ,
+
+Energy ratio for Levy function.
+
+(D.7)
+
+where wj = 1 + (xj − 1)/4 for j = 1, 2. When used as an optimization test problem, the Levy
+function is usually evaluated on the square [−10, 10]2 . It has a unique global minimum f (1, 1) = 0.
+The Hessian matrix of the Levy function at (1, 1) is a diagonal matrix with two positive eigenvalues:
+λ1 = (π 2 +1+10 sin(1)2 )/8, and λ2 = 1/8. Therefore, the second-order Taylor expansion (quadratic
+model) of f at the global minimizer x∗ = (1, 1) is:
+1
+1
+f (x1 , x2 ) ≈ ω12 (x1 − 1)2 + ω22 (x2 − 1)2 ,
+(D.8)
+2
+2
+√
+√
+where ω1 = λ1 ≈ 1.4979, ω2 = λ2 ≈ 0.3536. By (D.6), the energy ratio at the semi-classical
+limit is E1 /E0 ≈ 1.3819, which is quite close to the numerical results shown in Figure 10 (D).
+
+D.4
+
+Comparison with QAA
+
+In our experiment, we test two quantum algorithms (QHD and QAA) and two classical algorithms
+(NAGD and SGD). Although both quantum algorithms are formulated as continuous-time quantum
+evolutions, QHD appears to outperform QAA in most test problems. The three-phase picture
+of QHD lends us a pivot to understand why QHD is better than QAA in solving non-convex
+optimization problems.
+The key difference between the two quantum algorithms is that they have different “kinetic”
+operator in the system Hamiltonian. The kinetic operator (−∇2 /2) in QHD comes from the Euclidean distance function in the Bregman-Lagrangian framework. This differential operator stands
+for the quantized Euclidean distance and it allows QHD to see the continuous structure of f –
+the continuity of f is defined by the Euclidean topology in Rd . When the spatial discretization is
+applied, the finite difference discretization of the kinetic operator (−∇2 /2) makes it resembles the
+graph Laplacian of a regular lattice. However, in QAA, the “kinetic operator” is the initial hamiltonian H0 (see (C.6)), interpreted as the adjacency matrix of the hypercube graph. This means
+QAA regards the task as a discrete optimization problem on a hypercube graph. This misinterpretation of the underlying topology of continuous optimization problems leads to several serious
+consequences:
+1. QAA twists the optimization landscape of f , making the problem much harder to solve. It
+is shown in Figure 11 that, even for a convex f , the hypercube search graph in QAA creates
+many spurious local minimum in the problem. This makes the discretized problem much
+more challenging than the original continuous problem.
+2. The performance of QAA heavily depends on the resolution in the discretization. Since
+the naive discretization in QAA does not preserve the continuous structure of the original
+41
+
+Figure 11: The hypercube search structure in QAA twists the landscape of f . Upper: in QHD (problem
+discretized as an optimization on an one-dimensional chain graph), each node has two neighborhood nodes,
+and there is only one local minimum. Lower: in QAA (problem discretized as an optimization on a 4dimensional hypercube graph), the node 1010 becomes a spurious local minimizer as it has the least function
+value compared to its neighborhood. This means QAA maps a convex continuous problem to a non-convex
+discrete problem.
+
+problem, a higher resolution can result in a harder problem, thus even worse performance in
+QAA. For example, when applied to the Hosaki function, the performance of QAA becomes
+significantly worse when we choose a higher resolution (128), while QHD does not suffer from
+this issue, see Figure 9. We observe similar patterns in other instances as well.
+3. Compared to QHD, QAA does not have the kinetic phase. In the kinetic phase, QHD averages
+the initial wave function over the whole feasible domain, thus reducing the risk of poor random
+initializations. In QAA, however, the quantum state is supposed to remain the ground state
+of the Hamiltonian, to there is no preparatory/warm-up stage.
+4. QAA does not have a descent phase, either. The semi-classical approximation theory fails to
+hold in QAA so that the minimal spectral gap (i.e., lim0≤t≤T E1 (t) − E0 (t)) can be arbitrarily
+small when the spatial discretization stepsize shrinks.24 In contrast, the energy gaps in QHD
+is insensitive to spatial discretization. Therefore, we can not use fast-varying time-dependent
+functions in QAA since they will drive the quantum state out of the ground-energy subspace.
+This fact prevents us from achieveing faster convergence in QAA.
+
+E
+
+Digital Implementation of QHD
+
+In this section, we discuss how to implement QHD on digital (i.e., circuit-model) quantum computers. We assume the access to the quantum evaluation oracle Of which allows us to query the
+function value of f in a coherent way:
+24
+
+To see this, note that lim0≤t≤T E1 (t) − E0 (t) ≤ E1 (T ) − E0 (T ). At t = T , the QAA Hamiltonian is just the
+problem Hamiltonian HP , which is a discretization of the continuous function f . Note that the spectral gap in HP
+corresponds to the resolution in the discretization of f .
+
+42
+
+Assumption 4. We assume a unitary Of : Rd × R → Rd × R such that for any x ∈ Rd , and z ∈ R,
+Of |x, zi → |x, f (x) + zi .
+
+E.1
+
+Implementing QHD using product formulae
+
+In the quantum simulation literature, several algorithms have been proposed for simulating realspace quantum dynamics, including Trotter-type algorithms (product formulae) [41], truncated
+Taylor series (with finite difference scheme [66] or Fourier spectral method [45]), and interaction
+picture simulations [45]. Although methods like truncated Taylor series or interaction picture
+simulations achieve better asymptotic scaling in terms of the error dependence, we will consider
+Trotter-type algorithms for implementing QHD. Quantum simulation algorithms based on product
+formulae usually take a simpler form and thus more resource-efficient in practice [47]. Besides,
+product formulae are closely related to a family of numerical schemes known as symplectic integrators [58], which are proven to be the key in the time discretization of the Bregman-Lagrangian
+framework [42].
+The product-formula-based implementation of QHD basically follows from [45, Section 2.3]. It
+takes two steps:
+Spatial discretization. We introduce a standard mesh-grid discretization of the continuous
+space. Suppose the objective function f is unbounded at infinity, then there must exist a large
+enough region Ω = [a, b]d such that the global minimizer of f is within Ω. We consider a regular
+mesh grid M in the domain Ω = [a, b]d and divide each edge into N cells, i.e.,
+M = {(x1 , ..., xd ) : xj ∈ {a, a + ∆x, ..., b − ∆x}},
+
+(E.1)
+
+where ∆x = (b − a)/N is the stepsize of the mesh M. Let N = 2q for an integer q, and we assign a
+q-qubit register to represent a single edge: computational basis of the quanutm register enumerates
+mesh coordinates xj ∈ {a, a+∆x, ..., b−∆x}. The full full mesh M is represented by concatenating
+d such registers: the mesh point x = (x1 , ..., xd ) is represented by the basis state |x1 , ..., xd i. With
+this mesh-grid discretization, a quantum wave function in the real space Ψ(x) : Ω → C can be
+represented as a quantum state in the register:
+X
+X
+|ψi =
+c(x1 , ..., xd ) |x1 , ..., xd i , kψk22 =
+|c(x1 , ..., xd )|2 = 1.
+(E.2)
+x∈M
+
+x∈M
+
+Time discretization. We leverage the product formula to to decompose the quantum evolution
+into an alternating sequence of kinetic and potential evolutions. Given a Hamiltonian of the form
+H = A + B, the first-order Trotter-Suzuki formula [87] is defined as T1 (t) = e−itA e−itB . Recall
+the QHD Hamiltonian takes the form H(t) = eϕt (−∇2 /2) + eχt f , let U (0, T ) be the time-evolution
+operator in QHD, we can approximate U (0, T ) by a sequence of product formulae:
+
+U (T, 0) ≈ T
+
+N
+−1 h
+Y
+
+i
+
+exp −i∆taj (−∇2 /2) exp(−i∆tbj f ) ,
+
+j=0
+
+where T is the time-ordering operator, aj = eϕtj , and bj = eχtj .
+
+43
+
+(E.3)
+
+Assuming the domain Ω is of periodic boundary condition, one observes that the Laplacian
+operator ∇2 is diagonalized by the Fourier basis. This observation leads to a neat implementation
+of the exponential of kinetic operator (−∇2 /2) [45, Section 3.2]:
+
+1
+− ∇2 → Fs L (Fs )−1 , exp −i∆taj (−∇2 /2) → Fs exp(−i∆taj L) (Fs )−1 ,
+2
+
+(E.4)
+
+where Fs is the quantum shifted Fourier transform (QSFT)25 , and L is a diagonal matrix with
+eigenvalues of (−∇2 /2). These eigenvalues can be computed from the frequency number of a
+Fourier basis function [45, Eq.(26)]. On the other hand, the operator exp(−i∆tbj f ) can be readily
+computed because f is diagonal and can be directly queried from the oracle Of at any point x ∈ M.
+We now summarize the full procedures of the product formula implementation of QHD in
+Algorithm 1. We also analyze the gate complexity of this algorithm, see Theorem 3.
+Algorithm 1: Implementation of QHD by product formulae
+1 Specify a hypercubic domain Ω = [a, b]d where R is prefixed or determined by the
+
+knowledge of f , and perform the regular-mesh discretization
+M = {(x1 , ..., xd ) : xj ∈ {a, a + ∆x, ..., b − ∆x}, where ∆x = (b − a)/2q }.
+⊗dq
+2 Initialize a dq-qubit quantum register to |0i
+, where the parameter d is the dimension of
+
+the problem, and q is a pre-fixed precision parameter. Note that all grid points in M are
+enumerated by computational basis |x1 , ..., xd i of the quantum register.
+3 Prepare the initial guess state |ψ0 i. For instance, it can be the uniform superposition state
+(i.e., uniform distribution) or a Gaussian state (i.e., Gaussian distribution).
+4 Specify the time-dependent parameters ϕt , χt , the number of iterations R, and the
+learning rate s. The (effective) end time is T = N s.
+5 Inductively apply the following update rule to the quantum state for j = 0, 1, ..., N − 1:
+|ψj+1 i = Fs exp(−isaj L)F−1
+s exp(−isbj V) |ψj i ,
+where aj = eϕ(tj ) , bj = eχ(tj ) , tj = js, L is defined as above, and V is a diagonal operator
+such that V |xi = f (x) |xi for any |xi ∈ M. We end up with a quantum state |ψN i.
+6 Measure the quantum state |ψN i with computational basis (i.e., position observable), and
+the outcome is a grid point |xi ∈ M.
+
+E.2
+
+Asymptotic complexity
+
+We show that the gate complexity of Algorithm 1 is linear in the dimension d of the problem and
+the number of iterations R. Our result is exponentially better than the previous quantum gradient
+descent algorithm [79] in terms of the iteration number R.
+Theorem 3. Let d be the dimension of the problem, q be a pre-fixed precision parameter, and R
+be the number of iterations. The gate complexity of Algorithm 1 is Õ(dqR).
+25
+QSFT is a close variant of the Quantum Fourier Transform (QFT) and can be efficiently implemented on quantum
+computers. According to [46, Lemma 5], QSFT can be performed to an k-dimensional vector with gate complexity
+log(k) log log(k).
+
+44
+
+Proof. First, we study the cost of each iteration step. Let n = dq be the total number of qubits.
+Note that the operator V is diagonal in the computational basis and is given by the oracle Of , the
+evolution operator exp(−isbj V) can be computed by standard techniques (see for example Rule
+1.6 in [48, Section 1.2]) with gate complexity Õ(n). The quantum shifted Fourier transform Fs is
+performed with gate complexity O(n log(n)) [46, Lemma 5], so is its inverse F−1
+s . The operator L
+is diagonal in the computational basis and the diagonal entries are evaluated from a closed-form
+formula [45, Section 2.1]. Similar as exp(−isbj V), the evolution operator exp(−isaj L) is computed
+with gate complexity Õ(n). It turns out that the gate complexity of each iteration is Õ(n).
+As the algorithm iterations in R steps, and each step has exactly the same gate complexity, the
+overall gate complexity is Õ(dqR).
+
+F
+
+Analog Implementation of QHD for quadratic programming
+
+In this section, we discuss how to use QHD to solve quadratic programming problems (with box
+constraints) on analog quantum computers. Quadratic programming with box constraints is formulated as follows:
+1
+minimize
+f (x) = x> Qx + b> x,
+(F.1a)
+2
+subject to
+0 4 x 4 1,
+(F.1b)
+where x ∈ Rd , 0 and 1 are d-dimensional vectors of all zeros and all ones, respectively.
+
+F.1
+
+Quantum Ising Machines
+
+Among various types of analog quantum simulators, we will be focusing on an important class of
+simulators whose evolutions are effectively described by quantum Hamiltonians in the Ising form:
+
+
+
+
+X
+A(t) X (j)  B(t) X
+H(t) = −
+σx
++
+hj σz(j) +
+Jj,k σz(j) σz(k)  ,
+(F.2)
+2
+2
+j
+
+j
+
+j>k
+
+(j)
+
+where the operator σα for α = x, y, z stands for Pauli operator acting on the j-th qubit, A(t) and
+B(t) are time-dependent functions. Notable examples in this class include superconducting qubits
+spin glass simulators [57] and Rydberg atoms [82]. The technology of building such quantum simulators has seen a great advancement in the past decades, leading to several cloud-based commercial
+quantum processors (e.g., D-Wave, QuEra, etc). In order to facilitate further theoretical discussions, we propose a formal abstraction called the quantum Ising machine for quantum simulators
+with Ising-type Hamiltonian.
+Definition 2. A Quantum Ising Machine embodies an n-qubit quantum register which permits
+the following operations:
+1. Initialization: the quantum register is initialized to certain quantum
+P state, e.g., the all-zero
+state |0i⊗n or the uniform superposition state |+i⊗n = |ψ0 i = √12n b∈{0,1}n |bi.
+2. Simulation: the evolution of the quantum register is described by the Schrodinger equation,
+ih
+
+d
+|ψt i = H(t) |ψt i ,
+dt
+
+(F.3)
+
+where h is the Planck constant, and the Hamiltonian H(t) is given by (F.2). We assume
+A(t), B(t), hj , Jj,k are programable parameters.
+45
+
+3. Measurement: the quantum register is measured in computational basis, i.e., we can compute | hb|ψt i |2 with b ∈ {0, 1}n at certain time t ≥ 0.
+In practice, it is often convenient to divide h on both sides of (F.3) and consider time-dependent
+functions A(t)/h and B(t)/h. Usually, the time-dependent functions are given in giga-Hertz (1GHz
+= 109 Hz); accordingly, the simulation time is given in nano-second (1ns=10−9 s).
+
+F.2
+
+Implementing QHD on Quantum Ising Machines
+
+F.2.1
+
+Finite difference discretization of PDEs
+
+Suppose the feasible domain of an optimization problem is the [0, 1]d , QHD is formulated as the
+partial differential equation (PDE):
+
+
+i
+
+
+ eϕt 2
+∂
+Ψ(t, x) = 
+∇ + eχt f (x) 
+Ψ(t, x),
+−
+
+| {z } 
+∂t
+| 2{z }
+
+(F.4)
+
+Potential part
+
+Kinetic part
+
+where Ψ(t, x) : [0, T ] × [0, 1]d → C with the vanishing boundary condition Ψ(t, x) = 0 for t ∈ [0, T ],
+x ∈ ∂[0, 1]d . To simulate the real-space dynamics as described by (F.4), the first step is to discretize
+the PDE so that it becomes a finite-dimensional ODE. This goal is achieved by introducing the
+finite difference method (FDM) [70].
+We begin with the one-dimensional case. Suppose the wave function Ψ(t, x) : [0, T ] × [0, 1] and
+Ψ(t, 0) = Ψ(t, 1) = 0 for t ∈ [0, T ]. We divide the unit interval [0, 1] into a r-cells mesh grid:
+M = {aj = j/r : j = 0, 1, ..., r}. At time t, the wave function Ψ(t, x) is sampled on the mesh grid
+M and discretized to an (n + 1)-dimensional vector:
+r
+
+Ψ(x) 7→ |φi =
+
+1 X
+Ψ(aj ) |ji ,
+C
+
+(F.5)
+
+j=0
+
+qP
+r
+
+2
+where C =
+j=0 |Ψ(aj )| is a normalization constant such that kφk = 1. Due to the unit
+R1
+√
+probability 0 |Ψ(x)|2 dx = 1, we have that C ≈ r for large r because of the convergent Riemann
+sum:
+Z 1
+r
+X
+|Ψ(xj )|2
+=
+|Ψ(x)|2 dx = 1.
+(F.6)
+lim
+r→∞
+r
+0
+j=0
+
+The second-order derivative of Ψ is approximated by the central finite difference method:
+Ψ(aj+1 ) − 2Ψ(aj ) + Ψ(aj−1 )
+∂2
+Ψ
+≈
+.
+2
+∂x
+(1/r)2
+x=aj
+
+(F.7)
+
+Since the potential operator f acts on the wave function Ψ by pointwise multiplication, the discretization of f turns out to be a diagonal matrix. Therefore, the finite-difference-discretized PDE
+takes the form:
+
+
+i
+
+ eϕt
+d
+|φt i = 
+ − 2 L̂ +
+dt
+| {z }
+Kinetic part
+
+46
+
+χt
+|e {zF̂}
+
+
+ |φt i ,
+
+
+Potential part
+
+(F.8)
+
+where |φt i : [0, T ] → Cr+1 is the discretized wave function, L̂ and F̂ are (r + 1)-by-(r + 1) matrices:
+
+
+
+
+−2 1
+f (a0 )
+
+
+
+
+ 1 −2 1
+
+
+
+f (a1 )
+
+
+
+
+1 
+
+
+.
+L̂ =
+,
+F̂
+=
+(F.9)
+...
+...
+...
+...
+...
+...
+...
+...
+
+
+
+
+(1/r)2 
+
+
+
+1 −2 1 
+f (ar−1 )
+
+
+
+1 −2
+f (ar )
+1
+Remark 6. We can write the matrix L̂ = (1/r)
+2 (Â − 2I), where Â is a tridiagonal matrix with
+zero main diagonals and ones on the first diagonal above and the first diagonal below. I is the
+identity matrix. It is worth noting that Â is the adjacency matrix of a 1-dimensional chain graph
+with (r + 1) nodes.
+
+In the end of QHD evolution, we want to measure the wave function with position observable
+x̂. Since the wave function Ψ(t, x) is discretized to |φt i ∈ Cr+1 , the position observable must be
+discretized accordingly. It turns out that the discretized position observable, denoted by X̂, is of
+the form:
+r
+X
+
+X̂ =
+
+aj |ji hj| =
+
+j=0
+
+r
+X
+j
+j=0
+
+r
+
+|ji hj| .
+
+(F.10)
+
+To see why (F.10) is valid, it is sufficent to verify that
+r
+
+X
+1
+aj |Ψ(aj )|2 ,
+2
+|Ψ(x
+)|
+j
+j=0
+
+(F.11)
+
+lim hφ| X̂ |φi = lim Pr
+
+r→∞
+
+r→∞
+
+Z 1
+=
+
+j=0
+
+x|Ψ(x)|2 dx = hΨ|x̂|Ψi .
+
+(F.12)
+
+0
+
+The finite difference discretization is readily generalized to arbitrary finite dimensions by forming
+a regular mesh grid over [0, 1]d . Introducing a resolution parameter r ∈ Z, which is the number of
+cells on each edge of the feasible domain [0, 1]d , the mesh can be written as Md = {0, 1/r, 2/r, ..., 1}d .
+A continuous-space wave function Ψ(x) is discretized to an (r + 1)d -dimensional unit vector:
+Ψ(x) 7→ |φi =
+
+where C =
+
+qP
+
+j1 ,...,jd |Ψ(aj1 , ..., ajd )|
+
+1
+C
+
+r
+X
+
+Ψ(aj1 , ..., ajd ) |j1 , j2 , ..., jd i ,
+
+(F.13)
+
+j1 ,...,jd =0
+
+2 is a normalization constant, and lim
+n→∞ C =
+
+√
+
+dr.
+2
+
+the finite differece discretization of the d-dimensional Laplacian operators ∇ =
+Pd Similarly,
+∂2
+1
+k=1 ∂x2 is (1/r)2 Âd (ignoring a global phase −2d), where Âd is the adjacency matrix of a dk
+dimensional regular lattice graph:
+Âd =
+
+d
+X
+k=1
+
+I ⊗ ... ⊗
+
+Â
+|{z}
+
+⊗... ⊗ I,
+
+(F.14)
+
+the k-th operator
+
+and A is the the same as defined in Remark 6. The discretized potential operator F̂d is given by
+F̂d |j1 , j2 , ..., jd i = f (aj1 , ..., aj1 ) |j1 , j2 , ..., jd i .
+47
+
+(F.15)
+
+Moreover, the discretized position observable in d dimension is a d-tuple (X̂ (1) , ..., X̂ (d) ), where
+X̂ (k) = I ⊗ ... ⊗
+
+X̂
+|{z}
+
+⊗... ⊗ I,
+
+(F.16)
+
+the k-th operator
+
+for k = 1, 2, ..., d. It follows that the finite difference discretization of QHD (F.4) is
+ ϕt
+
+d
+e
+χt
+i |φt i = −
+Âd + e F̂d |φt i ,
+dt
+2
+
+(F.17)
+
+d
+
+where |φt i : [0, T ] → C(r+1) is the discretized wave function. When f (x) is given as a quadratic
+function as in (F.1a), the discretized f takes the form:
+F̂d =
+
+1
+2
+
+X
+
+Qp,q X (p) X (q) +
+
+1≤p,q≤d
+
+X
+
+bp X (p) ,
+
+(F.18)
+
+1≤p≤d
+
+where Q = (Qp,q ) for 1 ≤ p, q ≤ d, and b = (bp ) for 1 ≤ p ≤ d.
+F.2.2
+
+A relaxed implementation of QHD for quadratic programming
+
+Ideally, an analog implementation of QHD for quadratic programming problems amounts to simulate (F.17) with the objective function (F.18) on analog quantum computers. However, we do not
+find an exact approach to do so on Quantum Ising Machines because Ad is very different from the
+off-diagonal part in the Quantum Ising Machine Hamiltonian; see (F.2). Instead, we consider a
+relaxed version of (F.17):
+
+ ϕt
+e
+d
+(F.19)
+Â0d + eχt F̂d |φt i ,
+i |φt i = −
+dt
+2
+in which have
+Â0d :=
+
+d
+X
+k=1
+
+Â0
+|{z}
+
+I ⊗ ... ⊗
+
+⊗ . . . ⊗ I,
+
+(F.20)
+
+the k-th operator
+
+with
+0
+
+Â :=
+
+r
+X
+j=0
+
+r
+
+
+(j + 1)(r + 1 − j) 
+|j + 1i hj| + |ji hj + 1| .
+r+1
+
+(F.21)
+
+
+
+
+P
+Note that Â = rj=0 |j + 1i hj| + |ji hj + 1| , so the difference between Â and Â0 is that Â0 has
+non-uniform tridiagonal elements.
+Remark 7. In fact, the modified kinetic operator A0 may bring us extra benefits in solving constrained optimization problems (such as quadratic programming). Unlike the exact discretization A,
+the off-diagonal elements in A0 are not identical: except for the two end points j = 0, r, the values
+of the matrix elements are slightly larger than those in A. This uneven distribution of middle-range
+off-diagonal elements in A0 means that the wave function will gain more momentum (thus more
+significant quantum tunneling) near the center of the feasible domain [0, 1]. Since the solutions of
+constrained optimization problems are usually close to the boundary of the feasible domain, more
+quantum tunneling in the middle of the feasible domain is likely to speed up the solution process.
+48
+
+Parameters
+
+Relaxed QHD
+
+Quantum Ising Machine
+
+Initial states
+
+|φ0 i: discrete Gaussian
+
+|ψ0 i: uniform superposition
+
+Kinetic operator
+
+− 21 Â0d
+
+− 2r11/2 Sx , see (F.40)
+
+Potential operator
+
+F̂d
+
+HP , see (F.24)
+
+Time-dependent function 1
+
+eϕt
+
+A(t)/h, see (F.23)
+
+Time-dependent function 2
+
+e χt
+
+B(t)/h, see (F.23)
+
+Measurement elements
+
+(k)
+{Ej }, see (F.25)
+
+{Mj }, see (F.26)
+
+(k)
+
+Table 2: The dictionary of implementing relaxed QHD on Quantum Ising Machines.
+
+We will show that the relaxed QHD (F.19) can be mapped to Quantum Ising Machines through
+a non-trivial encoding called Hamming encoding. In Table 2, we summarize the one-to-one correspondence between the mathematical model (F.19) and the physical implementation on Quantum
+Ising Machines.
+In what follows, we elaborate on some parameters shown in Table 2. Let r ∈ Z+ be a resolution
+parameter, λ > 0 be a time-rescaling parameter. T is the total evolution time, d is the dimension
+of the problem f , and n = dr is the total number of qubits required.
+• Initial states:
+
+⊗d
+s 
+r
+X
+n
+1 X
+|φ0 i = 
+/2r |ji , |ψ0 i = |+i⊗n = √
+|bi .
+j
+2n
+n
+j=0
+
+(F.22)
+
+b∈0,1
+
+• Time-dependent functions:
+A(t)/h = λr3/2 eϕ(t) , B(t)/h = 2λeχ(t) .
+
+(F.23)
+
+• Problem Hamiltonian:
+HP =
+
+n−1
+X
+
+hj σz(j) +
+
+j=0
+
+Jj,k σz(j) σz(k) + g,
+
+(F.24)
+
+j,k=0
+j>k
+
+i
+Q
++ 2bp /4r for (p − 1)r ≤ j ≤ pr − 1, Jj,k = 4rp,q
+2 for (p − 1)r ≤
+P
+1
+1 P
+1P
+j ≤ pr − 1, (q − 1)r ≤ k ≤ qr − 1, and g = 8 (1 + r ) p Qp,p + 4 p>q Qp,q + 12 p bp .
+
+with hj = −
+
+hP
+
+n−1
+X
+
+d
+q=1 Qp,q
+
+
+
+(k)
+
+• QHD measurement elements: {Ej
+(k)
+
+Ej
+
+: 1 ≤ k ≤ d, 0 ≤ j ≤ r}, in which
+
+:= I ⊗ ... ⊗
+
+Ej
+|{z}
+
+⊗... ⊗ I,
+
+(F.25)
+
+the k-th operator
+(k)
+
+and Ej := |ji hj| for j = 0, 1, . . . , r. The measurement elements {Ej } are in computational
+basis and used to determine the “position” of the quantum state.26
+26
+
+To see this, we note that the (discretized) position operator X̂ (k) =
+
+49
+
+j (k)
+j=0 r Ej .
+
+Pr
+
+(k)
+
+• Quantum Ising Machine measurement elements: {Mj
+(k)
+
+Mj
+
+:= I ⊗ ... ⊗
+
+Πj
+|{z}
+
+: 1 ≤ k ≤ d, 0 ≤ j ≤ r}, in which
+⊗... ⊗ I,
+
+(F.26)
+
+the k-th operator
+
+and Πj :=
+
+P
+
+|b|=j |bi hb|, where |b| is the Hamming weight of the bitstring b, j = 0, 1, . . . , r.
+(k)
+Note that this set of measurements {Mj } is also in computational basis.
+
+Remark 8. We will have a detailed discussion on how to compute the problem Hamiltonian HP
+in Section F.3. The representation of HP in (F.24) is known as the Ising format of the problem
+Hamiltonian. In practice, we prefer to use an equivalent but much simpler description of HP known
+as the QUBO format, see Section G.4.
+In the following Algorithm 2, we show how to use the dictionary Table 2 to implement QHD
+on Quantum Ising Machines and solve quadratic programming problems (F.1). This algorithm can
+be readily implemented on any real-world instances of Quantum Ising Machines, e.g., the D-Wave
+quantum sampler. The correctness of Algorithm 2 will be shown in Theorem 4.
+Algorithm 2: Relaxed QHD for Quadratic Programming
+1 Specify a resolution parameter r ∈ Z and a time-rescaling parameter λ > 0. Let T be the
+
+total evolution time, d be the dimension of f , and n = dr be the total number of qubits.
+
+⊗n
+2 Initialize an n-qubit quantum register to the uniform superposition state |ψ0 i = |+i
+.
+A(t)
+B(t)
+3 Set the quantum Hamiltonian H(t) = − 2 Sx + 2 HP with the parameters A(t), B(t)
+
+and HP as in Table 2.
+4 Set total running time tf = T /λ. Emulate the Quantum Ising Machine for tf .
+5 Measure the final state
+
+(k)
+
+ψtf with {Mj } for k = 1, 2, . . . , d and j = 0, . . . , r.
+6 Repeat the simulation and measurement for M times and we obtain a sample of solutions
+to the quadratic programming problem.
+
+Overheads. Most steps in Algorithm 2 are either classical or can be efficiently implemented
+on quantum computers (e.g., evolution, measurement, etc.). The majority of time required to
+obtain a solution is to run quantum evolution on Quantum Ising Machines, which usually only
+takes tens to hundreds of micro-seconds. In practice, we also have to consider the time required
+to embed the problem Hamiltonian into the actual QPU (quantum Processing Unit) due to the
+limited connectivity; see “Minor embedding and qubit counts” in Section G.5. Though the minor
+embedding step can take a relatively long time, we only have to do it once for each problem: the
+same minor embedding can be reused for all subsequent shots.
+Beyond quadratic programming. In Algorithm 2, we only consider the implementation of
+QHD with a quadratic potential function and a box constraint. Although our method does not
+directly apply to higher-order polynomial optimization, it is still possible to consider the quadratization technique [51] so that higher-order polynomials or non-linear functions are reduced to
+quadratic problems. However, it is worth noting that quadratization can introduce substantial
+overheads in the algorithm.
+
+50
+
+F.3
+
+Theory of analog implementation
+
+We call the Hamiltonian that we want to simulate as target Hamiltonian, and the analog quantum
+simulator is specified by a simulator Hamiltonian. When the simulator Hamiltonian does not match
+the target Hamiltonian, e.g., the QHD Hamiltonian (F.17) is of tridiagonal form and it does not fit
+into the Quantum Ising Machine Hamiltonian (F.2), we have to embed the problem Hamiltonian
+into the simulator Hamiltonian via a technique called subspace encoding [50].
+F.3.1
+
+Subspace encoding
+
+e be the problem Hamiltonian and the simulator Hamiltonian. We denote H (or H)
+e for the
+Let H, H
+e
+Hilbert space of the problem (or simulator) Hamiltonian. Let Herm(H) (or Herm(H)) be the set
+e Given a linear subspace S ⊂ H,
+e PS denotes the projector
+of Hermitian operators over H (or H).
+e
+onto S; clearly, we have I = PS + PS ⊥ , where I is the identity map on the Hilbert space H.
+e we say S ⊂ H
+e is an invariant subspace of A if A
+Definition 3. Given a linear operator A on H,
+maps the subspace S to itself. In other words, S is an invariant subspace of A if
+PS ⊥ APS = 0.
+
+(F.27)
+
+If S is an invariant subspace of A, we denote A|S as the restriction of A on the subspace S.
+e we say an isometry V : H → S gives a subspace encoding
+Definition 4. Given a subspace S ⊂ H,
+e if (1) S is an invariant subspace
+of the quantum Hamiltonian
+H into the simulator Hamiltonian H
+
+
+e and (2) V † H|
+e S V = H.
+of H,
+Lemma 4. Suppose the isometry V : H → S gives a subspace encoding of H ∈ Herm(H) into
+e
+e ∈ Herm(H).
+e Let U(t) = e−iHt be the time evolution operator of H, and U(t)
+e = e−iHt
+H
+be the time
+e
+evolution operator of H, we have
+h
+i
+e S V.
+(F.28)
+U(t) = V † U(t)|
+e we split the Hamiltonian H
+e as a direct sum: H
+e =
+Proof. Since S is an invariant subspace of H,
+e
+e
+H|S ⊕ H|S ⊥ . As a consequence,
+e
+e
+e
+e = e−iHt
+U(t)
+= e−i(H|S )t ⊕ e−i(H|S ⊥ )t .
+
+e = U(t)|
+e S ⊕ U(t)|
+e S ⊥ . Comparing the two identities, we observe
+On the other hand, we write U(t)
+that the projection onto S commutes with exponentiation, i.e.,
+e
+e S.
+e−i(H|S )t = U(t)|
+
+It follows that
+h
+
+e S
+V † U(t)|
+
+i
+
+"∞
+#
+h
+i
+k
+X 1 
+e
+e S )t
+V = V † e−i(H|S )t V = V †
+V
+−i(H|
+k!
+k=0
+
+=
+
+∞
+X
+k=0
+
+∞
+k X
+1
+e S )V † t =
+−iV (H|
+(−iHt)k = U(t).
+k!
+k!
+
+1 
+
+k=0
+
+51
+
+The following proposition shows that it is possible to simulate the target Hamiltonian H by
+e that encodes H.
+emulating a larger simulator Hamiltonian H
+Proposition 4 (Analog simulation via subspace encoding). Suppose the isometry V : H → S gives
+e
+e
+a subspace
+E encoding of H ∈ Herm(H) into H ∈ Herm(H). Given an initial state |ψ0 i ∈ H, we
+e The quantum evolution in H (or H)
+e is specified by |ψt i = e−iHt |ψ0 i (or
+write ψ̃0 = V |ψ0 i ∈ H.
+E
+E
+e
+ψ̃t = e−iHt ψ̃0 ). Let O ∈ Herm(H) be a quantum observable in H, we define a new observable
+e Then, for any t ≥ 0, we have
+Õ := V OV † in H.
+D
+E
+hψt | O |ψt i = ψ̃t Õ ψ̃t .
+
+(F.29)
+
+E
+E
+e
+Proof. Note that ψ̃t = e−iHt ψ̃0 and Õ = V OV † , we have
+D
+E D
+
+
+E
+e
+e
+ψ̃t Õ ψ̃t = ψ˜0 e+iHt V OV † e−iHt ψ˜0
+= hψ0 | V † e+iHt V OV † e−iHt V |ψ0 i
+
+ 
+
+e
+e
+= hψ0 | V † e+iHt V O V † e−iHt V |ψ0 i
+e
+
+e
+
+= hψ0 | e+iHt Oe−iHt |ψ0 i = hψt | O |ψt i .
+Note that we invoke Lemma 4 in the second to last step.
+Remark 9. Proposition 4 is formulated for time-independent target Hamiltonian H. Actually, it
+also applies to time-dependent target Hamiltonian H(t) as long as V is a subspace encoding of H(t)
+e
+into H(t)
+for any t ≥ 0. Also, it is clear that |tildeψt i ∈ S for any t ≥ 0 because S is an invariant
+e
+subspace of H(t).
+F.3.2
+
+Hamming encoding
+
+Now, we introduce a specific subspace encoding named Hamming encoding that will be used to
+embed the (relaxed) QHD Hamiltonian (F.19) into Quantum Ising Machines.
+e = C2n with the standard
+Definition 5 (Hamming states). The Hilbert space of n qubits is H
+computational basis {|bi : b ∈ {0, 1}n }. The Hamming weight of a computational basis |bi is the
+number of ones in the bit-string b, denoted by |b|.
+Given an integer j = 0, 1, ..., n, we define the j-th Hamming state as the uniform superposition
+over all computational basis of Hamming weight j, i.e.,
+1 X
+|bi ,
+|Hj i := p
+Cj |b|=j
+where Cj =
+
+(F.30)
+
+n
+j .
+
+
+
+Lemma 5. Hamming states are of norm 1 and mutually orthorgonal, i.e., for j, k = 0, 1, ..., n,
+(
+1 j=k
+hHj |Hk i =
+(F.31)
+0 j 6= k
+
+52
+
+Proof. By the definition of Hamming states,
+X
+1
+hHj |Hk i = p
+b b0 .
+Cj Ck |b|=j,|b0 |=k
+P
+If j 6= k, we have hb|b0 i = 0 so that hHj |Hk i = 0. If j = k, hHj |Hk i = ( |b|=j 1)/Cj = 1.
+e spanned by all (n + 1) Hamming states. By Lemma 5, the set
+We consider the subspace S ⊂ H
+of Hamming states actually form an orthonormal basis of S.
+P
+Lemma 6. The uniform superposition state |si = |+i⊗n = √12n b∈{0,1}n |bi is in the subspace S.
+In particular, we have
+n r
+X
+Cj
+|si =
+|Hj i .
+(F.32)
+2n
+j=0
+
+Proof.
+n
+X
+
+r
+
+j=0
+
+n
+X
+
+Cj
+|Hj i =
+2n
+
+r
+
+j=0
+
+
+
+Cj  1
+p
+2n
+Cj
+
+
+
+n
+1 XX
+
+|bi = √
+|bi = |si .
+2n j=0 |b|=j
+|b|=j
+
+X
+
+Lemma 6 shows that a Quantum Ising Machine can be directly initialized to the subspace S.
+Also, it shows that the superposition state |si is a discrete Gaussian state in the Hamming basis.
+Pn−1 (j)
+Pn−1 (j)
+Lemma 7. We denote Sx =
+j=0 σz . The subspace S is an invariant
+j=0 σx and Sz =
+subspace of both Sx and Sz . Furthermore,
+Sx |S =
+Sz |S =
+
+n−1
+Xp
+
+
+
+(j + 1)(n − j) |Hj+1 i hHj | + |Hj i hHj+1 | ,
+
+j=0
+n
+X
+
+(n − 2j) |Hj i hHj | .
+
+(F.33)
+(F.34)
+
+j=0
+(j)
+
+Proof. Note that σx acts on a computational basis state |bi by flipping the j-th qubit while keeping
+all other qubits unchanged. Therefore, Sx is a sum of all single qubit flips. Then
+X
+X
+√
+Sx |H0 i =
+σx(j) 0⊗n =
+|bi = n |H1 i ,
+j
+
+|b|=1
+
+σx(j) 1⊗n =
+
+X
+
+and similarly,
+Sx |Hn i =
+
+X
+j
+
+|bi =
+
+√
+
+n |Hn−1 i .
+
+|b|=n−1
+
+Let j ∈ {1, 2, . . . , n − 1}. For any bit-string |yi of Hamming weight |y| = j − 1, there are
+n − j + 1 bit-strings of Hamming weight j that are mapped to |yi by a single bit flip. Similarly, for
+
+53
+
+any bit-string |zi of Hamming weight |z| = j + 1, there are j + 1 bit-strings of Hamming weight j
+that are mapped to |zi by a single bit flip. It follows that
+j+1 X
+n−j+1 X
+p
+|yi + p
+|zi
+Cj |y|=j−1
+Cj |z|=j+1
+p
+p
+Cj−1
+Cj+1
+= (n − j + 1) p
+|Hj−1 i + (j + 1) p
+|Hj+1 i
+Cj
+Cj
+s
+s
+(n − j + 1)2 n!j!(n − j)!
+(j + 1)2 n!j!(n − j)!
+=
+|Hj−1 i +
+|Hj+1 i
+n!(j − 1)!(n − j + 1)!
+n!(j + 1)!(n − j − 1)!
+p
+p
+= j(n − j + 1) |Hj−1 i + (j + 1)(n − j) |Hj+1 i .
+
+Sx |Hj i =
+
+This proves the first part of the proposition.
+Note that σz maps |0i to itself, and flips the phase of |1i: σz |1i = − |1i. For any bit-string |bi
+of Hamming weight j, we have
+X
+Sz |bi =
+σz(j) |bi = (n − j) |bi − j |bi = (n − 2j) |bi ,
+j
+
+and it follows that Sz |Hj i = (n − 2j) |Hj i for any j = 0, 1, ..., n. This proves the second part of
+the proposition.
+Definition 6 (Hamming encoding in one dimension). The Hamming encoding refers to the
+isometry V : H = Cn+1 → S such that
+V =
+
+n
+X
+
+|Hj i hj| .
+
+(F.35)
+
+j=0
+
+The following corollary is a direct consequence of Lemma 7.
+Corollary 2. Let V be the Hamming encoding as in Definition 6.
+P
+1. Let X̂ = nj=0 nj |ji hj| be the discretized position observable as defined in (F.10), the Ham
+1
+ming encoding V gives a subspace encoding of X̂ into 21 − 2n
+Sz ;
+p
+P
+2. Let Â0 = n−1
+(j + 1)(n − j)/n (|j + 1i hj| + |ji hj + 1|) be the relaxed adjacency matrix as
+j=0
+1
+in (F.21), the Hamming encoding V gives a subspace encoding of Â0 into n1/2
+Sx .
+Remark 10. Corollary 2 gives a subspace encoding of the tridiagonal matrix A0 into the off-diagonal
+part of the Quantum Ising Machine Hamiltonian, yet at the cost of using an exponentially small
+e = C2n . This seems to be an unavoidable compromise due to the
+subspace S of full Hilbert space H
+limited programmability of Quantum Ising Machines.
+To summarize, the target Hamiltonian represents a mesh point aj = j/n by the state |ji, while
+the Hamming encoding represents the same point by the j-th Hamming state |Hj i. In particular,
+we use n qubits on a Quantum Ising Machine to encode a single continuous variable. The same
+idea also works for higher dimensional cases. In what follows, we introduce a resolution parameter
+r ∈ Z, which is the number of cells on each edge of the regular mesh discretizing [0, 1]d . We use
+n = dr qubits to encode the full (discretized) d-dimensional QHD Hamiltonian (which is a (r + 1)d dimensional matrix). Similar as in the one-dimensional case, a mesh point (aj1 , ..., ajd ) in [0, 1]d is
+mapped to the tensor product of d Hamming states |Hj1 , ..., Hjd i on the simulator.
+54
+
+Definition 7 (Hamming encoding in finite dimensions). For an integer d ≥ 1, the Hamming
+encoding in d dimensions refers to the isometry Vd : H⊗d → S ⊗d such that
+Vd = V ⊗ · · · ⊗ V =
+{z
+}
+|
+d copies of V
+
+n
+X
+
+|Hj1 , ..., Hjd i hj1 , ..., jd | .
+
+(F.36)
+
+j1 ,...,jd =0
+
+In other words, Vd maps |j1 , ..., jd i to |Hj1 , ..., Hjd i.
+In Lemma 6, we observe the uniform superposition state can be regarded as a Gaussian distribution in Hamming state basis. This observation generalizes to higher dimensions.
+Proposition 5 (Multivariate Gaussian distribution). Fix a resolution parameter r ∈ Z and die = C2r The uniform superposition state in H
+e ⊗d is in the
+mension d ∈ Z, and denote n = dr. Let H
+subspace S ⊗d :
+r
+r
+X
+X
+Cj1 ...Cjd
+1
+⊗n
+|+i = √
+|bi =
+|Hj1 , ..., Hjd i .
+(F.37)
+n
+2n
+2 b∈{0,1}n
+j ,...,j =0
+1
+
+d
+
+Proof. Using Lemma 6,
+⊗n
+
+|+i
+
+=
+
+d
+O
+
+⊗r
+
+|+i
+
+k=1
+
+=
+
+r
+X
+j1 ,...,jd =0
+
+=
+
+d X
+r
+O
+
+r
+
+k=1 jk =0
+
+Cjk
+|Hjk i
+2r
+
+v
+u d
+u Y Cj
+k
+t
+|Hj1 , . . . , Hjd i =
+2r
+k=1
+
+r
+X
+j1 ,...,jd =0
+
+r
+
+Cj1 . . . Cjd
+|Hj1 , . . . , Hjd i .
+2n
+
+Define the following new operators:
+Sα(k) =
+
+kr−1
+X
+
+σα(j) ,
+
+(F.38)
+
+1
+1 (k)
+−
+S .
+2 2n z
+
+(F.39)
+
+j=(k−1)r
+
+for k = 1, ..., d and α = x, z. Also, we define
+W (k) =
+
+Proposition 6. Fix a resolution parameter r ∈ Z and dimension d ∈ Z, and denote n = dr.
+e ⊗ is an invariant subspace of Sx(k) , Sz(k) , and W (k) . Furthermore, for any
+The subspace S ⊗d ⊂ H
+k = 1, 2, . . . , d, we have
+
+
+n−1
+X
+1
+Vd†  1/2
+σx(j)  Vd = Â0d ,
+(F.40)
+r
+j=0
+
+
+†
+(k)
+Vd W
+Vd = X̂ (k) ,
+(F.41)
+
+
+Vd† W (k) W (`) Vd = X̂ (k) X̂ (`) ,
+(F.42)
+where the symbol X̂ (k) is defined as in (F.16), and Â0d is as in (F.20).
+55
+
+(k)
+
+Proof. Since Sz , and W (k) only act on r qubits used to represent the kth continuous variable, it
+(k)
+(k)
+follows from Lemma 7 that S ⊗d is an invariant subspaceof Sx , 
+Sz , and W (k) .
+(k)
+1
+It also follows from the one-dimensional case that V † r1/2
+Sx V = I ⊗ . . . ⊗ Â0 ⊗ . . . ⊗ I, where
+Â0 is the k-th operator in the tensor product. Thus,
+
+
+!
+n−1
+d
+X
+X
+1
+† 1
+†
+Vd
+σ (j)  Vd = Vd
+S (k) Vd = Â0d .
+r1/2 j=0 x
+r1/2 k=1 x
+
+1 (k)
+Since W (k) = 12 − 2r
+Sz , it follows from the one-dimensional case that V † W (k) Vd = X̂ (k) .
+
+Similarly, Vd† W (k) W (`) Vd = X̂ (k) X̂ (`) as W (k) and W (`) operate on different qubits.
+Corollary 3 (Ising format for quadratic programming). Consider a quadratic function f (x) =
+1 >
+>
+d
+d×d is a symmetric coefficient matrix. Let
+2 x Qx + b x, where x, b ∈ R , and Q = (Qp,q ) ∈ R
+X̂ (p) be the same as in (F.16), the discretization of f over the regular mesh Md = {aj = rj : j =
+0, 1, ..., r}d is
+
+
+d
+d
+X
+X
+X
+1
+F̂ = 
+Qp,p (X̂ (p) )2 +
+bp X̂ (p) .
+(F.43)
+Qp,q X̂ (p) X̂ (q)  +
+2
+p>q
+p=1
+
+p=1
+
+Let V ⊗d be the Hamming encoding isometry as in (F.36). The Hamming encoding gives a subspace
+encoding of F̂ into HP , where the Hamiltonian HP is of the form:
+
+
+d
+d
+X
+X
+X
+1
+HP = 
+Qp,p (W (p) )2 +
+Qp,q W (p) W (q)  +
+bp W (p)
+(F.44)
+2
+p>q
+p=1
+
+=
+
+n−1
+X
+
+hj σz(j) +
+
+j=0
+
+with g = 81 (1 + 1r )
+
+p=1
+
+n−1
+X
+
+Jj,k σz(j) σz(k) + g,
+
+(F.45)
+
+j,k=0
+j>k
+
+1P
+1P
+p Qp,p + 4
+p>q Qp,q + 2
+p bp ,
+
+P
+
+
+
+hj = −
+
+1 
+4r
+
+d
+X
+
+
+
+
+
+Qp,q  + 2bp 
+
+(F.46)
+
+Qp,q
+4r2
+
+(F.47)
+
+q=1
+
+for (p − 1)r ≤ j ≤ pr − 1, and
+Jj,k =
+for (p − 1)r ≤ j ≤ pr − 1, (q − 1)r ≤ k ≤ qr − 1.
+Proof. Note that hj1 , . . . , jd | X̂ (p) |j1 , . . . , jd i = ajp and hj1 , . . . , jd | X̂ (p) X̂ (q) |j1 , . . . , jd i = ajp ajq for
+any p, q = 1, . . . , d. Therefore, it follows that
+f (aj1 , ..., ajd ) = hj1 , ..., jd | F̂ |j1 , ..., jd i .
+
+56
+
+It follows from Proposition 6 that
+1
+Vd† HP Vd =
+2
+
+d
+X
+
+1
+2
+
+d
+X
+
+=
+
+Qp,p Vd†
+
+
+
+Ŵ
+
+(p)
+
+2
+
+Vd +
+
+X
+
+Qp,q Vd†
+
+
+
+Ŵ
+
+(p)
+
+Ŵ
+
+(q)
+
+
+
+Vd +
+
+p>q
+
+p=1
+
+
+
+bp Vd† Ŵ (p) Vd
+
+p=1
+
+
+2 X
+Qp,q X̂ (p) X̂ (q) +
+Qp,p X̂ (p) +
+p>q
+
+p=1
+
+d
+X
+
+d
+X
+
+bp X̂ (p)
+
+p=1
+
+= F̂ .
+The form of HP in terms of Pauli-z operators is by straightforward calculation, combining terms
+that include the identity, 1-site, and 2-site Pauli-z operators.
+F.3.3
+
+Time-energy rescaling
+
+Recall that we want to simulate the relaxed version of discretized QHD (F.19) for t ∈ [0, T ].
+This ODE is a mathematical model and it is dimensionless. However, real-world analog quantum
+computers operate at certain energy levels and its Hamiltonian is of the unit of energy (e.g., Joule);
+see (F.3). To connect the dimensionless ODE to a realistic analog quantum computer, we need to
+calibrate the “clock” in the abstract time evolution so that it matches real-world physical devices.
+We introduce a rescaled time t = λξ, where λ > 0 is a time dilation parameter. The rescaled
+wave function is
+ψ̃(ξ) = ψ(λξ),
+
+(F.48)
+
+with the evolution duration T̃ = T /λ. Plugging the rescaled wave function to the Schrödinger
+√
+equation (F.19), together with the Hamming encoding: Ad → Sx / r, we obtain:
+
+
+i
+
+E  λeϕt
+d
+3/2
+ψ̃ξ = 
+− 2 r Sx +
+dξ
+{z
+}
+|
+Kinetic part
+
+E
+
+,
+eχt λVd 
+ψ̃
+| {z }  ξ
+
+(F.49)
+
+Potential part
+
+This means if we want to get the evolution result in (F.19) at time T , we should let the Quantum
+Ising Machine emulate for T /λ with the following time-dependent functions (F.2):
+A(t)
+= λr3/2 eϕ(t) ,
+h
+B(t)
+= 2λeχ(t) .
+h
+F.3.4
+
+(F.50a)
+(F.50b)
+
+Reconstructing quantum distribution
+
+To obtain the quantum distribution of the QHD wave function |ψi, it is sufficient to measure the
+quantum state with the (discretized)Pposition observable X̂. In particular, if a wave function in
+|ψi ∈ H = Cr+1 is written as |ψi = rj=0 cj |ji, we use the measurement elements {Ej = |ji hj|}
+to recover the quantum density distribution {|cj |2 }. From the quantum distribution, the global
+minimizer of f is inferred.
+P
+The Hamming encoding isometry is V = rj=0 |Hj i hj|. By Proposition 4, in order to recover
+the same measurement results, we want to use the transformed measurement elements {Ẽj =
+57
+
+V Ej V † = |Hj i hHj |}. However, according to Definition 2, we can only measure a state in Quantum
+Ising Machines with computational basis. At a first glance, it seems impossible to perform quantum
+measurement with {Ẽj }. Surprinsingly, we show that it is still possible to recover the quantum
+2
+distribution
+P {|cj | } on Quantum Ising Machines by using a new set of measurement elements:
+{Πj = |b|=j |bi hb| : j = 0, 1, ..., r}. Note that this measurement is performed in computational
+basis on Quantum Ising Machines.
+r
+
+Lemma 8 (One-dimensional case). Let H0 = C2 be the simulator Hilbert space, and we denote S
+as the subspace spanned by Hamming states {|Hj i , j = 0, 1, ..., r}. Suppose |ψi ∈P
+S. Consider two
+sets of measurement elements in H0 : {Ẽj = |Hj i hHj | : j = 0, 1, ..., r} and {Πj = |b|=j |bi hb| : j =
+0, 1, ..., r}. We have
+hψ| Ẽj |ψi = hψ| Πj |ψi ,
+
+(F.51)
+
+for all j = 0, 1, . . . , r.
+Pr
+
+j=0 c` |Hj i.
+
+Proof. We write the quantum state |ψi =
+same time, we compute hψ| Πj |ψi,
+
+It is clear that hψ| Ẽj |ψi = |cj |2 . At the
+
+!
+hψ| Πj |ψi =
+=
+
+X
+
+c` hH` | 
+
+
+X
+
+|bi hb|
+
+!
+X
+
+cm |Hm i
+
+m
+
+`
+
+|b|=j
+
+X
+
+c` cm hH` |bi hb|Hm i .
+
+`,m,|b|=j
+
+Note that hH` |bi = δ`,|b| √1C , where C` =
+`
+
+r
+` . It turns out that
+
+hψ| Πj |ψi = cj cj
+
+
+
+X 1
+= |cj |2 = hψ| Ẽj |ψi .
+Cj
+
+|b|=j
+
+Proposition 7 (Finite-dimensional case). Let d be the dimension of the problem, and r ∈ Z+ be
+the resolution parameter. Let H0 , S be the same as in Lemma 8. Suppose |ψi ∈ S ⊗d . For 1 ≤ k ≤ d
+and 0 ≤ j ≤ r, we define
+(k)
+
+Ẽj
+
+:= I ⊗ · · · ⊗
+
+Ẽj
+|{z}
+
+⊗ · · · ⊗ I,
+
+(F.52)
+
+the k-th operator
+(k)
+
+where Ẽj = |Hj i hHj |. Let Mj
+we have
+
+be the same as in (F.26). Then, for any 1 ≤ k ≤ d and 0 ≤ j ≤ r,
+D
+
+(k)
+
+ψ Ẽj
+
+E D
+E
+(k)
+ψ = ψ Mj ψ .
+
+(F.53)
+
+Proof.
+D
+
+(k)
+
+ψ Ẽj
+
+E
+
+
+ψ = hψ| I ⊗ · · · ⊗ Ẽj ⊗ · · · ⊗ I |ψi
+D
+E
+(k)
+= hψ| (I ⊗ · · · ⊗ Πj ⊗ · · · ⊗ I) |ψi = ψ Mj ψ .
+
+Note that the second equality follows from Lemma 8, and the last step uses the definition of
+(k)
+Mj .
+58
+
+F.3.5
+
+Correctness of our analog implementation
+
+Now, we prove the correctness of Algorithm 2.
+Theorem 4 (Analog implementation of QHD). Let d be the dimension of the quadratic programming problem (F.1). Given a resolution parameter r ∈ Z+ and a time-rescaling parameter λ > 0.
+(k)
+Let T be the total evolution time of QHD, and we define tf = T /λ. Let |φ0 i, |ψ0 i, Ej , and
+(k)
+
+Mj be defined as in Table 2. We denote |φT i as the solution of the relaxed QHD (F.19) at time
+t = T , and ψtf be the state in the Quantum Ising Machine at evolution time t = tf (following
+Algorithm 2). Then, we have
+E D
+E
+D
+(k)
+(k)
+ψtf Mj ψtf = φT Ej φT ,
+(F.54)
+for any 1 ≤ k ≤ d and 0 ≤ j ≤ r.
+r
+
+d
+
+Proof. Let V : Cr+1 → S ⊂ C2 be the Hamming encoding defined in (F.35). Let H = C(r+1) be the
+n
+Hilbert space of discretized QHD (in d dimensions), and H0 = C2 be the simulator Hamiltonian
+with n = dr being the total number of qubits required. We denote Vd : H ⊂ S ⊗d ⊂ H0 as the
+Hamming encoding in d dimensions as in (F.36).
+First, we check the initial state. By Proposition 5, we see that Vd |φ0 i = |psi0 i. Next, we check
+the Hamiltonian encoding. By Proposition 6 and Corollary 3, we have
+!
+eϕt r3/2
+r2
+†
+χt
+Sx + e HP Vd = − Â0d + eχt F̂d ,
+Vd −
+2
+2
+which matches the relaxed QHD Hamiltonian (F.19). We further introduce the time rescaling:
+t = λξ for ξ ∈ [0, T /λ], the Dtime-rescaledE simulator
+dynamics
+D
+E is described as in (F.49). Therefore,
+(k)
+(k)
+by Proposition 4, we have φT Ej φT = ψtf Ẽj ψtf , where the transformed measurement
+(k)
+
+element is Ẽj
+
+F.4
+
+= Vd Ej Vd† (see (F.52)). Lastly, it follows from Proposition 7 that
+D
+E
+E D
+(k)
+(k)
+φT Ej φT = ψtf Mj ψtf .
+(k)
+
+Hamming encoding v.s. Radix-2 encoding: a case study
+
+We consider a quadratic program in two dimensions. The objective function is
+
+1
+f (x1 , x2 ) =
+Q11 x21 + (Q12 + Q21 )x1 x2 + Q22 x22 + b1 x1 + b2 x2 ,
+(F.55)
+2
+assuming the Hessian is symmetric, i.e. Q12 = Q21 .
+Suppose the resolution is 1/8, so we use r = 8 qubits for each continuous variable for the
+Hamming encoding.
+From Corollary 3, the Quantum Ising Machine Hamiltonian is
+
+
+7
+15
+X
+X
+1
+HHamming = − (Q11 + Q12 + 2b2 )
+σz(j) + (Q21 + Q22 + 2b2 )
+σz(j) 
+(F.56)
+32
+j=0
+j=8
+
+
+
+
+
+
+
+j−1
+j−1
+7 X
+15 X
+7
+15 X
+X
+X
+X
+1 
++
+Q11 
+σz(j) σz(k)  + Q21 
+σz(j) σz(k)  + Q22 
+σz(j) σz(k)  ,
+256
+j=0 k=0
+
+j=8 k=0
+
+j=8 k=8
+
+(F.57)
+59
+
+ignoring the constant term which only contributes a global phase.
+For the radix-2 encoding, we only use r = 4 qubits for each variable. To derive the quantum Ising
+machine Hamiltonian, let s1 , s2 ∈ {−1, 1}r be binary vectors such that x1 and x2 are approximated
+by
+
+p> (1 − s1 )
+1
+=
+1 − p> s1
+2
+2
+
+p> (1 − s2 )
+1
+x2 ≈
+=
+1 − p> s2 ,
+2
+2
+
+
+where p = 1/2 1/4 1/8 1/8 .
+The discretized quadratic objective function is
+
+1
+>
+>
+>
+>
+>
+fˆ(s1 , s2 ) =
+Q11 s>
+pp
+s
++
+(Q
++
+Q
+)s
+pp
+s
++
+Q
+s
+pp
+s
+1
+12
+21 1
+2
+22 2
+2
+1
+8
+
+
+1
+−
+(2Q11 + Q12 + Q21 + 4b1 )p> s1 + (2Q22 + Q12 + Q21 + 4b2 )p> s2
+8
+1
++ (Q11 + Q12 + Q21 + Q22 + 4b1 + 4b2 )
+8
+x1 ≈
+
+(F.58)
+(F.59)
+
+(F.60)
+(F.61)
+(F.62)
+
+Let pj be the jth entry of p, and let pjk = pj pk be the (j, k)-th entry of pp> . Ignoring the
+constant terms, the quantum Ising machine Hamiltonian is
+
+
+3
+3
+X
+X
+1
+HRadix-2 = −
+(Q11 + Q12 + 2b1 )
+pj σz(0) + (Q21 + Q22 + 2b2 )
+pj σz(j+4) 
+(F.63)
+4
+j=0
+j=0
+
+
+j−1
+j−1
+3 X
+3 X
+X
+X
+1
++ Q11
+pjk σz(j) σz(k) + Q22
+pjk σz(j+4) σz(k+4) 
+(F.64)
+4
+j=0 k=0
+
+3
+
++
+
+j=0 k=0
+
+3
+
+(Q12 + Q21 ) X X
+pjk σz(j) σz(k+4) .
+8
+
+(F.65)
+
+j=0 k=0
+
+G
+
+Quadratic Programming on D-Wave
+
+G.1
+
+Test problems
+
+We test the performance of QHD and other algorithms on quadratic programming (QP) problems.
+Quadratic programming problems are the “simplest” class of optimization problems beyond linear
+programs with many applications in operations research [54]. However, solving QP problems is
+challenging in practice: non-convex QP is known to be NP-hard [88], even with one negative
+eigenvalue [75].
+In our empirical study, we focus on the special case of quadratic programming with box constraints, where the problem is formulated as
+minimize
+subject to
+
+1
+f (x) = x> Qx + b> x,
+2
+0 4 x 4 1,
+
+(G.1a)
+(G.1b)
+
+where 0 and 1 are n-dimensional vectors of all zeros and all ones, respectively. In general, such
+problems are still known to be NP-hard [44].
+60
+
+We implement quantum algorithms (QHD and QAA) on the D-Wave Advantage system6.1.
+While there exists extensive libraries of QP test instances in the literature (e.g., [54]), most of
+these instances can not be solved by the D-Wave QPU because of the limited connectivity between
+qubits.27 For this reason, we randomly generate a test benchmark set with 160 QP instances whose
+Hessin matrices Q are of low sparsity.
+Parameters of the QP benchmark. These instances are split into 4 groups by their dimension:
+QP-5d, QP-50d-5s, QP-60d-5s and QP-75d-5s.28 The sparsity of these problems (i.e., the number
+of non-zero entries per row/column in the Hessian matrix Q) is fixed to be 5. There are ten
+5-dimensional instances, and fifty instances of dimension 50, 60, 75, respectively. The entries of
+the Hessian are uniformly sampled from [−1, 1]. We enforce the box constraint x ∈ [0, 1]n for all
+instances.
+
+G.2
+
+Optimization solvers and metric of performance
+
+We test 7 methods: DW-QHD, DW-QAA, IPOPT, SNOPT, MATLAB’s fmincon (with SQP),
+QCQP [76], and a basic Scipy minimize (with TNC) method. The ground truth (global solution) is obtained by running Gurobi. For each instance and method, we perform 1000 trials (or
+anneals/shots, in the case of quantum methods). We implement the quantum methods (DWQHD, DW-QAA) on the D-Wave Advantage system6.1. The results from D-Wave QPU are postprocessed by the Scipy minimize local solver (with TNC method). For the classical methods, the
+initial point is a uniformly random point in the box [0, 1]d . For quantum algorithms, we discretize
+each dimension into 8 cells (i.e., resolution = 8 per continuous variable). This means 4 logical qubits
+per dimension in QAA and 8 logical qubits per dimension in QHD. In order to investigate the quality of the D-Wave QPU, we also numerically simulate QHD and QAA for the ten 5-dimensional
+instances (Sim-QHD, Sim-QAA) on a classical computer. For a fair comparison, we use the same
+D-Wave QPU parameters [61] in the numerical simulation. All the classical computations are done
+using a computer with 11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz. We use Python 3.9.7
+and MATLAB R2021b.29
+We use the time-to-solution (TTS) metric [81] to compare the performance of optimization
+algorithms. TTS is the number of runs or shots required to obtain the correct global solution at
+least once with 0.99 success probability:
+T T S = tf ×
+
+l ln(1 − 0.99) m
+,
+ln(1 − ps )
+
+(G.2)
+
+where tf is the average runtime per trial/shot, and ps is the success probability of finding the global
+solution in a given trial/shot. We regard a given result xf as a global solution if |f (xf ) − f (x∗ )| ≤
+0.01, where x∗ is the solution returned by Gurobi.
+
+G.3
+
+Details of the D-Wave quantum computer
+
+In nature, the D-Wave quantum computer is a programmable quantum Ising machine. The quantum
+evolution in D-Wave machines is described by the time-dependent Schrödinger equation (0 ≤ t ≤
+27
+
+The qubits on D-Wave QPU are aranged as the Pegasus graph. The maximum degree of the Pegasus graph is
+15 [69]. This means we can not implement very dense qubit-qubit interaction on the QPU.
+28
+Due to limited connectivity and number of qubits, the maximum dimension of the problems we are able to embed
+on the D-Wave QPU is roughly 75.
+29
+The QCQP package has not been updated since 2018. To run the QCQP solver, we use Python 3.6.13.
+
+61
+
+tf ):
+ih
+
+d
+|ψt i = Hdwave (t) |ψt i ,
+dt
+
+(G.3)
+
+where h is the Planck’s constant,30 and the system Hamiltonian reads [62, Section 3.3]:
+
+
+
+
+X
+A(s) X (j)  B(s) X
+σx
++
+hj σz(j) +
+Jj,k σz(j) σz(k) ,
+Hdwave (s) = −
+2
+2
+j
+j
+j>k
+{z
+} |
+{z
+}
+|
+Initial Hamiltonian
+
+(G.4)
+
+Problem Hamiltonian
+
+(j)
+
+where s is the normalized anneal fraction ranging from 0 to 1. The operator σα stands for 1-site
+Pauli operators acting on n qubits:
+σα(j) = I0 ⊗ ... ⊗ (Pα )j ⊗ ... ⊗ In−1 ,
+where Pα with α = x, y, z refers to the Pauli matrices. For simplicity, we denote
+X
+Sx =
+σx(j) .
+
+(G.5)
+
+(G.6)
+
+j
+
+Programmable parameters of the D-Wave machine:
+1. Problem description parameters hj , Jj,k . They are used to formulate the problem Hamiltonian
+so that its ground state encodes the anwser to the problem that we desire to solve. Note that
+the parameters hj , Jj,k describe the problem in Ising format. D-Wave quantum sampler also
+accept problems in QUBO format, see Section G.4.
+2. Annealing duration tf . This parameter is the end time of the quantum simulation and can
+be specified by users.
+3. Annealing schedule. D-Wave QPU has pre-fixed time-dependent functions A(s) and B(s) and
+users can not change these functions; for more details, see [61]. For a given annealing duration
+tf , the default annealing schedule used by D-Wave QPU is the linear interpolation s = t/tf ,
+where t is the actual annealing time. One can also specify custom annealing schedules [64]
+by inputing a sequence {(t0 , 0), (t1 , s1 ), . . . , (tm , 1)}, where t0 = 0, and tm = tf is the total
+annealing time. The user-specified annealing schedule will be interpreted as a non-decreasing
+function for t ∈ [0, tf ] and s ∈ [0, 1]. Adjacent pairs (tk , sk ) are joined by linear interpolation.
+Remark 11. As mentioned above, the annealing functions A(s), B(s) are pre-fixed and not programmable by the users. They begin at s = 0 with A(s)  B(s) and end at s = 1 with A(s)  B(s).
+The actual shapes of A and B are non-linear, and it is reported that B grows quadratically in s. On
+the D-Wave Advantage system6.1, A(0)/h = 9.63 GHz and B(1)/h = 7.57 GHz. These functions
+are illustrated in Figure 12, see the “DW default A(t)” and “DW default B(t)” curves in the right
+panel.
+30
+
+To be consistent with the data provided by the D-Wave company, we use the original Planck’s constant in the
+Schrödinger equation. Its exact value is h = 6.626 × 10−34 J/Hz.
+
+62
+
+G.4
+
+QUBO format of quadratic programming
+
+The D-Wave quantum sampler accepts two formats of problem description, i.e., the Ising format
+and the QUBO format [63]. These two formats are equivalent and can be converted to each other.
+In Corollary 3, we give the Ising format of quadratic programming problems. In practice, we find
+the QUBO format is more succinct and easier to construct with standard numerical programming
+tools.
+Quadratic Unconstrained Binary Optimization (QUBO) refers to the following minimization
+problem:
+min f (z) =
+
+z∈{0,1}n
+
+X
+1X
+qj,k zj zk +
+qj z j ,
+2
+j<k
+
+(G.7)
+
+j
+
+where qj,k , qj are real numbers.
+To map a QP problem to a QUBO, we represent each continuous variable xi (with i = 1, . . . , d)
+using a binary vector wi ∈ {0, 1}b (where b is the resolution in the binary expansion) such that
+xi = p> wi , where p ∈ Rb is a precision vector that defines the encoding. Therefore, the full solution
+vector x ∈ Rd is expanded to a binary variable w ∈ Rbd such that
+x = Pw,
+
+(G.8)
+
+where P := Id ⊗ p> is the matrix that carries the encoding information.
+With the binary expansion (G.8), a QP problem (G.1a) is mapped to the following QUBO
+problem:
+min
+
+w∈{0,1}bd
+
+1
+f (w) = w> P> QPw + b> Pw.
+2
+
+(G.9)
+
+In DW-QHD, we use the Hamming encoding scheme to represent QP problems. In the Hamming
+encoding scheme, a real variable is expanded to a b-bit binary string and the real variable is
+evaluated from the Hamming weight of the binary string. With b = 8, the corresponding precision
+vector for DW-QHD is
+
+>
+pDW-QHD = 1/8 . . . 1/8 .
+
+(G.10)
+
+Similarly, in DW-QAA, a real variable is represented by a b-bit binary string through the radix2 expansion.31 We choose b = 4 for DW-QAA (so the smallest resolution is 1/8, the same as
+DW-QHD) and the corresponding precision vector is
+
+>
+pDW-QAA = 1/8 1/8 1/4 1/2 .
+
+(G.11)
+
+It is worth noting that the box constraint in the QP problem (G.1) is implicitly enforced in the
+QUBO format (G.9) as long as all elements in the precision vector p sum up to 1.
+
+G.5
+
+Details of the implementation of DW-QHD and DW-QAA
+
+We implement two quantum methods (QHD, QAA) on the D-Wave Advantage system6.1, accessed
+through Amazon Braket.
+31
+
+In other words, the encoding is the same as the base-2 floating point representation of real numbers.
+
+63
+
+Time-dependent functions (annealing schedules). The time-dependent functions A(t) and
+B(t) in DW-QAA and DW-QHD are realized by the control of the annealing schedules on D-Wave
+QPU [64]. We consider two annealing schedules in our experiment:
+1. the D-Wave default annealing schedule s = t/tf ;
+2. a custom annealing schedule that resembles the time-dependent parameters in QHD. The
+custom annealing schedule is defined by the sequence of (t, s) pairs:
+{(0, 0), (400, 0.3), (640, 0.6), (800, 1)},
+where consecutive pairs are linearly interpolated.
+We set the annealing duration tf = 800 µs in our D-Wave experiment for reasonable performance.
+In Figure 12, we illustrate the annealing schedules and the corresponding time-dependent functions.
+Anneal Schedule
+
+Time-dependent functions
+10
+
+1.0
+
+DW default schedule
+DW-QHD schedule
+
+DW default A(t)/h
+DW default B(t)/h
+8
+
+0.8
+
+DW-QHD A(t)/h
+DW-QHD B(t)/h
+
+6
+
+s
+
+(GHz)
+
+0.6
+
+0.4
+
+4
+
+0.2
+
+2
+
+0.0
+
+0
+0
+
+200
+
+400
+
+600
+
+800
+
+0
+
+t (µs)
+
+200
+
+400
+
+600
+
+800
+
+t (µs)
+
+Figure 12: Annealing schedules of DW-QAA (default) and DW-QHD (custom).
+
+To understand how the annealing schedules affect the performance of quantum algorithms, we
+conduct a pre-test of four different encoding-schedule combinations through numerical simulation:
+• (a) Radix-2 encoding + the default schedule;
+• (b) Radix-2 encoding + the custom schedule;
+• (c) Hamming encoding + the default schedule;
+• (d) Hamming encoding + the custom schedule.
+The combinations (a) and (b) are for QAA, and (c) and (d) are for QHD. Each encoding-schedule
+combination is numerically simulated on a classical computer to solve problems in the benchmark
+QP-5d (consisting of ten 5-dimensional non-convex QP instances). The numerical simulation is
+performed with the machine Hamiltonian/parameters of the D-Wave Advantage system6.1, so
+the results reflect the performance of the quantum algorithms on an ideal D-Wave machine. We
+find that the combinations (a) and (b) show similar performance (their TTS are in the magnitude
+of 10−2 ), while they are significantly worse than the combinations (c) and (d) (their TTS are in
+the magnitude of 10−3 ). Our finding suggests that the choice of quantum algorithms (or more
+specifically, the mapping of the QP problems to QIMs) mostly determines the quality of solutions,
+while the annealing schedules only play a minor role.
+Based on our numerical observation, we decide to use the combination (a) in our D-Wave
+implementation of QAA (i.e., DW-QAA) and the combination (d) in our D-Wave implementation
+64
+
+of QHD (i.e., DW-QHD). We believe our choices of annealing schedules best match the conventional
+design of QAA and QHD while giving us a faithful understanding of the performance of QAA/QHD
+on the D-Wave machine.
+Minor embedding and qubit counts. Due to the limited connectivity of the D-Wave QPU,
+the target QUBO problems are complied to a sparser problem before mapping to the real quantum
+sampler. This compilation process is called minor embedding [60] and it is automatically done by
+the D-Wave computing cloud. We list the number of logical qubits (i.e., qubits used in the target
+QUBO problem) and the number of physical qubits (i.e., active qubits used by the D-Wave QPU)
+in Table 3 (DW-QHD) and Table 4 (DW-QAA). Although we use only double the number of logical
+qubits for DW-QHD compared to DW-QAA (Table 4), the additional number of physical qubits
+required is much larger than double due to the limited connectivity of the D-Wave QPU. In fact,
+if we were to use 8 qubits for each continuous variable for QAA, the physical qubit counts would
+be identical to those shown in Table 3.
+Dimensions
+
+Logical Qubits
+
+Physical Qubits
+
+50
+
+400
+
+2630
+
+60
+
+480
+
+3276
+
+75
+
+600
+
+4064
+
+Table 3: Number of logical and physical qubits used to run DW-QHD for QP problems of dimensions 50,
+60, and 75.
+
+Dimensions
+
+Logical Qubits
+
+Physical Qubits
+
+50
+
+200
+
+662
+
+60
+
+240
+
+834
+
+75
+
+300
+
+1047
+
+Table 4: Number of logical and physical qubits used to run DW-QAA for QP problems of dimensions 50,
+60, and 75.
+
+Effective evolution time of QHD. In our experiment, we set the annealing duration tf = 800 µs
+for DW-QHD. Now, we try to compute the effective evolution time T as in the original QHD
+formulation:
+ 
+
+
+1 2
+ϕt
+χt
+i |Ψt i = e
+− ∇ + e f (x) |Ψt i .
+2
+We focus on the kinetic part, as the scaling of the potential f does not change the location of the
+global minimizer. By Section F.3.3, the effective evolution time T = λtf , where the time dilation
+parameter λ is computed by matching the coefficients in (F.50a) at s = 0,
+λeϕ0 r3/2 =
+
+65
+
+A(0)
+.
+h
+
+(G.12)
+
+Assuming that eϕ0 = 500 (as in (C.4)), and we note that r = 8 and A(0)/h = 9.63 × 109 (Hz),
+it follows that
+λ=
+
+A(0)/h
+9.63 × 109
+=
+≈ 8.51 × 105 .
+r3/2 eϕ0
+83/2 × 500
+
+(G.13)
+
+Therefore, the effective evolution time in QHD is
+T = λtf ≈ 681.
+
+(G.14)
+
+Post-processing. Due to the limited QPU resources, we have low spatial resolution in the analog
+implementation of QHD and QAA. To better understand the performance of QHD and QAA on
+continuous problems, we apply Scipy minimize function (with the “TNC” solver) to post-process
+the quantum samples for DW-QHD and DW-QAA. The Scipy minimize-TNC function is a gradientbased local nonlinear solver, so it does not bring extra advantage in the post-processing for nonconvex problems.
+
+G.6
+
+Experiment results
+
+The TTS data for each tested solver are shown in Figure 4. Raw experiment data and the code are
+available online.32
+In the 5-dimensional benchmark, we also have simulated QHD and QAA (see Sim-QHD, SimQAA). It turns out that Sim-QHD (with evolution time tf = 1 µs) still does better than DW-QHD
+(with annealing time tf = 800 µs), indicating that the D-Wave system is subject to significant
+noise and decoherence. Another interesting observation is that DW-QAA (with annealing time
+tf = 800 µs) does better than the ideal simulation Sim-QAA (annealing time tf = 1 µs), which
+shows QAA has slower convergence.
+In the other three benchmarks (high-dimensional QP problems), DW-QHD outperforms DWQAA, usually by a considerable margin. It is worth noting that we use different annealing schedules
+for DW-QHD and DW-QAA (but with the same annealing time tf = 800 µs). However, our
+experiment shows that DW-QAA is roughly unchanged even if we use the same annealing schedule
+as for DW-QHD.
+
+G.7
+
+Limitations of the D-Wave implementation of QHD
+
+The QHD we have implemented on the D-Wave QPU is still of the following limitations.
+Connectivity and programmability of the D-Wave QPU. Due to the limited connectivity
+of the physical qubits on the D-Wave Advantage system6.1, we have to employ minor embedding
+so that the target/problem Hamiltonian is mapped to the QPU. In theory, minor embedding only
+preserves the ground state of the problem Hamiltonian while it can perturb the subspace-encoded
+QHD Hamiltonian. This means the solutions we obtain with minor embedding can be worse than
+the solutions from the ideal Quantum Ising Machine setup (as in Algorithm 2). Also, the timedependent functions A(t) and B(t) are not fully programmable so we can not implement arbitrary
+time-dependent parameters eϕt and eχt on D-Wave.
+32
+
+Raw data is available on Box. The code for our experiment is available on GitHub.
+
+66
+
+Naive algorithmic designs. Currently, our D-Wave implementation of QHD is exceedingly
+plain compared to classical methods, and we observe that DW-QHD is unable to outperform stateof-the-art branch-and-bound methods such as those used by Gurobi and CPLEX.33 By effectively
+searching an enumeration tree, branch-and-bound solvers are able to find a solution and potentially
+guarantee optimality. In DW-QHD, we have neither the smart search strategy nor guarantee
+optimality of solutions. However, we want to remark that the branch-and-bound technique requires
+exponential resources in the worst-case (see Figure 13), and generally problems of sufficiently large
+dimension and density cannot be solved to optimality in any reasonable amount of time. With
+larger quantum machines and better connectivity, it may be the case that QHD is able to solve
+problems with a better optimality gap than existing branch-and-bound methods with a reasonable
+but fixed runtime limit. Also, there is potential to integrate many classical ideas into QHD, e.g., use
+QHD as a subroutine in a branch-and-bound search strategy, etc. Our empirical study is evident
+to demonstrate to potential of QHD, in which we show QHD is competitive with state-of-the-art
+nonlinear local solvers such as Ipopt.
+A
+
+B
+
+Figure 13: A: Average runtime in seconds for Gurobi to solve random QPs of sparsity 5, 15, 25, and 45 for
+various dimensions. Each point denotes the average runtime over 100 random instances for a given dimension
+and sparsity. B: Average number of branching nodes explored by Gurobi for random QPs of sparsity 5, 15,
+25, and 45 for various dimensions.
+
+G.8
+
+Resource analysis for digital and analog implementation
+
+To better understand the actual cost of the digital implementation when applied to quadratic
+programming problems (with box constraints), we compute the number of T gate (i.e., T-count)34
+required to solve the QP problems in different resolutions, assuming the same experiment setup as
+in our experiment on D-Wave QPU.
+For the digital implementation of QHD, we consider a similar product-formula method as in
+(C.3). Note that the FFT can be replaced with Quantum Fourier Transform (QFT) and implemented on a digital quantum computer.
+We need to perform spatial discretization in (C.3). The precision parameter q (i.e., number of
+qubits per continuous variable) controls the resolution in the spatial discretization of the feasible
+domain. We will compute the T-count for q = 3, 16, 32. Note that the precision q = 3 corresponds
+33
+
+While branch-and-bound methods are typically used for discrete and combinatorial problems, they are also able
+to solve nonconvex QPs by performing spatial branching and solving linear programming relaxed subproblems [68].
+34
+A standard universal gate set is Clifford + T. It is known that a T gate is far more expensive to implement
+fault tolerantly than any of the Clifford gates. Therefore, the T-count faithfully reflects the difficulty of fault-tolerant
+implementation.
+
+67
+
+to the same resolution (r = 23 ) we have in our experiment on the D-Wave sampler. The T-count
+of several quantum subroutines are listed in Table 5 (see [56, 71] for more details).35
+Quantum subroutines
+
+3-qubit
+
+16-qubit
+
+32-qubit
+
+Quantum adder
+
+587
+
+4704
+
+11144
+
+Quantum multiplier
+
+173
+
+6328
+
+26642
+
+Approximate QFT
+
+170
+
+1162
+
+2698
+
+Table 5: T-count of quantum floating-point adder, multiplier, and approximate quantum Fourier transform
+
+Dimensions
+
+3-qubit format
+
+16-qubit format
+
+32-qubit format
+
+50
+
+5.49e+8
+
+7.8386e+9
+
+2.672e+10
+
+60
+
+6.588e+8
+
+9.4063e+9
+
+3.2064e+10
+
+75
+
+8.235e+8
+
+1.1758e+10
+
+4.008e+10
+
+Table 6: T-count of digital implementation of QHD for QP problems.
+
+Proposition 8. Consider a quadratic programming problem defined in (G.1) without linear constraint (i.e., Qc = 0, bc = 0). Suppose the problem is of dimension d, and the problem matrix Q has
+at most s non-zero elements on each row/column. We use cadd , cmult , caqf t to denote the T-count
+in the adder, multiplier, and approximate QFT. With R iterations, the digital implementation has
+T-count
+
+
+2 (cadd + cmult )(s + 2) + caqf t dR.
+Proof. Suppose the initial guess state |ψ0 i is the uniform superposition state so it be efficiently
+prepared (T-count = 0). The implementation of exp(−isbj V) uses two queries to Of (see Figure
+1-1 in [48, Section 1.2]). There are (sd + d) additions and multiplications, respectively, in the
+evaluation of f . Therefore, the T-count of Of is (cadd + cmult )(sd + d). This means the T-count in
+exp(−isbj V) is 2(cadd + cmult )(sd + d). In computing the matrix elements of L, there are at least
+d multiplications and d additions; hence, the T-count is 2(cadd + cmult )d in the implementation of
+exp(−isaj L). The QSFT for one dimension can be implemented with one approximate QFT and
+two diagonal operators [46, Lemma 5]. Even ignoring the T-count in the two diagonal operators,
+QSFT has (at least) the T-count of caqf t d for d dimensions. Therefore, a single iterative step in
+the digital implementation uses 2((cadd + cmult )(s + 2) + caqf t )d. This number times R is the total
+T-count in the quantum algorithm.
+In Table 6, we evaluate the T-count in the digital implementation of QHD for solving the
+quadratic programming problems from Section G based on Proposition 8 (we set R = 1000).36 The
+T-count in the low-precision implementation (i.e., 3-qubit representation of a continuous variable)
+is already greater than 5 × 108 . However, near-term digital quantum computers merely promise
+the controllability of hundreds of qubits and thousands of gates. This means the resources required
+by QHD to solve real-life problems are beyond the capability of any near-term digital quantum
+computers.
+35
+
+The estimated T-counts for q = 3 are computed by extrapolation.
+In Section G.5, we compute the effective QHD evolution time T ≈ 681 in our D-Wave implementation. In fact,
+to simulate the same quantum evolution with digital quantum computer, the number of iterations R will be much
+bigger than T . Here, we just take a mild estimate R = 1000.
+36
+
+68
+
+References
+[40] Ali R. Al-Roomi, Unconstrained Single-Objective Benchmark Functions Repository, 2015,
+https://www.al-roomi.org/benchmarks/unconstrained.
+[41] Dong An, Di Fang, and Lin Lin, Time-dependent unbounded Hamiltonian simulation with
+vector norm scaling, Quantum 5 (2021), 459.
+[42] Michael Betancourt, Michael I Jordan, and Ashia C Wilson, On symplectic optimization, 2018,
+arXiv:1802.03653.
+[43] John P Boyd, Chebyshev and Fourier spectral methods, Courier Corporation, 2001.
+[44] Samuel Burer and Adam N Letchford, On nonconvex quadratic programming with box constraints, SIAM Journal on Optimization 20 (2009), no. 2, 1073–1089.
+[45] Andrew M. Childs, Jiaqi Leng, Tongyang Li, Jin-Peng Liu, and Chenyi Zhang, Quantum
+simulation of real-space dynamics, Quantum 6 (2022), 860, arXiv:2203.17006.
+[46] Andrew M Childs, Jin-Peng Liu, and Aaron Ostrander, High-precision quantum algorithms for
+partial differential equations, Quantum 5 (2021), 574.
+[47] Andrew M Childs, Dmitri Maslov, Yunseong Nam, Neil J Ross, and Yuan Su, Toward the first
+quantum simulation with quantum speedup, Proceedings of the National Academy of Sciences
+115 (2018), no. 38, 9456–9461.
+[48] Andrew Macgregor Childs, Quantum information processing in continuous time, Ph.D. thesis,
+Massachusetts Institute of Technology, 2004.
+[49] Jeffrey Cohen, Alex Khan, and Clark Alexander, Portfolio optimization of 60 stocks using
+classical and quantum algorithms, 2020, arXiv:2008.08669.
+[50] Toby S Cubitt, Ashley Montanaro, and Stephen Piddock, Universal quantum Hamiltonians,
+Proceedings of the National Academy of Sciences 115 (2018), no. 38, 9497–9502.
+[51] Nike Dattani, Quadratization in discrete optimization and quantum mechanics, 2019,
+arXiv:1901.04405.
+[52] Edward Farhi, Jeffrey Goldstone, Sam Gutmann, Joshua Lapan, Andrew Lundgren, and
+Daniel Preda, A quantum adiabatic evolution algorithm applied to random instances of an
+NP-complete problem, Science 292 (2001), no. 5516, 472–475.
+[53] Richard P Feynman, Albert R Hibbs, and Daniel F Styer, Quantum mechanics and path
+integrals, Courier Corporation, 2010.
+[54] Fabio Furini, Emiliano Traversi, Pietro Belotti, Antonio Frangioni, Ambros Gleixner, Nick
+Gould, Leo Liberti, Andrea Lodi, Ruth Misener, Hans Mittelmann, et al., QPLIB: a library of
+quadratic programming instances, Mathematical Programming Computation 11 (2019), no. 2,
+237–265.
+[55] David J Griffiths and Darrell F Schroeter, Introduction to quantum mechanics (third edition),
+Cambridge University Press, 2018.
+
+69
+
+[56] Thomas Haener, Mathias Soeken, Martin Roetteler, and Krysta M Svore, Quantum circuits for
+floating-point arithmetic, International Conference on Reversible Computation, pp. 162–174,
+Springer, 2018.
+[57] R Harris, Y Sato, AJ Berkley, M Reis, F Altomare, MH Amin, K Boothby, P Bunyk, C Deng,
+C Enderud, et al., Phase transitions in a programmable quantum spin glass simulator, Science
+361 (2018), no. 6398, 162–165.
+[58] Naomichi Hatano and Masuo Suzuki, Finding exponential product formulas of higher orders,
+Quantum annealing and other optimization methods, Springer, 2005, pp. 37–68.
+[59] Peter D Hislop and Israel Michael Sigal, Introduction to spectral theory: With applications to
+Schrödinger operators, vol. 113, Springer Science & Business Media, 2012.
+[60] D-Wave Systems Inc., D-Wave Ocean documentation, 2021, Concepts: Minor-Embedding.
+[61] D-Wave Systems Inc., D-Wave solver documentation, 2021, QPU-Specific Characteristics.
+[62] D-Wave Systems Inc., D-Wave solver documentation: Getting started with D-Wave solvers,
+2021, What is Quantum Annealing?
+[63] D-Wave Systems Inc., D-Wave solver documentation: Problem-solving handbook, 2021, Reformulating a Problem.
+[64] D-Wave Systems Inc., D-Wave solver documentation: QPU solver datasheet, 2021, Annealing
+Implementation and Controls.
+[65] Momin Jamil and Xin-She Yang, A literature survey of benchmark functions for global optimisation problems, International Journal of Mathematical Modelling and Numerical Optimisation
+4 (2013), no. 2, 150–194.
+[66] Ian D. Kivlichan, Nathan Wiebe, Ryan Babbush, and Alán Aspuru-Guzik, Bounding the costs
+of quantum simulation of many-body physics in real space, Journal of Physics A: Mathematical
+and Theoretical 50 (2017), no. 30, 305301, arXiv:1608.05696.
+[67] Chris J Maddison, Daniel Paulin, Yee Whye Teh, Brendan O’Donoghue, and Arnaud Doucet,
+Hamiltonian descent methods, 2018, arXiv:1809.05042.
+[68] Garth P McCormick, Computability of global solutions to factorable nonconvex programs: Part
+I—Convex underestimating problems, Mathematical programming 10 (1976), no. 1, 147–175.
+[69] Catherine McGeoch and Pau Farré, The D-Wave Advantage system: An overview, Tech. report, D-Wave Systems Inc., 2020.
+[70] Keith W Morton and David Francis Mayers, Numerical solution of partial differential equations: an introduction, Cambridge university press, 2005.
+[71] Yunseong Nam, Yuan Su, and Dmitri Maslov, Approximate quantum Fourier transform with
+o (n log (n)) t gates, NPJ Quantum Information 6 (2020), no. 1, 1–6.
+[72] Gheorghe Nenciu, Linear adiabatic theory. Exponential estimates, Communications in mathematical physics 152 (1993), no. 3, 479–496.
+
+70
+
+[73] Yurii Nesterov, Introductory lectures on convex optimization: A basic course, vol. 87, Springer
+Science & Business Media, 2013.
+[74] Yurii E Nesterov, A method for solving the convex programming problem with convergence rate
+o (1/kˆ2), Dokl. akad. nauk Sssr, vol. 269, pp. 543–547, 1983.
+[75] Panos M Pardalos and Stephen A Vavasis, Quadratic programming with one negative eigenvalue
+is NP-hard, Journal of Global Optimization 1 (1991), no. 1, 15–22.
+[76] Jaehyun Park and Stephen Boyd, General heuristics for nonconvex quadratically constrained
+quadratic programming, 2017, arXiv:1703.07870.
+[77] Thomas Potok et al., Adiabatic quantum linear regression, Scientific reports 11 (2021), no. 1,
+1–10.
+[78] Alice Quillen, Phy411 lecture notes part 7 – integrators, 2018, PDF.
+[79] Patrick Rebentrost, Maria Schuld, Leonard Wossnig, Francesco Petruccione, and Seth Lloyd,
+Quantum gradient descent and Newton’s method for constrained polynomial optimization, New
+Journal of Physics 21 (2019), no. 7, 073023.
+[80] Jérémie Roland and Nicolas J Cerf, Quantum search by local adiabatic evolution, Physical
+Review A 65 (2002), no. 4, 042308.
+[81] Troels F Rønnow, Zhihui Wang, Joshua Job, Sergio Boixo, Sergei V Isakov, David Wecker,
+John M Martinis, Daniel A Lidar, and Matthias Troyer, Defining and detecting quantum
+speedup, Science 345 (2014), no. 6195, 420–424.
+[82] Mark Saffman, Thad G Walker, and Klaus Mølmer, Quantum information with Rydberg atoms,
+Reviews of modern physics 82 (2010), no. 3, 2313.
+[83] JJ Sakurai and Napolitano J, Modern quantum mechanics (second edition), Addison-Wesley,
+2011.
+[84] Bin Shi, Weijie J Su, and Michael I Jordan, On learning rates and Schrödinger operators, 2020,
+arXiv:2004.06977.
+[85] Weijie Su, Stephen P Boyd, and Emmanuel J Candes, A differential equation for modeling
+Nesterov’s accelerated gradient method: Theory and insights., NIPS, vol. 14, pp. 2510–2518,
+2014.
+[86] S. Surjanovic and D. Bingham, Virtual library of simulation experiments: Test functions and
+datasets, Retrieved March 29, 2022, from http://www.sfu.ca/~ssurjano.
+[87] Masuo Suzuki, General theory of fractal path integrals with applications to many-body theories
+and statistical physics, Journal of Mathematical Physics 32 (1991), no. 2, 400–407.
+[88] Stephen A Vavasis, Quadratic programming is in NP, Information Processing Letters 36 (1990),
+no. 2, 73–77.
+[89] Guillaume Verdon, Jason Pye, and Michael Broughton, A universal training algorithm for
+quantum deep learning, 2018, arXiv:1806.09729.
+[90] Andre Wibisono, Ashia C Wilson, and Michael I Jordan, A variational perspective on accelerated methods in optimization, Proceedings of the National Academy of Sciences 113 (2016),
+no. 47, E7351–E7358.
+71
+
+

@@ -1,0 +1,213 @@
+                                                Quantum Reservoir Computing for Short-Term
+                                               Power Load Forecasting in Resource-Constrained
+                                                             Energy Systems
+                                                            Mansi Od 1 , Param Pathak 2 , Nouhaila Innan 3,4 , and Muhammad Shafique 3,4
+                                                                          1
+                                                                            University of Greenwich, London, United Kingdom
+                                                                   2
+                                                                     Fractal Analytics, QuantumAI Lab, Mumbai, Maharashtra, India
+                                                 3
+                                                   eBRAIN Lab, Division of Engineering, New York University Abu Dhabi (NYUAD), Abu Dhabi, UAE
+                                            4
+                                              Center for Quantum and Topological Systems (CQTS), NYUAD Research Institute, NYUAD, Abu Dhabi, UAE
+arXiv:2606.12806v1 [quant-ph] 11 Jun 2026
+
+
+
+
+                                                   mansiod2049@gmail.com, param.pathak@fractal.ai, {nouhaila.innan, muhammad.shafique}@nyu.edu
+
+
+
+                                               Abstract—Short-term load forecasting is essential for reliable   these models achieve low forecasting error on standard bench-
+                                            energy management, but practical deployment on edge devices         marks. However, their accuracy comes at a steep hardware cost:
+                                            requires models that remain accurate under limited memory,          millions of trainable parameters, large activation buffers, and
+                                            finite measurement budgets, and hardware noise. This work
+                                            proposes a hardware-efficient Quantum Reservoir Computing           repeated floating-point matrix multiplications make inference
+                                            (QRC) framework for energy load forecasting, where a fixed          latency and storage requirements incompatible with the memory
+                                            quantum reservoir transforms temporal input windows into high-      and energy limits of resource-constrained edge devices [4].
+                                            dimensional features and only a classical Elastic Net readout          Reservoir Computing (RC) offers a structurally different
+                                            is trained. To reduce deployment cost, the trained readout is       solution to this deployment gap [5]. Rather than propagating
+                                            compressed using post-training fixed-point quantization at bit
+                                            widths from 8 to 2 bits. The framework is evaluated on the Tetouan  gradients through a recurrent network, RC projects input
+                                            and Spain energy load datasets under exact statevector simulation,  signals into a fixed, randomly initialized dynamical system
+                                            512-shot finite sampling, and realistic hardware-noise models       and trains only a linear readout layer on top of the resulting
+                                            from IBM FakeTorino and IBM FakeMarrakesh. Results show             high-dimensional state trajectory. Because the reservoir is
+                                            that 6-bit readout precision preserves full-precision forecasting   never updated, training reduces to a convex readout regression
+                                            performance while reducing readout memory by 81.2%. Below
+                                            this point, degradation becomes dataset dependent, with Tetouan     problem, avoiding the costly backpropagation passes required
+                                            showing stronger sensitivity and Spain degrading more gradually.    by deep recurrent models. This makes RC attractive for low-
+                                            Hardware-noise validation further shows that the trained readout    power deployment. However, classical echo-state reservoirs rely
+                                            transfers to noisy reservoir states without retraining. These       on random recurrent matrices whose effective dimensionality is
+                                            findings support quantized QRC as a resource-aware forecasting      bounded by the number of physical nodes, potentially limiting
+                                            approach for near-term quantum time-series applications.
+                                                                                                                their representational capacity for complex multivariate energy
+                                               Index Terms—Quantum machine learning, quantum reservoir signals [6].
+                                            computing, short-term load forecasting, post-training quantization,    Quantum Reservoir Computing (QRC) extends the RC
+                                            edge computing, smart grids.
+                                                                                                                paradigm to quantum mechanical systems, where the reservoir
+                                                                                                                is a parameterized quantum circuit with frozen weights [7].
+                                                                    I. I NTRODUCTION                            Even a modest register of N qubits evolves in a Hilbert space
+                                                                                                                of dimension 2N , providing access to a high-dimensional
+                                               Modern power grids are becoming increasingly distributed, nonlinear feature space with a compact physical register.
+                                            pushing Short-Term Load Forecasting (STLF) from centralized Superposition and entanglement generate intricate correlations
+                                            control rooms toward edge nodes embedded in smart meters and across input features that are difficult to replicate in classical
+                                            local controllers [1]. Accurate sub-hourly demand prediction systems, while the fixed-circuit design preserves the core RC
+                                            is indispensable for operational planning, frequency regulation, advantage of gradient-free training. Critically, QRC sidesteps
+                                            and demand-response dispatch [2]. The volatility and non- the barren-plateau problem that undermines the trainability of
+                                            stationarity of high-frequency consumption data make this fully parameterized quantum models [8], making it a suitable
+                                            a fundamentally difficult sequential regression task, and the candidate for resource-constrained forecasting.
+                                            stakes of forecasting error are high in both economic and              Despite these advantages, a concrete hardware barrier
+                                            grid-reliability terms.                                             remains. Even when the quantum processing stage is fixed,
+                                               Recurrent architectures such as Long Short-Term Mem- the classical readout layer must store a weight vector whose
+                                            ory (LSTM) networks and Gated Recurrent Units (GRUs), dimensionality scales with the number of measured observables.
+                                            as well as attention-based Transformers, have set the current At full 32-bit floating-point precision this readout imposes
+                                            performance ceiling for STLF [3]. By learning rich temporal a non-trivial memory footprint that can exceed the on-chip
+                                            dependencies through backpropagation across many layers, Static Random-Access Memory budget of embedded energy
+controllers. Post-training fixed-point quantization of the readout forecasting on near-term hardware, edge-constrained forecast-
+weights is therefore a necessary step toward genuine edge ing, and finite-shot noise in QRC systems. These directions
+deployability, yet its effect on the rich high-dimensional frame the main gap addressed in this work: whether a fixed
+representations produced by a quantum reservoir has not been QRC model can support accurate load forecasting when its
+systematically studied. It is unclear whether the informational readout is compressed to low-bit precision and its reservoir
+redundancy embedded in quantum feature maps offers any states are evaluated under finite-shot and hardware-noise
+resilience against aggressive low-bit compression, or whether conditions.
+quantization noise degrades the forecasting signal in the same
+way it affects classical dense readouts.
+   Through this work, we close this gap by proposing a A. Reservoir Computing for Probabilistic Load Forecasting
+Hardware-Efficient QRC framework that treats the classical
+readout as the primary compression target (see Fig. 1). The           The challenge of reconciling forecasting accuracy with
+quantum reservoir remains fully fixed throughout all experi-       computational     tractability has increasingly motivated the use
+ments; only the readout weights are quantized post-training        of Echo   State  Networks    (ESNs) in short-term load forecasting.
+to bit widths k ∈ {8, 6, 4, 3, 2}. Using the Tetouan and Spain     Unlike   conventional    deep  learning models that require costly
+energy load datasets as two distinct forecasting benchmarks,       gradient-based      optimisation   across all layers, ESNs fix a
+we investigate two core scientific questions:                      randomly    initialized sparse  recurrent reservoir and train only a
+                                                                   linear readout, dramatically reducing training overhead. Guerra
+   • Representation resilience: Do the high-dimensional
+                                                                   et al. [9] extended this principle by overlaying Bayesian uncer-
+      quantum feature maps retain sufficient informational
+                                                                   tainty quantification onto the readout layer, yielding calibrated
+      structure to support accurate forecasting when the readout
+                                                                   prediction intervals on the ACEA and Spain national grid
+      is compressed to sub-8-bit precision?
+                                                                   datasets while training significantly faster than autoregressive
+   • The accuracy-compactness frontier: What is the effec-
+                                                                   baselines. Melhem et al. [10] further proposed a hybrid ESN-
+      tive accuracy-per-bit trade-off of a QRC readout, and
+                                                                   GRU architecture for real-time edge deployment, achieving
+      at which bit width does degradation become practically
+                                                                   an RMSE of 142.3 kW while reducing inference latency by
+      significant?
+                                                                   3.2× and memory footprint by 47% on constrained hardware.
+   Our results show that 6-bit precision matches full-precision While these results validate the reservoir computing paradigm
+forecasting performance while reducing readout memory by for practical smart grid deployment, classical reservoirs remain
+about 81%. Below this point, degradation becomes dataset de- fundamentally limited in their ability to capture the highly
+pendent, with stronger sensitivity on the smaller Tetouan setting nonlinear demand profiles of modern grids, motivating the
+and smoother degradation on the larger Spain dataset. These exploration of quantum alternatives.
+findings indicate that QRC readouts can support lightweight
+forecasting under practical memory constraints.
+                                                                                          B. Quantum-Enhanced Short-Term Load Forecasting
+     Load Data            Quantum reservoir      Quantized readout     Load forecast
+                                                                                             Building on this motivation, Habibi et al. [5] proposed a
+                                                                                          hybrid quantum-classical neural network in which a parameter-
+                                                                                          ized quantum circuit functions as a nonlinear feature extractor,
+                                                                                          achieving an RMSE reduction of approximately 6.4% over
+            Exact statevector        512 shots          IBM hardware                      the strongest classical comparator on real power system data
+                                                                                          while remaining tractable on near-term Noisy Intermediate-
+Fig. 1: Conceptual overview of the proposed hardware-efficient QRC forecasting
+framework. Energy load data is encoded into a fixed quantum reservoir, transformed into
+                                                                                          Scale Quantum hardware. Pathak et al. [11] formalized a
+reservoir features, and mapped to load forecasts through a quantized classical readout.   QRC framework using Chebyshev encoding and brickwork
+The framework is evaluated under exact simulation, finite-shot sampling, and realistic
+IBM backend-noise models.
+                                                                                          entanglement, reporting accuracy within 1% of full-precision
+                                                                                          baselines on the Tetouan City dataset under finite-shot con-
+   The rest of the paper is organized as follows: Sec. II reviews                         straints. However, neither of these works considers the hardware
+related work on reservoir computing for load forecasting and                              constraints imposed by real edge deployment, particularly the
+quantum-enhanced forecasting on near-term hardware. Sec. III                              impact of quantized readout and finite measurement budgets.
+presents the proposed QRC framework, covering the quantum
+reservoir architecture, temporal kernel aggregation, classical
+readout training, and post-training quantization pipeline. Sec. IV                        C. Edge-Constrained Load Forecasting
+reports the results and the discussion. Finally, Sec. V concludes
+                                                                                             Addressing the challenge of establishing accurate forecasting
+with a summary of the main findings and directions for future
+                                                                                          models directly on memory-limited edge hardware, Lekidis
+work.
+                                                                                          and Papageorgiou [12] proposed a lightweight edge-based
+                                                                                          energy demand prediction framework. Yet this framework
+             II. BACKGROUND AND R ELATED W ORK                                            relies entirely on classical models and does not account for
+   This section reviews prior work along four directions:                                 the additional noise source inherent to quantum measurement,
+reservoir computing for load forecasting, quantum-enhanced                                namely finite-shot sampling.
+D. Finite-Shot Noise Analysis in Quantum Reservoir Systems                                                            readout training, post-training quantization, and hardware-noise
+   This measurement noise represents a fundamental and often                                                          validation.
+overlooked constraint. Finite measurement budgets impose
+an irreducible constraint on QRC performance, as evaluating                                                           A. Data Preparation and Feature Engineering
+expectation values requires repeated circuit executions, introduc-                                                       The framework assumes access to an hourly power load
+ing finite-sampling noise even on fault-tolerant hardware [13].                                                       time series accompanied by meteorological covariates such as
+Ahmed et al. [14] show that this noise degrades both recurrent                                                        temperature, humidity, wind speed, and atmospheric pressure.
+QRC and Recurrence-Free Quantum Reservoir Computing,                                                                  Additional exogenous variables, for instance cloud cover or
+affecting the recurrent variant more severely due to noise                                                            electricity price signals, can be included when available. To
+propagation, a finding validated by Liu et al., who demonstrate                                                       capture the periodic structure inherent in energy demand,
+that sampling noise undermines multi-step QRC convergence                                                             six cyclical features are constructed using sine and cosine
+while single-step architectures remain more robust [15]. This                                                         projections of the hour of day, month of year, and day of
+motivates reporting results under both exact statevector simu-                                                        week.
+lation and 512-shot conditions in the present work [16].                                                                 This avoids artificial discontinuities between cyclically
+   These studies leave open the combined question addressed in                                                        adjacent values, such as hour 23 and hour 0. Two autoregressive
+this paper: whether a fixed QRC model can retain forecasting                                                          lag features are appended to each sample, specifically the load
+accuracy when its readout is compressed to low-bit precision                                                          at one hour prior and at twenty-four hours prior, providing the
+and its reservoir states are evaluated under finite-shot and                                                          model with direct access to the most recent intraday pattern.
+realistic backend-noise conditions. We address this gap using                                                         All features are normalized to the unit interval using min-
+two energy load forecasting datasets, including zone-level                                                            max scaling fit exclusively on the training partition to prevent
+Tetouan demand and national-scale Spain demand.                                                                       information leakage. The dataset is split chronologically into
+                                                                                                                      70% training, 10% validation, and 20% test partitions without
+                                              GA architecture search                                                  shuffling, preserving the temporal ordering that is essential
+                                                                                                                      for honest evaluation of time series models. A sliding window
+  Data preparation                                      QRC                                Deployment analysis
+                                                                                                                      of T = 24 consecutive hourly observations is then applied to
+      1). Input data                            4). Quantum reservoir                          7). Quantization
+    Power load demand                            Encoding + brickwork                        Optimal clip + refine    construct supervised samples, where each window of shape
+    Weather covariates                           5N observables / step                       8/6/4/3/2-bit fixed-pt   (T, F ) is paired with the scalar load value at step t + 1 as the
+                                                                           Trained model
+                           Window Sequences
+
+
+
+
+                                                                                                                      prediction target.
+     2). Preprocessing                            5). Temporal agg.                           8). HW validation
+    Sin/cos (h, m, dow)                         5 exponential kernels                        FakeTorino (Heron r1)
+   Lag-1h, lag-24h, norm                        + drift 245 features                          FakeMarrakesh (r2)
+                                                                                                                      B. Quantum Reservoir Architecture
+    3). Sliding window                           6). Classical readout                           The quantum reservoir is a parameterized circuit whose
+                                                                                               9). Evaluation
+    T = 24 hourly steps                         ElasticNet CV (L1 + L2)                       RMSE, MSE + std
+     (T, F)    y at t+1                          5-fold cross-validation                      internal weights are randomly initialized once and then kept
+                                                                                             Memory savings (%)
+                                                                                              fixed, so only the readout layer is trained. This avoids quantum
+Fig. 2: Overview of the proposed QRC forecasting framework. The pipeline constructs           gradient optimization and reduces exposure to barren plateau
+T = 24 input windows, extracts 5N observables per time step from a fixed quantum
+reservoir, compresses the temporal states into 245 aggregated features, and trains an Elastic effects. A genetic algorithm (GA) is used offline to select the
+Net readout for load prediction. After training, the readout is quantized to {8, 6, 4, 3, 2}- optimal reservoir configuration, searching over the number of
+bit fixed-point precision and evaluated under finite-shot and hardware-noise settings. The
+GA search is performed offline to select N , L, encoding, and coupling strength κ for         qubits N , the number of entanglement layers L, the encoding
+each dataset.                                                                                 strategy, and the coupling strength κ. Fig. 3 illustrates the
+                                                                                              resulting circuit structure.
+                                                                                                 At each time step t within the input window, the normalized
+                              III. M ETHODOLOGY                                               feature vector xt ∈ RF is encoded into an N -qubit register.
+    The proposed framework is a hardware-efficient QRC A layer-dependent shift δl = 0.1 · l is applied to each feature
+pipeline for short-term load forecasting. Given a multivari- before rotation to break symmetry across layers. The shifted
+ate load time series, the model first constructs supervised feature for qubit i at layer l is computed as
+24-hour input windows from temporal, meteorological, and
+                                                                                                               x̃i,l = (xi mod F + δl ) mod 1.              (1)
+autoregressive features. Each window is then processed by a
+fixed quantum reservoir, where measured observables form                                         Each qubit i then receives a double-rotation gate sequence
+a high-dimensional representation of the input dynamics. RZ (πx̃i,l ) · RY (πx̃i,l ), which encodes each feature onto both
+These reservoir states are compressed through temporal kernel the azimuthal and polar axes of the Bloch sphere simultaneously.
+aggregation and mapped to a scalar load forecast using an This provides a richer initial state compared to single-axis
+Elastic Net readout. After training, only the readout weights encodings such as Chebyshev angle mapping, which applies
+are quantized to low-bit fixed-point precision and evaluated only a single RY rotation per qubit.
+under finite-shot and hardware-noise settings. A GA-based                                        Following the encoding, each qubit receives a general
+search is performed offline to select the reservoir configuration rotation gate Rot(αi , βi , γi ) with Haar-randomly sampled
+for each dataset.                                                                             angles that remain fixed throughout all experiments. The
+    Fig. 2 summarizes the full pipeline, including data prepa- entanglement structure follows a brickwork topology, where
+ration, quantum reservoir encoding, temporal aggregation, nearest-neighbour CNOT pairs alternate between even and odd
+

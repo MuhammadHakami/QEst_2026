@@ -1,0 +1,223 @@
+XXX et al.: Revolutionizing Power Systems: A Quantum Computing-Ready Pipeline for Stochastic Unit Commitment Optimization
+
+
+
+
+    On Revolutionizing Power Systems: Suitability
+     of Quantum Computing-Ready Pipelines for
+      Stochastic Unit Commitment Optimization
+Abstract— Modern unit commitment (UC) scenarios,                                  𝜅              Penalty function index
+particularly those involving uncertainties from demand                            𝓊              Uncertainty scenario
+fluctuations and renewable energy sources, pose                                   Sets
+significant challenges to traditional optimization methods                        𝐷         Set of generator units
+due to the large search spaces they encompass. This paper
+                                                                                  𝑝         Set of continuous variables
+proposes a quantum computing-ready optimization
+pipeline for deterministic and stochastic UC, integrating                         𝑆         Set of uncertainty considerations (i.e., demand,
+classical, quantum-inspired, quantum annealing, and                                         wind speed, solar irradiance)
+hybrid quantum-classical solvers across test systems,                             𝑇         Set of total time steps (24 hours)
+including the IEEE 118-bus system. A novel Quadratic                              𝑥̃        Set of binary decision variables
+Unconstrained Binary Optimization (QUBO) reformulation                            𝜋̃        Set of binary-represented continuous decision
+accommodates generator scaling and 24-hour scheduling                                       variables
+horizons with compact Boolean logic penalties for startup,                        𝐹∗        Set of unit commitment costs for given scenario
+cooldown, and spinning reserve constraints. A divide-and-
+                                                                                            sets
+conquer strategy and Quantum Computing Monte Carlo
+(QCMC) simulation address scalability across 27,730                               ℋ         Set of compiled Hamiltonians for given scenario
+uncertainty scenarios, reducing compilation time by up to                                   sets
+two orders of magnitude. Experimental results demonstrate                         Parameters
+the pipeline's ability to achieve efficient, scalable, and                        𝐴, 𝐵, 𝐶      Fuel cost coefficients for a generator unit
+accurate UC optimization under uncertainty: the hybrid                            𝔸            Coefficients of binary-represented continuous
+quantum method approach matches the classical baseline,                                        decision variables
+reduces stochastic UC runtime from 40.76 to 14.79 hours,                          𝒜, ℱ         Probability and phase estimation unitary
+and characterizes pure quantum annealing as limited to                            𝔹            Bias terms in a common penalty
+small systems with 0.22% to 2.18% encoding errors and
+                                                                                  𝐺            Solar irradiance (W/m2)
+constraint violations. These results provide an analysis of
+the scalability and computational practicality of hybrid                          𝐺𝑛𝑜𝑟𝑚        Normalized solar irradiance (dimensionless
+quantum optimization for generator scheduling in UC.                                           [0,1])
+   Index Terms— Monte Carlo simulation, Quantum annealing,                        𝐺𝑚𝑎𝑥         Maximum clear-sky solar irradiance reference
+Quantum computing, Stochastic optimization, Unit                                               (W/m²)
+commitment.                                                                       𝔾, 𝕃         Coefficients of binary-represented continuous
+                                                                                               and binary decision variables for a common
+                           NOMENCLATURE                                                        penalty
+ Indices and Superscripts/subscripts                                              𝐻𝑄𝑈𝐵𝑂        A QUBO Hamiltonian
+ 𝑎, 𝑏, 𝑐     Indices of a Hamiltonian (Ising/QUBO/PUBO)                           𝐻𝓊′          Modified        sub-hamiltonian       considering
+ 𝑑, 𝑤, 𝑔     Demand, wind speed, and solar irradiance                                          uncertainty for the power balance penalty
+             uncertainty                                                          ℎ𝑖           Power generation discretization steps for unit 𝑖
+ 𝑖           Generator unit                                                       Κ            Total number of penalty functions
+ 𝑛, 𝑚        Discrete estimation step                                             𝑘, 𝒸         Shape and scale parameters of a Weibull p.d.f.
+ 𝑡           Time Step (hour)                                                     𝐿𝑡           Demand/load at time t (MW)
+                                                                                  𝕄            Coefficients of binary decision variables
+ This work has been accepted for publication in IEEE Transactions                 𝑁            Total number of discrete steps
+ on Industrial Informatics. Citation: Y.-Y. Hong and D. J. D. Lopez,              𝑃𝑖 𝑚𝑖𝑛       Minimum power output for unit 𝑖 (MW)
+ “On Revolutionizing Power Systems: Suitability of Quantum                        𝑃𝑖𝑚𝑎𝑥        Maximum power output for unit 𝑖 (MW)
+ Computing-Ready Pipelines for Stochastic Unit Commitment                            𝑤𝑡
+ Optimization,” IEEE Trans. Ind. Informat., 2026, doi:                            𝑝𝑡           Total wind power generation at time 𝑡 (MW)
+                                                                                     𝑝𝑣
+ 10.1109/TII.2026.3697311.                  Article            page:              𝑝𝑡           Total solar PV power generation at time 𝑡 (MW)
+ https://ieeexplore.ieee.org/document/11599818.                                   𝓅            Probability of a function
+                                                                                  𝒬            Grover operator unitary
+ © 2026 IEEE. Personal use of this material is permitted. Permission               𝓆𝑎𝑏         Variable interaction strength for a QUBO model
+ from IEEE must be obtained for all other uses, in any current or                 𝑞𝑖           Spinning reserve discretization steps for unit 𝑖
+ future media, including reprinting/republishing this material for                   𝑖    𝑖    Minimum uptime and downtime for unit 𝑖 (hr)
+                                                                                  𝑢𝑚   , 𝑑𝑚
+ advertising or promotional purposes, creating new collective works,
+ for resale or redistribution to servers or lists, or reuse of any                𝑟𝑢𝑖          Ramp-up rate for unit 𝑖 (MW/hr)
+ copyrighted component of this work in other works.                               𝑆𝑅           Spinning reserve capacity
+                                                                                  𝒮            Reflection of a quantum state
+XXX et al.: Revolutionizing Power Systems: A Quantum Computing-Ready Pipeline for Stochastic Unit Commitment Optimization
+
+
+
+ 𝒰              Total number of uncertainty scenarios                               𝑀𝐶𝑞       Quantum computing Monte Carlo Simulation
+ 𝑣              Wind speed (m/h)                                                              function
+ 𝒵, 𝒱           Rotation unitaries                                                  𝐶𝑉        Coefficient of Variation
+ 𝛼, 𝛽           Parameters of the Beta p.d.f.                                                                  I. Introduction
+ 𝜇, 𝜃, 𝜙        Estimated expectation value, phase shift and
+                                                                                     NIT commitment (UC) optimization is a critical economic
+ 𝜇𝑠 , 𝜎𝑠
+                global phase of a quantum state
+                Mean and standard deviation of an uncertainty
+                consideration
+                                                                                U    and social practice in industrial and academic power
+                                                                                engineering. The UC problem is also considered an NP-hard
+ 𝜇𝑑 , 𝜇𝑤 , 𝜇𝑔   Means of demand, wind speed, and solar                          problem due to its combinatorial nature, which can be
+                irradiance uncertainty                                          expressed with either a quadratic or linearized objective
+ 𝜎𝑑 , 𝜎𝑤 , 𝜎𝑔   Standard deviations of demand, wind speed, and                  function [1]. UC objective functions are usually expressed in
+                solar irradiance uncertainty                                    their quadratic form [2], which imposes increased
+ 𝜕𝑎             Interactions around a QUBO variable                             computational overhead; hence, most UC optimization studies
+ Variables                                                                      tend to linearize objective functions [3] and grant faster
+ 𝐹         Unit commitment cost ($)                                             convergence. However, as shown in several readily available
+ ⟨𝐹 ∗ ⟩    Estimated cost expectation                                           solvers, this approach sacrifices information due to the piece-
+ 𝑝𝑡,𝑖,𝑛(𝑚) Power output of a unit 𝑖 at time step 𝑡 at estimation                wise sampling of the quadratic cost. Moreover, contemporary
+           step 𝑚 or 𝑛. (MW)                                                    UC optimization, both in planning and operations, accounts for
+   𝑠𝑟      Spinning reserve of unit 𝑖 at time step 𝑡 at                         risks and uncertainties arising from demand fluctuations and
+ 𝑝𝑡,𝑖,𝑛
+           estimation step 𝑛. (MW)                                              variations in renewable power generation. Two prominent
+                                                                                methods for addressing these challenges are robust and
+ 𝜆𝜅        Lagrange multiplier of a penalty 𝜅
+                                                                                stochastic UC (SUC) [4], [5] optimization methods.
+ 𝓈         Binary slack variable
+                                                                                   Recent advancements in industrial system engineering have
+ Decision Variables
+                                                                                sparked a growing interest in quantum computing, which has
+ 𝑧𝑡,𝑖,𝑚(𝑛) Binary decision variable for unit 𝑖 at time step 𝑡 at
+                                                                                demonstrated significant improvements in enhancing specific
+           estimation step 𝑚 or 𝑛.
+                                                                                problem formulations, particularly in power engineering.
+ 𝑥𝑡,𝑖      Unit commitment variable for unit 𝑖 at time 𝑡.
+                                                                                Quantum computing offers numerous advantages in power
+   ↑
+ 𝑥𝑡,𝑖      Binary start-up decision variable for unit 𝑖 at time                 system      engineering,    including    improved      network
+           𝑡.                                                                   synchronization using qubit properties [6], enhanced
+   ↓
+ 𝑥𝑡,𝑖      Binary shut-down decision variable for unit 𝑖 at                     communication security through quantum key distribution [7],
+           time 𝑡.                                                              and applications in large-scale optimal power flow [8], state
+ 𝑦𝑎𝑏       Decision variables in a QUBO model                                   estimation [9], and unit commitment [10]–[12]. Given its
+ Functions                                                                      potential to optimize combinatorial problems, quantum
+ 𝑓𝑑        Probability density function (p.d.f.) for demand                     computing holds particular promise for addressing the UC
+           fluctuation                                                          problem, where enhanced computational efficiency and
+ 𝑓𝑤 , 𝑓𝑔   p.d.f. for wind speed and solar irradiance                           improved value estimation are critical.
+           uncertainty, respectively                                               Deterministic UC problems formulated as Quadratic
+ 𝒫𝜅        QUBO UC penalty function                                             Unconstrained Binary Optimization (QUBO) problems can be
+ 𝑠(𝑡)      Time-dependent state transition of a quantum                         solved using adiabatic quantum computing. This reformulation,
+           system                                                               however, results in an NP-complete problem due to the
+ Γ         The Gamma function                                                   combinatorial complexity of the objective function. Pure
+
+                                                               TABLE I
+                                COMPARISON OF QUANTUM COMPUTING-BASED STOCHASTIC UNIT COMMITMENT MODELS
+                                                                                                                                       Solution
+                                     Scale                                 Constraints                               Scaled Solving
+                                                                                                                                      Estimation
+                                                   Power                                                              Separation/
+           Prior Work
+                                    > 50         Balance +                                             Spinning      Decomposition
+                                                                 Startup    Cooldown      Ramping                                     QAE/ QCMC
+                                  generators     Renewable                                             Reserve        Techniques
+                                                  Energy
+ Kirihara et al. [9]                   ×              ×            ×            ×             ×            ×                ×             ×
+
+ Nikmehr et al. [10]                   ×              ×            ✓            ✓             ✓            ✓            Separation        ×
+ Hong et al. [11]                      ×              ✓            ×            ×             ×            ×          Decomposition       ✓
+
+ Rotello et al. [12]                   ×              ✓            ×            ×             ×            ×                ×             ✓
+
+ Ajagekar and You [13]                 ×              ×            ×            ×             ×            ×                ×             ×
+
+ Chang et al. [14]                     ×              ×            ✓            ✓             ✓            ×                ×             ×
+
+ Quinton et al. [15]                   ×              ×            ×            ×             ×            ×                ×             ×
+
+ Feng et al. [16]                      ✓              ×            ×            ×             ✓            ×          Decomposition       ×
+
+ Mahroo and Kargarian [17]             ✓              ×            ×            ×             ✓            ×            Separation        ×
+
+ Paterakis [18]                        ×              ×            ×            ✓             ✓            ×          Decomposition       ×
+
+ Proposed Pipeline                     ✓              ✓            ✓            ✓             ✓            ✓            Separation        ✓
+XXX et al.: Revolutionizing Power Systems: A Quantum Computing-Ready Pipeline for Stochastic Unit Commitment Optimization
+
+
+
+QUBO optimization for the UC problem was demonstrated in                        by assessing the quality of objective values obtained through
+[13], [14], in which the UC cost is reformulated in quadratic                   quantum annealing and hybrid quantum computing-based
+form, while power balance, security, and other economic                         optimization. To the best of the authors' knowledge, no prior
+constraints are converted into penalty functions. Moreover, the                 work presents a unified framework that simultaneously
+size of the UC problem, measured by the number of decision                      addresses large-scale scalability and spinning reserve modeling
+variables and constraints, grows polynomially with the                          for the base UC model. The use of Quantum Computing Monte
+planning horizon, the number of generating units, and the                       Carlo (QCMC) simulation, which is based on quantum
+number of discretization steps. While problem size grows                        amplitude estimation, represents another compelling case for a
+polynomially, the UC problem remains NP-hard in general due                     quantum-computing-based pipeline. While prior studies such as
+to its combinatorial structure [1], [13]. Similar to the findings               [12] and [18] have demonstrated practical applications, this
+of [15], hybrid approaches address this challenge by                            work focuses on exploring the potential advantages and
+decomposing the UC problem into linear or nonlinear                             limitations of QCMC in the context of large-scale SUC
+programming components and combinatorial subproblems,                           problems.
+enabling distributed optimization techniques to improve                            This paper addresses these gaps by introducing a quantum-
+computational efficiency [16], [17]. Despite these                              computing-ready SUC pipeline (see Table I) that features a
+advancements, significant challenges remain in retrofitting UC                  detailed QUBO reformulation incorporating compact binary
+for quantum systems, particularly for 24-hour UC problems that                  penalty terms for spinning reserves. The proposed framework
+require approximately 300 qubits, often exceeding the                           is evaluated on systems with up to 54 generators over a 24-hour
+capabilities of current quantum hardware. Universal quantum                     horizon and includes over 27,000 uncertainty scenarios within
+computers currently provide up to 1,121 qubits for non-                         a hybrid classical-quantum optimization workflow. A key
+exclusive use, while quantum annealers offer 5,640 qubits.                      objective of this work is to characterize the practical limits of
+Additionally, UC formulations with timing variables indicate                    pure quantum implementations under current hardware
+that PUBO exacerbates the qubit requirement when converting                     constraints. In particular, pure quantum annealing is restricted
+to a QUBO model, implying that additional overhead qubits are                   to small-scale systems and is susceptible to encoding errors
+needed to accommodate continuous variable encodings and the                     arising from qubit-constrained discretization, which tend to
+expansion of timing-related variables.                                          increase with system size. Unlike previous quantum UC
+   Beyond deterministic UC, quantum research has been                           approaches that either omit uncertainty or are constrained to
+extended into distributed and stochastic settings. Nikmehr et al.               limited quantum routines, this work systematically evaluates
+[10] extended QUBO-based UC to distributed microgrids using                     the suitability of quantum-inspired, annealing-based, and
+quantum-enhanced alternating direction method of multipliers                    hybrid solver techniques capable of handling realistic UC
+(ADMM), distributing commitment decisions across classical                      constraints and large-scale data volumes, thereby analyzing the
+and quantum agents. In the stochastic domain, Rotello et al. [12]               suitability of quantum optimization including its advantages
+demonstrated quantum amplitude estimation to compute                            and limitations for large-scale generator-scheduling UC
+expected values in two-stage stochastic programs, thereby                       problems.
+establishing a quantum pathway for uncertainty-aware UC.                           Considering the identified gaps in the existing literature, the
+More recent developments have focused on Benders                                main contributions of this paper are described as follows:
+decomposition-based hybrid quantum architecture. Paterakis                       • A quantum computing–ready optimization pipeline for
+[18] extended this to a multi-cut Benders approach applied                            both deterministic and stochastic UC is proposed to
+directly to UC using the D-Wave Advantage quantum annealer,                           demonstrate its implementation across quantum-inspired,
+exploiting multiple feasible solutions per iteration to accelerate                    quantum annealing, and hybrid quantum–classical solvers.
+convergence. Hong et al. [11] further demonstrated qubit-                             The proposed framework integrates full-scale classical
+efficient quantum annealing for SUC by combining Benders                              and quantum-compatible components, enabling end-to-
+decomposition with quantum ADMM and the augmented                                     end scheduling on established UC benchmark systems,
+Lagrangian method, achieving a qubit requirement independent                          including the IEEE 118-bus system, under a copperplate
+of the number of Benders cuts. These decomposition strategies                         network assumption consistent with current quantum
+represent the current frontier of hybrid quantum UC research                          solver constraints.
+and directly inform the extension path of the pipeline proposed                  • A novel QUBO reformulation is presented to
+in this work.                                                                         accommodate generator scaling and 24-hour scheduling
+   As shown in Table I, prior studies such as [9]–[18] have                           horizons, addressing key limitations in earlier QUBO-
+explored QUBO reformulations for UC problems, but their                               based UC models. By incorporating compact binary
+scalability evaluations are limited to small systems (e.g., fewer                     constraints via Boolean-logic penalties, the formulation
+than 10 generator units) and short time horizons (e.g., 6 to 12                       supports startup and cooldown modeling, similar to
+hours). These works also omit spinning reserve constraints,                           classical Mixed-Integer Quadratic Programming (MIQP),
+which are critical for operational feasibility in real-world                          while remaining compatible with quantum solvers.
+applications. Similar to [11], [12], this work presents a two-                        Additionally, a structured penalty model for spinning
+stage SUC optimization model that incorporates uncertainty                            reserve constraints, which is a feature often omitted in
+variables. However, it further integrates uncertainties in both                       prior quantum UC works, is integrated.
+renewable generation and demand, which is an essential factor                    • A suitability evaluation of QUBO-based and quantum-
+for a comprehensive economic assessment. Additionally, this                           compatible optimization methods for solving the UC
+work evaluates the practicality of quantum optimization models
+

@@ -1,0 +1,1392 @@
+Constrained Quantum Optimization at Utility Scale:
+Application to the Knapsack Problem
+Naeimeh Mohseni,1, ∗ Julien-Pierre Houle,2, 3, † Ibrahim Shehzad,4, †
+Giorgio Cortiana,1 Corey O’Meara,1 and Adam Bene Watts2, ‡
+1
+
+E.ON Digital Technology GmbH, Hannover, Germany
+University of Calgary, Quantum City, Calgary, AB T2N 1N4, Canada
+3
+Université de Sherbrooke, Institut Quantique, Sherbrooke, QC J1K 2R1, Canada
+4
+IBM Quantum, Thomas J. Watson Research Center, Yorktown Heights, NY 10598, USA
+
+arXiv:2603.00260v1 [quant-ph] 27 Feb 2026
+
+2
+
+Constrained combinatorial optimization problems are challenging for quantum computing, particularly at utility-relevant scales and on near-term hardware. At the same time, these problems are
+of practical significance in industry; for example, the Unit Commitment (UC) problem in energy
+systems involves complex operational constraints. To address this challenge, we apply copula-QAOA
+(cop-QAOA), a hardware-efficient approach for constrained optimization to a single-period UC
+that can be reduced to a one-dimensional knapsack. Cop-QAOA biases the quantum state toward
+feasible solutions using constant-depth mixers and appropriately biased initial states. We implement
+our benchmark on problem instances that are confirmed to be hard for classical solvers such as
+Gurobi. Our results show that cop-QAOA often finds solutions better than a lazy greedy baseline
+and very close to — and in some instances surpasses — those obtained by Gurobi, with only a few
+QAOA rounds. This work presents the largest successful demonstration of the knapsack problem on
+IBM Quantum hardware using up to 150 qubits, and more generally, the largest demonstration of
+constrained combinatorial optimization where constraints are enforced via shallow mixers.
+
+I.
+
+INTRODUCTION
+
+Unit Commitment (UC) [1] sits at the heart of shortterm power system operations. The task is to decide
+which generating units should be online, and when, so
+that the system can reliably supply the predicted demand
+while honoring engineering and operational limits [2]. As
+modern grids incorporate fluctuating renewable sources
+and increasingly complex market structures, the UC problem becomes both larger and more intricate. Improving
+the efficiency and robustness of UC solvers is therefore
+essential for grid operators, since even small advances
+can reduce operational costs and enhance system stability.
+This broader context motivates exploring new algorithmic techniques, that may offer advantages for tightly
+constrained scheduling problems.
+UC and related power system optimization problems
+have also been studied using quantum approaches, including variational quantum algorithms [3] and methods based
+on quantum kernels [1, 4]. In this work, we focus on a simplified, single-period version of the UC problem obtained
+by omitting all time-coupling constraints such as ramping
+limits and minimum up/down times [3]. While simplified,
+this formulation already captures the core combinatorial
+structure of UC.
+Variational quantum algorithms, such as the Quantum
+Approximate Optimization Algorithm (QAOA), are natural candidates for tackling combinatorial optimization
+problems. However, their direct application to the UC
+
+∗ naeimeh.mohseni@eon.com
+† Equal contribution.
+‡ adam.benewatts@ucalgary.ca
+
+is limited by several factors. First, the UC problem is a
+mixed binary optimization problem, requiring optimization over both binary and continuous variables. There
+are large time and space overheads associated with manipulating continuous variables on quantum hardware,
+making it challenging to optimize over these variables using QAOA-like techniques on near-term quantum devices.
+Second, the UC problem is a constrained optimization
+problem, meaning the feasible solution space for the problem occupies only a fraction of the full Hilbert space
+typically explored by variational algorithms. In this work
+we address both of these limitations.
+The first limitation has been observed in prior work on
+quantum approaches to the UC problem. In particular, [3]
+observed this limitation and proposed a hybrid quantumclassical workflow, with a classical outer loop optimizing
+over continuous variables and a quantum inner loop solving a purely binary variable assignment problem. This
+binary variable assignment problem is equivalent to the
+(1D) knapsack problem; thus, this hybrid workflow has
+the potential to outperform purely classical approaches
+provided quantum computers can offer some advantage
+in solving knapsack problems. One downside of the approach in [3] is that it requires the classical outer loop
+to optimize over one additional continuous variable for
+every new unit in the original UC problem, which becomes infeasible at large problem sizes. In this work, we
+modify this approach and show the (single-timestep) UC
+problem can be solved using a hybrid workflow with only
+one continuous parameter. The main innovation is the use
+of first order optimality conditions to reduce the number
+of continuous variables in the problem. This approach
+is discussed in more detail in Section II A, with formal
+proofs provided in Section A.
+A number of techniques have also been proposed to
+
+2
+modify QAOA for constrained optimization problems.
+Several extensions address constraints by modifying the
+mixing Hamiltonian to limit the search through feasible
+space [5–7]. While effective in principle, these approaches
+often require increased circuit depth or more complex
+initial state preparation, which can be prohibitive on nearterm quantum hardware. An alternative strategy is to bias
+the quantum state toward the feasible subspace without
+strictly enforcing feasibility, using biased initial states
+and constant-depth mixers [8]. This approach encourages
+exploration of feasible or near-feasible configurations while
+maintaining a hardware-efficient circuit structure, offering
+a practical compromise between constraint handling and
+circuit complexity on near-term quantum devices. This is
+the approach we follow in this paper. To our knowledge,
+this paper gives the first utility-scale investigation of this
+strategy on real quantum hardware.
+A central goal of this work is to push constrained quantum optimization to utility-scale problem sizes on real
+hardware and to assess its performance in the presence
+of noise. We show that cop-QAOA [8] enables successful
+implementation of constrained optimization problems on
+IBM quantum hardware, producing solutions that are
+competitive with those obtained using classical solvers
+such as Gurobi. At the same time, we encounter challenges in training the variational parameters, highlighting
+the need for additional heuristics tailored to constrained
+optimization, or for extending existing techniques—such
+as CVaR-based methods [9] — to settings in which constraints are enforced structurally through biased initial
+states and finite-depth mixers.
+As a final remark, beyond algorithmic design, benchmarking quantum optimization methods requires careful
+consideration of the problem instances themselves. Relying solely on worst-case complexity arguments or on
+instance classes labeled as “hard” does not guarantee
+practical hardness for state-of-the-art classical solvers. Indeed, although the single-period UC problem is NP-hard
+[10], we find that generating instances that remain challenging for solvers such as Gurobi (at scales below 150
+units) is nontrivial. This underscores the importance of
+instance-level analysis when evaluating potential quantum
+advantages particularly at such scale. Here, we benchmark on carefully selected instances that are particularly
+challenging for Gurobi, such that it cannot find a solution
+with zero optimality gap. For these instances, we show
+that cop-QAOA can successfully compete with Gurobi
+and even identify a solution that is slightly better.
+
+II.
+
+PROBLEM FORMULATION
+
+A simplified, single-period version of the UC problem
+can be written by omitting all time-coupling constraints
+such as ramping and minimum up/down times [3]. In this
+reduced setting, each generating unit i is characterized by
+a fixed commitment cost, a linear production cost, and a
+
+quadratic production cost.
+n
+X
+
+C(⃗y , p⃗) :=
+
+
+Ai · yi + Bi · pi + Ci · p2i ,
+
+(1)
+
+i=1
+
+subject to
+n
+X
+
+pi ≥ L,
+
+∀t
+
+(demand constraint) ,
+
+i=1
+
+pi,min · yi ≤ pi ≤ pi,max · yi ,
+yi ∈ {0, 1}
+pi ∈ R.
+
+∀i
+
+(generation limits),
+
+(2)
+where Ai , Bi , and Ci ∈ R are constants related to
+the properties of the power system. In this formulation,
+yi determines whether unit i is committed (on) or not,
+while pi represents the power output of each unit which
+is turned on. The output bounds ensure that a unit i can
+only output power if it is turned on and, it outputs power
+in the range [pi,min , pi,max ].
+A.
+
+Reducing single-period UC to 1D-Knapsack
+
+In this section we show how single-period UC can be converted to optimization problem involving instances of the
+1D knapsack problem and a single additional continuous
+parameter. The 1D knapsack problem considers n items
+with integer weights w1 , . . . , wn and values v1 , . . . , vn , together with a capacity c ∈ N. The task is to choose a
+subset of items whose total value is maximized without exceeding the capacity constraint. The problem is expressed
+as finding a binary vector x∗ = (x1 , . . . , xn ) ∈ {0, 1}n that
+solves
+
+max
+
+n
+X
+
+!
+x i vi
+
+(3)
+
+xi ∈ {0, 1}.
+
+(4)
+
+i=1
+
+subject to
+n
+X
+
+xi wi ≤ c,
+
+i=1
+
+We start from the observation that a solution (⃗y , p⃗)
+minimizing the UC cost function given in Equation (1)
+must satisfy
+
+
+
+
+∂C
+∂C
+=
+(5)
+∂pi pi
+∂pj pj
+for any i, j with pi ∈
+/ {yi pi,min , yi pi,max } and pj ∈
+/
+{yj pj,min , yj pj,max }. This follows directly from calculus,
+and can be understood intuitively by noting that, if this
+condition is not satisfied, a lower-cost solution outputting
+
+3
+
+105
+
+Cost
+
+the same power can be achieved by infinitesimally lowering
+pi and raising pj , or vice-versa.
+Following the same logic, and observing that (∂C/∂pi )
+is a monotonically increasing function of pi for all i implies
+that there exists a real number D such that one of the
+equations
+ 
+∂C
+=D
+(i) ∂p
+i
+
+Load Factor: 0.05
+Load Factor: 0.20
+Load Factor: 0.35
+Load Factor: 0.50
+
+Load Factor: 0.65
+Load Factor: 0.80
+Load Factor: 0.95
+
+104
+
+pi
+
+(ii)
+(iii)
+
+
+
+
+
+∂C
+∂pi
+
+
+
+∂C
+∂pi
+
+
+
+> D and pi = pi,min
+
+103
+
+pi
+
+0
+
+< D and pi = pi,max
+
+5
+
+10
+
+15
+
+20
+
+25
+
+30
+
+pi
+
+is satisfied for all pi with yi ̸= 0. A formal derivation of
+this fact is given in Appendix A.
+We can use the conditions above to analytically eliminate most of the continuous variables pi appearing in the
+single timestep UC problem. For any fixed marginal-cost
+parameter D, the stationarity condition
+
+
+∂C
+= Bi + 2Ci pi = D
+(6)
+∂pi
+
+Figure 1. Impact of the parameter D on the quality of the
+solution find when mapping the UC problem to a Knapsack like
+problem. Figure shows the UC cost function (eq. 1) as a value
+of D when solving problems withPdifferent values of load factor.
+The load factor is the ratio L/ i pmax,i . Problem instances
+are generated for 100 units with randomized parameters drawn
+from the following ranges: A ∈ [10, 50], B ∈ [0.5, 1.5], C ∈
+[0.01, 0.2], pmin ∈ [10, 20], and pmax ∈ [50, 100].
+
+gives the interior solution
+
+we show numerical observations regarding the optimization landscape of D. We observe that the cost function
+exhibits a convex shape with respect to D across all load
+factors. This convexity suggests that optimization over D
+may be straightforward, with methods such as bisection
+converging efficiently.
+
+pi =
+
+D − Bi
+2Ci
+
+(7)
+
+which can then be projected onto the feasible interval
+[pi, min , pi, max ]. Once the pi are determined, the problem reduces to choosing the subset of units that minimizes
+n
+X
+
+
+Ai + Bi pi + Ci p2i yi
+
+subject to
+
+i=1
+
+n
+X
+
+C.
+
+i=1
+
+(8)
+a purely binary optimization problem parameterized by
+D. After rewriting in terms of variables zi = 1 − pi , this
+problem is equivalent to finding
+!
+X
+2
+arg max −
+Ai zi + Bi pi zi + Ci pi zi
+(9)
+i
+
+s.t.
+
+X
+
+pi zi ≤ L −
+
+X
+
+pi .
+
+(10)
+
+i
+
+This is exactly an instance of the knapsack problem, with
+weights wi = pi and values vi = −(Ai + Bi pi + Ci p2i ).
+Solving instances of the knapsack problem for each
+possible value of D and searching over D identifies the
+value for which the demand constraint is met and the
+marginal-cost balance holds.
+B.
+
+Hardness of the Single-Timestep UC Problem
+
+pi yi ≥ L,
+
+Numerical Investigation of the Knapsack
+Reduction
+
+In this section we investigate practical aspects of the
+reduction presented in the previous section. In Figure 1,
+
+Mathematically, the single-timestep UC problem is at
+least as hard as the 1D knapsack problem. In particular,
+taking an instance of the single timestep UC problem
+and setting variables pi,min = pi,max for all i immediately
+recovers an instance of the 1D knapsack problem. Thus,
+the single timestep UC problem is NP-hard, and exactly
+solving all instances of that should be infeasible on both
+quantum and classical computers.
+In practice, however, most natural instances of the
+single timestep UC problem are easy to solve classically.
+In our numerical experiments, we found that Gurobi could
+quickly solve instances of the single-timestep UC problem
+with up to 400 units. This work does not aim to find a
+practical quantum advantage for solving single-timestep
+UC problems. Instead, a central goal of this work is to
+identify useful techniques which may generalize to other,
+more involved versions of the UC problem.
+For the reasons above, in the later half of the paper we
+focus on techniques for solving instances the 1D knapsack
+problem on a quantum computer, without discussing how
+the single-timestep UC problem might reduce to those
+instances.
+
+4
+III.
+
+CLASSICAL KNAPSACK SOLVERS
+
+Here we describe briefly the classical algorithms we
+used to solve our knapsack instances.
+Lazy greedy: For each item i, the ratio is defined as
+ri = vi /wi . The lazy greedy method [8] orders all items
+in non-increasing ratio and then selects them sequentially
+until the capacity constraint is about to be violated. Once
+the next item in the ordered list would exceed the capacity,
+the algorithm terminates without considering less efficient
+items that might still fit. When expressed as a binary
+decision vector ordered by decreasing ratio, the resulting
+solution consists of a prefix of selected items followed by
+unselected ones, i.e., a contiguous block of ones followed
+by zeros. As it is suggested in [8], we construct a warmstart distribution from the lazy greedy heuristic, which
+induces a sharp threshold when items are ordered by their
+efficiency ratios ri . To smoothen this step-like behavior,
+we assign each item a selection probability
+
+pi =
+
+1
+1 + Ce−k(ri −r∗ )
+
+X
+1
+√
+|x⟩.
+n
+2 x∈{0,1}n
+In cop-QAOA, the initial state is biased toward promising solutions by assigning each qubit i a probability pi of
+being in the |1⟩ state:
+
+(11)
+
+where the parameters k, C, and r∗ control the steepness
+and location of the transition. In the limit k → ∞ with
+r∗ set to the lazy greedy stopping ratio, this construction P
+recovers the original lazy greedy solution. We set
+C = i wi /c − 1 where c is the capacity of the knapsack.
+Gurobi: We also use Gurobi [11] a commercial optimization solver widely used for linear, mixed-integer, and
+quadratic programs. This solver employs a branch-andcut framework, which integrates branch-and-bound with
+cutting-plane techniques to progressively tighten relaxations while systematically exploring the solution space.
+During optimization, Gurobi reports an optimality gap
+defined as the difference between the best feasible solution
+found and the strongest upper bound obtained from the
+corresponding dual relaxation. An optimality gap of zero
+certifies global optimality.
+IV.
+
+increase the complexity in terms of mixing depth. One
+such approach is copula-QAOA (cop-QAOA) [8], which,
+like the original QAOA, uses a constant-depth mixer and
+initial state preparation circuit. Cop-QAOA biases the
+final quantum state towards feasible solutions for problems with linear constraints, without strictly restricting
+the state to the feasible subspace—a task that typically
+requires complex circuits. Instead, the algorithm keeps
+the state near the feasible subspace while maintaining
+implementable circuit depth. The initial states and the
+mixing Hamiltonian are biased as follows
+Biased initial state In standard QAOA, the initial
+state is a uniform superposition over all 2n configurations:
+
+COPULA QAOA
+
+The Quantum Approximate Optimization Algorithm
+(QAOA) [12] is a variational quantum algorithm that
+alternates between applying a cost Hamiltonian and a
+mixer Hamiltonian to a parameterized quantum state.
+QAOA faces a fundamental limitation on constrained
+problems such as knapsack: the feasible solution space
+occupies only a fraction of the full Hilbert space, and the
+standard transverse-field mixer freely explores both valid
+and invalid configurations. QAOA has been extended to
+handle constrained optimization problems through the
+generalization of the mixing Hamiltonian, leading to the
+so-called Quantum Alternating Operator Ansatz (QAOA)
+algorithms [5]. Variants of the mixing Hamiltonian are
+designed to preserve the feasible subspace for specific
+constraint problems [5–7]. However, some of them often
+
+
+
+√
+√
+|pi ⟩ := 1 − pi |0⟩ +√ pi |1⟩,
+√
+⊥
+pi := − pi |0⟩ + 1 − pi |1⟩.
+
+(12)
+
+The vector |pi ⟩ is used to construct the initial product state across all qubits. The probabilities pi can be
+set based on a warm-start solution, prior knowledge, or
+heuristics to bias the system toward feasible configurations.
+We use the smoothed lazy greedy heuristic described in
+Sec. III as our warm-start strategy. Therefore, the initial
+state is,
+|ψin ⟩ =
+
+n
+O
+
+|pi ⟩
+
+(13)
+
+i=1
+
+where pi is defined in Eq. 11.
+Biased mixing Hamiltonian To further guide the
+state toward feasible solutions while allowing correlations
+between variables, reference [8] introduces a family of
+copula mixers. For a pair of qubits with marginal probabilities p1 and p2 and a correlation parameter θ ∈ [−1, 1],
+the copula distribution over the two bits is defined as [8]:
+pcop (0, 0) = (1 − p1 ) (1 − p2 ) + θp1 p2 (1 − p1 ) (1 − p2 ) ,
+pcop (0, 1) = (1 − p1 ) p2 − θp1 p2 (1 − p1 ) (1 − p2 ) ,
+pcop (1, 0) = p1 (1 − p2 ) − θp1 p2 (1 − p1 ) (1 − p2 ) ,
+pcop (1, 1) = p1 p2 + θp1 p2 (1 − p1 ) (1 − p2 ) .
+The parameter θ controls the strength and type of correlation induced between the two qubits: θ > 0 introduces
+positive correlation, θ < 0 introduces anti-correlation,
+and θ = 0 reduces to independent sampling according
+to the marginals. Following the findings in [8], which
+demonstrated that θ = −1 is consistently optimal across
+problem instances, we fix θ = −1 in our implementation
+to maximize the anti-correlations.
+
+5
+To implement this correlated distribution at the circuit
+level, one constructs a two-qubit unitary R (pi , pi′ ) such
+that
+X
+
+RCop (pi , pi′ ) |00⟩ =
+
+q
+
+pcop (xi , xi′ ) |xi xi′ ⟩ ,
+
+xi ,xi′ ∈{0,1}
+
+Explicitly, R can be implemented as
+
+
+
+p
+RCop (pi , pi′ ) =C̄i RYi′ 2 sin−1 pi′ |ī
+
+√
+× Ci RYi′ 2 sin−1 pi′ |i
+√ 
+× RYi 2 sin−1 pi ,
+
+(14)
+
+with
+pi′ |i = pi′ (1 − (1 − pi ) (1 − pi′ )) ,
+pi′ |ī = pi′ (1 + pi (1 − pi′ )) ,
+
+(15)
+
+where RYi (α) = exp(−iαYi /2) is a rotation about the
+Pauli-Y axis on qubit i, and Ci , C̄i are controlled operations on qubit i conditioned on |1⟩ and |0⟩, respectively.
+and then we can define the mixer Hamiltonian as
+†
+Hcop = Rcop (pi , pi′ )(Zi + Zi′ )Rcop
+(pi , pi′ )
+
+(16)
+
+where Zi is the Pauli-Z operator acting on qubit i. This
+Hamiltonian generates the copula mixer unitary for each
+layer l as
+Cop
+UM
+(βl ) = exp (−iβl Hcop )
+
+(17)
+
+which governs transitions within the feasible region of
+the solution space.
+Cost Hamiltonian The optimization objective for
+our knapsack problem isPencoded through a diagonal
+cost Hamiltonian HC = i vi Zi , which assigns a phase
+proportional to the cost of each computational basis state.
+The associated cost unitary in layer l is
+UC (γl ) = exp (−iγl Hc )
+
+(18)
+
+After p alternating applications of the cost and copula
+mixer unitaries, the resulting variational state is
+|ψ(β, γ)⟩ =
+
+p
+Y
+
+Cop
+UM
+(βℓ ) UC (γℓ ) |ψinit ⟩ .
+
+(19)
+
+ℓ=1
+
+The parameters β and γ are chosen to minimize the
+expectation value of the cost Hamiltonian, C(β, γ) =
+⟨ψ(β, γ)|HC |ψ(β, γ)⟩, which serves as the classical objective function in the variational optimization.
+
+V.
+
+PREVIOUS RELEVANT WORKS
+
+Cop-QAOA has previously been applied to the knapsack problem in two studies [8, 13], both of which focus on
+generating hard knapsack instances using methods introduced in [14, 15]. Both studies are constrained to small
+problem sizes, typically fewer than 30 items. The reference [13] reports that even for these small size instances,
+the performance of cop-QAOA does not scale favorably
+with increasing numbers of items or QAOA rounds.
+Here, we consider the same instance-generation methods introduced in [14, 15]. We demonstrate a successful
+implementation of cop-QAOA for instances with up to
+150 items on both simulator and quantum hardware. We
+conjecture that the observed limitation in [13] is related
+to the difficulty of identifying optimal variational parameters. Consistent with this, we also identified instances for
+which finding optimal variational was very challenging.
+We discuss this more in detail in Sec. VI C.
+
+VI.
+
+TECHNICAL REMARKS
+
+A.
+
+Problem Instance Selection
+
+Following systematic construction recipes proposed in
+previous studies [14, 15], we created several families of
+instances designed to reproduce the reported hardness
+and evaluated their hardness for Gurobi.
+In practice, we found that Gurobi could certify optimal
+solutions with zero optimality gap for nearly all instances
+based on [14], and that the runtime did not scale badly
+with item size (up to 150 items). Only a small subset of
+instances generated according to [15] posed difficulties for
+optimality verification within this size range.
+Our benchmarks here therefore focus on two families
+of instances. The first family consists of instances drawn
+from the Inversely Strongly Correlated distribution, following the construction described in [14]. In this distribution,
+item values vj are sampled uniformly from {1, . . . , 1000},
+and the corresponding weights are drawn from the interval {vj + 98, . . . , vj + 102}. These instances are known
+to be challenging for classical solvers due to the strong
+correlation between weights and values, which leads to
+poor conditioning and reduces the effectiveness of greedy
+heuristics and branch-and-bound
+P methods. The knapsack
+capacity is set as c ← ⌈α · ( i wi ) /100⌉ where α is a
+uniformly random value in [10, 11, ..., 20]. Nevertheless,
+for instances of this type with up to 150 items, Gurobi
+was almost always able to certify optimal solutions with
+zero optimality gap indicating that these instances are
+not particularly challenging for state-of-the-art classical
+solvers at this scale.
+The second family consists of instances generated following the construction of [15]. We generated a number
+of such instances and empirically identified a small subset that is particularly challenging for Gurobi at this
+scale (smaller than 150 items). Details of the instance
+
+6
+generation procedure and the corresponding implementation can be found in [15]. Interpreting the construction
+as a unit commitment knapsack mapping, the method
+can be viewed as producing weights contained within
+discretized generation blocks in one fixed unit system
+(e.g. megawatts) together with costs of comparable order
+within each block-size layer, plus smaller heterogeneous
+items corresponding to fine dispatch adjustments.
+B.
+
+Benchmarking Metrics
+
+As metrics for comparison, we consider the best-found
+solution, the approximation ratio, and the ratio of valid
+solutions. When the number of feasible solutions returned
+by cop-QAOA at different depths and the lazy greedy
+differ substantially, we compute the approximation ratio
+using the top k samples.
+We define the approximation ratio as
+P
+Ar =
+
+feasible b cost(b) count(b)
+.
+Nfeasible C ⋆
+
+(20)
+
+where b is a feasible bitstring, cost(b) is its cost value,
+count(b) is how many times it appeared in the measurement outcomes, C ∗ is the optimal cost value. Nfeasible
+denotes the number of P
+feasible measurement outcomes
+(shots), i.e., Nfeasible = b∈F count(b).
+C.
+
+Training Variational Parameters
+
+We begin with a depth p = 1 QAOA circuit and initialize the parameters β and γ randomly. We run the
+QAOA optimization 20 times and evaluate the cost function C(β, γ) over sampled bit strings for each run. The
+parameters that minimize this average are taken as the
+optimal values for the first layer. Once these optimal
+parameters have been identified, we fix them and move
+to depth p = 2. At this stage, the first layer’s β and
+γ remain fixed, and we train only the new variational
+parameters introduced for the second layer. In general, at
+each depth p, only the newly added βp and γp are trained,
+while all parameters from earlier layers are kept fixed.
+In practice, the objective function C(β, γ) is evaluated by sampling bit strings from the variational state
+|ψ(β, γ)⟩ and computing their classical objective values.
+Suggested by [8], each sampled bit string is first tested for
+feasibility, and configurations that violate the constraints
+are assigned an objective value of zero. The average over
+the cost value of the all valid sampled values provides an
+estimate of C(β, γ), which is then minimized by a classical
+optimizer.
+For certain problem instances, we observed that starting
+from a random initialization of γ and β and optimizing
+the average cost function does not yield parameters that
+allow cop-QAOA to surpass the lazy greedy baseline. This
+behavior is expected, as improvements in the expectation
+
+value of the cost Hamiltonian do not necessarily translate
+into improvements in the best sampled solution. In some
+instances, to obtain solutions that outperform the lazy
+greedy baseline, we therefore performed a two dimensional
+grid search over the best-observed cost as a function
+of γ and β at depth p = 1, and used the parameters
+corresponding to the best value to initialize the first layer.
+Training from this initialization then leads to improved
+solutions.
+Here we assign zero value to cost to infeasible configurations which can induce extended flat regions in the
+effective objective function, as many sampled configurations yield identical objective values. Such plateaus
+reduce sensitivity of the estimated objective to changes
+in the variational parameters, making optimization more
+difficult. One possible alternative, instead of assigning
+zero cost to infeasible solutions, is to post-process invalid
+bit strings by mapping them to feasible configurations.
+In such setting, tail-focused objectives such as CVaR,
+which rely on variation in the upper tail of the objective
+distribution, are not guaranteed to improve performance.
+This suggests that more advanced optimization strategies
+that explicitly incorporate constraint satisfaction may be
+required for constrained optimization.
+To run on our experiments on hardware, we do not
+re-train cop-QAOA. Instead, we use the parameters optimized classically on the simulator and then execute the
+circuit with these fixed parameters on the physical device,
+as in [16].
+
+D.
+
+Error Mitigation
+
+The hardware experiments reported in this paper were
+run on ibm_kingston, a Heron r2 processor with a heavyhex qubit layout. For these experiments, we made use of
+the Q-CTRL Performance Management Qiskit function
+[17–19]. Performance management incorporates automated error-suppression techniques, such as layout optimization [20], dynamical decoupling for crosstalk and
+dephasing suppression [21], and an AI-driven transpilation [17]. As a point of reference, in Appendix. B, we also
+provide a brief comparison of these results with results obtained on ibm_quebec, another Heron r2 processor, using
+dynamical decoupling, gate and measurement twirling,
+without making use of the Performance Management
+Qiskit function.
+
+VII.
+
+RESULTS
+
+In this section, we present the results of our benchmarking experiments. Figures 2 and 3 show the outcomes
+for two instances with 100 and 150 items — both on
+simulator and IBM hardware — that we selected from
+the many instances we generated.
+The first instance, with 100 items, is generated based
+on the method introduced in [15] and is one of the cases
+
+7
+(a)
+
+(b)
+
+100 items on simulator
+
+(d)
+
+(c)
+
+100 items on Hardware
+
+(e)
+
+100 items on Hardware
+
+(f )
+
+Lazy greedy
+
+Lazy greedy(on 55000 valid solutions)
+
+Figure 2. Results on 100-item instance: Cost distribution sampled from lazy greedy and cop-QAOA (a) simulator, p = 5;
+(b) hardware, p = 1; (c) hardware, p = 5; (d) the ratio between the best value found by cop-QAOA at each depth p and the
+solutions obtained by Gurobi and by the lazy greedy; (e) Ratio of valid solutions versus p on simulator and hardware. The
+horizontal gray dashed line shows the ratio for lazy greedy; (f) Approximation ratio (Ar) versus p on simulator and hardware.
+The gray horizontal dashed line shows the approximation ration of lazy greedy. The instance is generated based on [15]. Gurobi
+reports a solution with an optimality gap of 4 · 10−2 . A random sampler fails to produce even a single valid solution for this
+instance. The number of shots for both the lazy greedy baseline and cop-QAOA is 105 . The hardware experiments are executed
+on the ibm_kingston quantum processor using the Q-CTRL Performance Management Qiskit function [17, 18]. The two-qubit
+gate depths for p = 1 through p = 5 are 5,7,7,5,6. The parameter k for lazy greedy distribution (see Eq. 11) is set to 8.
+
+where Gurobi struggles to certify optimality. The second
+instance, with 150 items, is generated using the Inversely
+Strongly Correlated Distribution introduced in VI A. For
+this instance, Gurobi successfully finds and verifies the
+optimal solution.
+We recall that, in cop-QAOA, the initial quantum state
+is constructed using a smoothed lazy greedy solution as a
+warm start. Our simulated results reported herein were
+obtained using the Matrix Product State (MPS) based
+SamplerV2 primitive of Qiskit-aer, (v0.17.1) [22], with
+no truncation of the bond dimension. In both of these
+experiments, the number of shots is set to 105 .
+100-qubit instance Panels (a), (b), and (c) of Fig. 2
+show the cost (value) distributions of the solutions found
+by lazy greedy and cop-QAOA, with p = 5 on the simulator and p = 1, 5 on hardware, for this instance. In panel
+(d), the ratios of the best cop-QAOA solution to (i) the
+solution found by Gurobi and (ii) the best solution found
+by lazy greedy, are plotted. Panel (e) shows the ratio of
+valid solutions found by cop-QAOA, at different values
+of p, in comparison to lazy greedy. While the ratio of
+valid solutions increases with increasing p on simulator,
+it decreases with increasing p on hardware.
+Panel (f) shows the approximation ratio versus p, both
+on the simulator and the hardware. Because the fraction
+of valid samples on hardware decreases with increasing
+
+p, to ensure a fair comparison, we compute the approximation ratio on hardware for all values of p using only
+the top 1000 solutions. For the simulator, we report the
+approximation ratio both for the top 1000 samples for a
+fair comparison with hardware and for top 55000 valid
+samples, since lazy greedy finds only 55000 valid solutions.
+It is evident that on both hardware and simulator the
+approximation ratio improves with p. Overall, in terms of
+the best-found value, cop-QAOA exhibits a slight improvement over solutions obtained by the lazy greedy baseline.
+This small improvement, which is still remarkable, should
+be interpreted in light of the strong performance of the
+warm-start (lazy greedy) solutions, which already achieve
+values close to the best values observed across all evaluated
+methods. Consequently, additional gains are necessarily
+limited. However, when considering the approximation
+ratio, cop-QAOA clearly outperforms lazy greedy on both
+the simulator and hardware as there is more room for
+improvement. We emphasize that a random sampler fails
+to produce even a single valid solution for this instance.
+Note that for this instance, we allowed Gurobi to run
+for over 70 minutes yet it could not improve upon the
+solution reported here. In contrast, the total runtime on
+hardware—including warm-start preparation but excluding classical parameter optimization—remains under 3
+minutes for all five QAOA rounds reported. The training
+
+8
+
+(a)
+
+(b)
+150 items on simulator
+
+150 items on Hardware
+
+Ar, Lazy greedy: 0.57
+Ar, cop-QAOA: 0.61
+Best value, Lazy greedy: 7158
+Best value, cop-QAOA: 7174
+Ratio of valid samples, Lazy greedy: 0.91
+Ratio of valid samples, cop-QAOA: 0.89
+Optimal value-Gurobi: 7221
+
+Ar on top 13000 solutions, Lazy greedy: 0.88
+Ar on top 13000 solutions, cop-QAOA: 0.79
+Best value, cop-QAOA: 7007
+Ratio of valid samples, cop-QAOA: 0.13
+Optimal value-Gurobi: 7221
+
+Figure 3. Results on 150-item instance: Cost distribution sampled from lazy greedy and cop-QAOA (a) simulator, p = 1;
+(b) hardware, p = 1. This instance is generated based on Inversely Strongly Correlated Distribution introduced in [14]. For
+this instance the solution found by Gurobi is optimal. A random sampler fails to produce even a single valid solution for this
+instance. The number of shots for both the lazy greedy baseline and cop-QAOA is 105 . The 2-qubit gate depth here is 28. The
+hardware experiments are executed on the ibm_kingston quantum processor using the Q-CTRL Performance Management
+Qiskit function [17, 18]. The parameter k for lazy greedy distribution (see Eq. 11) is set to 10.
+
+time per each run of cop-QAOA is about 2 minutes (with
+a total of about 40 minutes across the 20 training runs
+from which we select the best parameters).
+150-qubit instance The 150-qubit instance was generated using the Inversely Strongly Correlated Distribution
+introduced in VI A. Fig. 3 shows the cost distribution of
+lazy greedy and cop-QAOA with p = 1 on simulator and
+hardware for this instance. On a noiseless simulator, copQAOA exhibits a modest improvement over lazy greedy,
+with the approximation ratio increasing from 0.57 to 0.61
+and the best value improving from 7158 to 7174.
+On hardware, however, this improvement is not preserved. While cop-QAOA continues to generate valid
+solutions, the fraction of valid samples drops sharply from
+0.89 to 0.13, accompanied by a decrease in the best observed value (from 7174 to 7007). We note that for this
+instance, random sampling fails to produce a single valid
+solution.
+Additional instances on simulator In Fig. 4, we report results only on simulator for two additional instances
+with 50 and 100 items generated following method introduced in [15]. For each instance, we plot the ratio of the
+best value obtained by cop-QAOA to those obtained by
+Gurobi and the lazy greedy algorithm as a function of p.
+It is evident that cop-QAOA can go beyond lazy greedy
+and even Gurobi. The improvement in terms of best value
+is modest, which we attribute to the high quality of the
+warm-start solutions, leaving limited room for further
+improvement by cop-QAOA.
+For the 50-item instance, Gurobi identifies a solution
+with an optimality gap of 10−4 within four minutes. While
+this is very close to optimal, further improvements cannot
+be achieved within a few minutes longer time limit. For
+the 100-item instance (shown in green), Gurobi finds a
+solution within seconds with an optimality gap of 10−1 ,
+
+but extended a few minutes runtime does not lead to
+further improvement. We emphasize that an instance
+being hard for Gurobi does not necessarily imply that it
+is universally hard for other solvers.
+
+(a)
+
+(b)
+Lazy greedy
+
+Lazy greedy
+
+Figure 4. Best value and approximation ratio on simulator. The plot addresses two instances generated based
+on [15], whose difficulty for Gurobi is discussed in the main
+text. (a) shows the ratio of the best value found by cop-QAOA
+to the solutions obtained by Gurobi and by the lazy greedy
+algorithm, as a function of p. (b) shows the approximation
+ratio as a function of p. Horizontal dashed lines show the
+approximation ratio for lazy greedy.
+
+9
+A.
+
+Remarks on the training landscape
+
+In Fig. 5, we present heat maps of the cost function
+as a function of γ and β for several problem instances at
+qaoa-depth p = 1. Small red dots indicate all (γ, β)
+pairs for which the obtained cost is higher than the
+cost at (γ = 0, β = 0), which corresponds to the lazy
+greedy solution. The presence of such points across all
+instances demonstrates that, by appropriately optimizing
+the QAOA parameters, one can consistently obtain solutions that improve upon the lazy greedy baseline even at
+p = 1.
+(a)
+
+(c)
+
+Best cost value
+
+Top three cost values
+
+100 items
+
+150 items
+
+(b)
+
+(d)
+
+cost value>base line cost
+
+100 items
+
+150 items
+
+Figure 5. Cost value as a function of γ and β for four
+problem instances with P = 1. Panels (a) and (c) correspond to the same instances shown in Fig. 2 and Fig. 3,
+respectively. The remaining two instances are generated using the Inversely Strongly Correlated Distribution. Small
+red dots indicate all (γ, β) pairs for which the obtained cost
+exceeds the cost at (γ = 0, β = 0). The star marks the
+best-performing parameter setting, while the large red circles
+highlight the three best solutions. The similarity of the parameter landscapes—particularly in the regions corresponding to
+near-optimal values—across different problem instances highlights the potential for parameter transferability and suggests
+that effective performance may be achieved without instancespecific training.
+
+cost values are attained. This structural resemblance suggests that well-performing variational parameters may
+generalize across instances, supporting the possibility of
+reusing parameters without instance-specific training and
+thereby mitigating issues related to barren plateaus.
+VIII.
+
+CONCLUSION
+
+In this work, we explore the use of a constrainedoptimization variant of the QAOA for the UC problem.
+We focus on a simplified single-period formulation that
+preserves the essential combinatorial structure of UC and
+admits a reduction to the one-dimensional knapsack problem. This setting provides a meaningful and practically
+motivated benchmark for evaluating near-term quantum
+optimization methods under realistic constraints.
+We applied cop-QAOA, a variant of QAOA that biases the quantum state toward feasible solutions without
+strictly enforcing feasibility. This approach avoids the circuit depth overhead associated with feasibility-preserving
+mixers and is therefore well suited to existing quantum
+hardware. Our numerical and hardware experiments, performed at utility scale with up to 150 qubits, demonstrate
+that cop-QAOA can consistently improve upon warmstart solutions. Moreover, on selected instances that are
+challenging for state-of-the-art classical solvers such as
+Gurobi, it shows the potential to identify slightly better
+solutions than Gurobi.
+Looking forward, this work highlights several promising directions for future research, including extending
+the approach to multi-period UC with time-coupling
+constraints, developing improved parameter-transfer and
+training strategies in particular for constrained optimization, and refining benchmark instance generation to better
+reflect real-world operational challenges.
+
+IX.
+
+ACKNOWLEDGEMENTS
+
+Another interesting aspect of this figure is the similarity
+observed in the parameter landscapes across different problem instances, particularly in the regions where the highest
+
+We acknowledge use of access provided by Plateforme
+d’ Innovation Numérique et Quantique (PINQ2 ) to the
+ibm_quebec device, which was used to enable algorithm
+development and hardware executions in this project. We
+thank Daniel Egger, Pedro Rivero, and Stefan Woerner
+for useful discussions on the running of the large scale
+experiments. We also thank the members of the Quantum Computing for Sustainability Working Group for
+stimulating discussions.
+
+[1] Gabriele Agliardi, Giorgio Cortiana, Anton Dekusar, Kumar Ghosh, Naeimeh Mohseni, Corey O’Meara, Víctor
+Valls, Kavitha Yogaraj, and Sergiy Zhuk, “A machine
+learning approach to boost the vehicle-2-grid scheduling,”
+in 2024 IEEE Sustainable Power and Energy Conference
+(iSPEC) (IEEE, 2024) pp. 670–675.
+
+[2] Naeimeh Mohseni, Thomas Morstyn, Corey O’Meara,
+David Bucher, Jonas Nüßlein, and Giorgio Cortiana,
+“Evidence of quantum scaling advantage in approximate
+optimization for energy coalition formation with 100+
+agents,” Quantum Science and Technology 11, 015009
+(2025).
+
+10
+[3] Samantha Koretsky, Pranav Gokhale, Jonathan M Baker,
+Joshua Viszlai, Honghao Zheng, Niroj Gurung, Ryan Burg,
+Esa Aleksi Paaso, Amin Khodaei, Rozhin Eskandarpour,
+et al., “Adapting quantum approximation optimization
+algorithm (qaoa) for unit commitment,” in 2021 IEEE
+International Conference on Quantum Computing and
+Engineering (QCE) (IEEE, 2021) pp. 181–187.
+[4] Gabriele Agliardi, Giorgio Cortiana, Anton Dekusar, Kumar Ghosh, Naeimeh Mohseni, Corey O’Meara, Víctor
+Valls, Kavitha Yogaraj, and Sergiy Zhuk, “Mitigating exponential concentration in covariant quantum kernels for
+subspace and real-world data,” npj Quantum Information
+(2025).
+[5] Stuart Hadfield, Zhihui Wang, Bryan O’gorman,
+Eleanor G Rieffel, Davide Venturelli, and Rupak Biswas,
+“From the quantum approximate optimization algorithm
+to a quantum alternating operator ansatz,” Algorithms
+12, 34 (2019).
+[6] Zhihui Wang, Nicholas C Rubin, Jason M Dominy, and
+Eleanor G Rieffel, “Xy mixers: Analytical and numerical results for the quantum alternating operator ansatz,”
+Physical Review A 101, 012320 (2020).
+[7] Andreas Bärtschi and Stephan Eidenbenz, “Grover mixers for qaoa: Shifting complexity from mixer design to
+state preparation,” in 2020 IEEE International Conference on Quantum Computing and Engineering (QCE)
+(IEEE, 2020) pp. 72–82.
+[8] Wim Van Dam, Karim Eldefrawy, Nicholas Genise, and
+Natalie Parham, “Quantum optimization heuristics with
+an application to knapsack problems,” in 2021 IEEE
+International Conference on Quantum Computing and
+Engineering (QCE) (IEEE, 2021) pp. 160–170.
+[9] Panagiotis Kl. Barkoutsos, Giacomo Nannicini, Anton
+Robert, Ivano Tavernelli, and Stefan Woerner, “Improving
+Variational Quantum Optimization using CVaR,” Quantum 4, 256 (2020).
+[10] Pascale Bendotti, Pierre Fouilhoux, and Cécile Rottner,
+“On the complexity of the unit commitment problem,”
+Annals of Operations Research 274, 119–130 (2019).
+[11] Gurobi Optimization, LLC, “Gurobi Optimizer Reference
+Manual,” (2024).
+[12] Edward Farhi, Jeffrey Goldstone, and Sam Gutmann,
+“A quantum approximate optimization algorithm,” arXiv
+preprint arXiv:1411.4028 (2014).
+[13] Paul Christiansen, Lennart Binkowski, Debora Ramacciotti, and Sören Wilkening, “Quantum tree generator
+improves qaoa state-of-the-art for the knapsack problem,”
+arXiv preprint arXiv:2411.00518 (2024).
+[14] David Pisinger, “Where are the hard knapsack problems?”
+Computers & Operations Research 32, 2271–2284 (2005).
+[15] Jorik Jooken, Pieter Leyman, and Patrick De Causmaecker, “A new class of hard problem instances for the
+0–1 knapsack problem,” European Journal of Operational
+Research 301, 841–854 (2022).
+[16] Samantha V Barron, Daniel J Egger, Elijah Pelofske, Andreas Bärtschi, Stephan Eidenbenz, Matthis Lehmkuehler,
+and Stefan Woerner, “Provable bounds for noise-free expectation values computed from noisy samples,” Nature
+Computational Science 4, 865–875 (2024).
+[17] Q-CTRL, “Fire Opal,” https://q-ctrl.com/fire-opal (2025),
+[Online].
+[18] “Performance Management: A Qiskit Function by
+Q-CTRL Fire Opal,” https://quantum.cloud.ibm.com/
+docs/en/guides/q-ctrl-performance-management
+
+(2025), accessed: December 01, 2025.
+[19] Natasha Sachdeva, Gavin S Hartnett, Smarak Maity,
+Samuel Marsh, Yulun Wang, Adam Winick, Ryan
+Dougherty, Daniel Canuto, You Quan Chong, Michael
+Hush, et al., “Quantum optimization using a 127-qubit
+gate-model ibm quantum computer can outperform quantum annealers for nontrivial binary optimization problems,” arXiv preprint arXiv:2406.01743 (2024).
+[20] Gavin S Hartnett, Aaron Barbosa, Pranav S Mundada,
+Michael Hush, Michael J Biercuk, and Yuval Baum,
+“Learning to rank quantum circuits for hardwareoptimized performance enhancement,” Quantum 8, 1542
+(2024).
+[21] Nic Ezzell, Bibek Pokharel, Lina Tewala, Gregory Quiroz,
+and Daniel A Lidar, “Dynamical decoupling for superconducting qubits: A performance survey,” arXiv preprint
+arXiv:2207.03670 (2022).
+[22] Ali Javadi-Abhari, Matthew Treinish, Kevin Krsulich,
+Christopher J. Wood, Jake Lishman, Julien Gacon, Simon
+Martiel, Paul D. Nation, Lev S. Bishop, Andrew W. Cross,
+Blake R. Johnson, and Jay M. Gambetta, “Quantum
+computing with Qiskit,” (2024), arXiv:2405.08810 [quantph].
+[23] “Error mitigation and suppression techniques,”
+https://quantum.cloud.ibm.com/docs/en/guides/
+error-mitigation-and-suppression-techniques
+(2025), accessed: January 22, 2026.
+[24] “Fractional Gates,” https://quantum.cloud.ibm.com/
+docs/en/guides/fractional-gates (2025), accessed:
+January 24, 2026.
+
+Appendix A: Derivative Trick
+
+Recall that our goal is to minimize the function
+
+C(⃗y , p⃗) :=
+
+n
+X
+
+
+Ai · yi + Bi · pi + Ci · p2i ,
+
+(A1)
+
+i=1
+
+subject to the constraints
+n
+X
+
+∀t
+
+pi = L,
+
+(demand constraint),
+
+(A2)
+
+i=1
+
+pi,min · yi ≤ pi ≤ pi,max · yi ,
+
+∀i
+
+(gen. limits), (A3)
+
+with the yi binary variables and the pi real valued variables. For any fixed value of the yi variables, this constrained optimization problem takes its minimum value
+when the pi variables satisfy the Karush-Kuhn-Tucker
+(KKT) criterion:
+!
+
+X
+X
+∂ C(⃗y , p⃗) + λ L −
+pi +
+ξi (yi pi,min − pi )
+i
+
++
+
+X
+i
+
+i
+
+
+ηi (pi − yi pi,max ) ∋ 0
+
+(A4)
+
+11
+such that
+L−
+
+X
+
+pi ≤ 0
+
+(A5)
+
+λ≥0
+!
+
+(A6)
+
+=0
+
+(A7)
+
+yi pi,min − pi ≤ 0
+ξi ≥ 0
+ξi (pi − yi pi,min ) = 0
+pi − yi pi,max ≤ 0
+ηi ≥ 0
+ηi (yi pi,max − pi ) = 0
+
+(A8)
+(A9)
+(A10)
+(A11)
+(A12)
+(A13)
+
+i
+
+λ
+
+X
+
+pi − L
+
+i
+
+and ∀i:
+
+Now we analyze a few different
+cases. Assume for now
+P
+that λ =
+̸ 0 and so we have i pi = L by Equation (A7).
+Then for every index j for which pj ∈
+/ {pj,min , pj,max }
+we have ξj = ηj = 0 by Equations (A10) and (A13),
+hence (∂C/∂pj ) − λ = 0 by Equation (A4). We conclude
+∂C/∂pj = ∂C/∂pk for any pj , pk not taking their maximum or minimum possible value. On the other hand, if
+yi ̸= 0 and pi = pi,min then Equations (A9) and (A10)
+reduce to the condition ξi ≥ 0 and Equation (A4) implies ∂C/∂pi − λ − ξi = 0. In this case, we conclude
+λ = ∂C/∂pi − ξi , hence λ ≤ ∂C/∂pi . A similar argument
+gives that for any i with pi = pi,max and yi ̸= 0 we have
+λ = ∂C/∂pi +ηi , hence λ ≥ ∂C/∂pi . Then, setting λ = D
+we see that one of conditions (i) to (iii) from Section II A
+must be satisfied for every pi with yi = 1.
+We now consider the case λ = 0. In this case, Equation (A4) gives
+∂C
+− ξi + ηi = 0.
+∂pi
+By Equations (A9) and (A11), we have ξi , ηi ≥ 0. Since
+∂C/∂pi ≥ 0, this equality implies that we must have
+ηi = 0 and ξi = ∂C/∂pi . Complementary slackness Equations (A10) and (A13) then forces pi = pi,min for all i. In
+this situation, condition (ii) can be satisfied for all pi by
+choosing D ≤ mini ∂C/∂pi .
+In either case, we conclude that conditions (i) to (iii)
+are satisfied by all pi .
+Appendix B: Performance comparison across IBM
+Quantum processors and execution stacks
+
+The experiments in the main body of the paper were
+run on ibm_kingston using Performance Management
+Qiskit function. In this appendix, we provide a brief
+comparison of the results for both the 100-qubit instance
+and the 150-qubit instance on ibm_quebec, without
+
+using the Performance Management Qiskit function
+[17, 18]. We note that we re-did the parameter training
+(following the procedure outlined in the main body of
+the paper), before running these instances on ibm_quebec.
+In lieu of the Performance Management function, the
+experiments performed on ibm_quebec were performed
+on circuits that were transpiled with the qiskit
+(v2.0.3) transpiler with optimization_level=3, using
+the SamplerV2 primitive from qiskit-ibm-runtime
+(v0.40.1), with 105 shots, and with gate twirling,
+measurement twirling, and dynamical decoupling enabled
+1
+. For gate twirling, we made use of the active-circuit
+twirling strategy while for dynamical decoupling, we used
+the XY4 sequence. All other settings for each of these
+were kept at their default values. Note, in particular,
+that for our experiments on ibm_quebec we did not make
+use of fractional gates (see, e.g, [24]), to allow us to use
+the implementation of pauli twirling that is available via
+qiskit-ibm-runtime.
+Tables. I and II show a comparison of these hardware
+experiments. For the 100-qubit instance, each column
+contains a list of 5 values that correspond to cop-QAOA
+circuits from p = 1 through p = 5. As is evident from this
+Processor
+
+Instance
+2q-gate count
+2q-gate depth
+100q
+[190,380,570,760,950] [4,8,12,16,20]
+ibm_quebec
+150q
+538
+28
+100q
+[156,159,159,158,159] [5,7,7,5,6]
+ibm_kingston
+150q
+497
+28
+Table I. 2q-gate depth and count across two different quantum
+processors and execution stacks.
+
+table, the Performance Management function generically
+provides a reduction in the two-qubit gate counts and the
+two-qubit gates of the transpiled circuits. This is likely, at
+least in part, due to the fact that we did not use fractional
+gates for the experiments on ibm_quebec while experiments performed using the Performance Management
+function on ibm_kingston did make use of use fractional
+gates. We note that the results on both ibm_quebec (with
+error suppression) and ibm_kingston (with performance
+management) are very similar. Moreover, even with less
+optimized transpilation that resulted in 1900 2q-gates
+and a 2q-gate depth of 60 for the 100q instance and 860
+2q-gates and a 2q-gate depth of 53 for the 150q instance,
+on ibm_quebec, we observed that the ratio Best/Gurobi
+was very similar to the values reported in Table. II. This
+reflects the stability and robustness of our algorithm on
+hardware. We also observed that increasing the number
+of shots to 106 improves the hardware results even more
+and the algorithm shows the potential to consistently
+outperform Gurobi. In particular, for the 100q instance
+on ibm_quebec, with 106 shots, the ratio Best/Gurobi
+exceeds 1 across all values of p.
+
+12
+Processor
+
+Instance
+Best/Gurobi
+Valid sample ratio
+100q
+[0.9999790,0.9999996,0.9999790,0.9999893,0.9999894]
+[0.44,0.23,0.17, 0.11,0.06]
+ibm_quebec
+150q
+0.97
+0.08
+100q
+[0.99997908, 0.99999968, 0.99999964, 1.00001001, 0.9999997] [0.37,0.23,0.22,0.19,0.19]
+ibm_kingston
+150q
+0.97
+0.13
+Table II. Performance comparison across two different quantum processors and execution stacks. Number of shots in both cases
+is 105 .
+
+1 See, e.g, [23] for details on the implementation of these techniques.
+
+

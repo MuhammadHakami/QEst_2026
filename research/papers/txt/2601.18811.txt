@@ -1,0 +1,176 @@
+                                          Variational Quantum Circuit-Based Reinforcement
+                                            Learning for Dynamic Portfolio Optimization
+
+                                                                                        A Preprint
+
+
+                                                              Vincent Gurgul                                     Ying Chen
+                                                       Chair of Information Systems                     Department of Mathematics
+                                                        Humboldt University Berlin                    National University of Singapore
+                                                      Unter d. Linden 6, 10117 Berlin                 2 Science Dr., Singapore 117543
+arXiv:2601.18811v2 [cs.LG] 28 Jan 2026
+
+
+
+
+                                                                                      Stefan Lessmann
+                                                                               Chair of Information Systems
+                                                                                Humboldt University Berlin
+                                                                              Unter d. Linden 6, 10117 Berlin
+                                                                          Bucharest University of Economic Studies
+                                                                             6 Piata Romana, 010374, Romania
+
+
+
+                                                                                      January 29, 2026
+
+                                                                                        Abstract
+                                                 This paper presents a Quantum Reinforcement Learning (QRL) solution to the dynamic
+                                                 portfolio optimization problem based on Variational Quantum Circuits. The implemented
+                                                 QRL approaches are quantum analogues of the classical neural-network-based Deep Deter-
+                                                 ministic Policy Gradient and Deep Q-Network algorithms. Through an empirical evaluation
+                                                 on real-world financial data, we show that our quantum agents achieve risk-adjusted perfor-
+                                                 mance comparable to, and in some cases exceeding, that of classical Deep RL models with
+                                                 several orders of magnitude more parameters. However, while quantum circuit execution is
+                                                 inherently fast at the hardware level, practical deployment on cloud-based quantum systems
+                                                 introduces substantial latency, making end-to-end runtime currently dominated by infrastruc-
+                                                 tural overhead and limiting practical applicability. Taken together, our results suggest that
+                                                 QRL is theoretically competitive with state-of-the-art classical reinforcement learning and
+                                                 may become practically advantageous as deployment overheads diminish. This positions QRL
+                                                 as a promising paradigm for dynamic decision-making in complex, high-dimensional, and
+                                                 non-stationary environments such as financial markets. The complete codebase is released as
+                                                 open source at: https://github.com/VincentGurgul/qrl-dpo-public
+
+                                         Keywords Quantum Machine Learning · Quantum Reinforcement Learning · Near-Term Quantum
+                                         Algorithms · Portfolio Optimization · Time Series Analysis
+
+                                         1   Introduction
+                                         Portfolio optimization is a cornerstone of finance, aiming to allocate assets in a way that maximizes returns
+                                         while minimizing risk. Traditional methods like Mean-Variance Optimization (MVO) have long been
+                                         the standard approach for static portfolio allocation. However, since such static methods treat portfolio
+                                         optimization as a one-shot problem (an allocation is performed at single point in time based on past data),
+                                         they often fail to capture the dynamic and sequential nature of real-world investment scenarios where market
+                                         conditions are constantly evolving.
+                                         Recent advances in quantum computing offer potential for solving complex optimization problems more
+                                         efficiently than classical counterparts. Quantum Annealing and Variational Quantum Algorithms have shown
+     Variational Quantum Circuit-Based Reinforcement Learning for Dynamic Portfolio Optimization
+
+
+promise in addressing static portfolio optimization formulations through the Quadratic Unconstrained Binary
+Optimization (QUBO) framework. While these quantum methods have demonstrated improvements over
+classical algorithms in solving QUBOs, the QUBO is also a static problem formulation and does not naturally
+enable adaptive decision-making over time.
+Reinforcement Learning (RL), a branch of machine learning that deals with sequential decision-making,
+has shown significant potential in dynamic portfolio management by facilitating the learning of optimal
+policies through interaction with the environment. However, while powerful, RL faces challenges in terms of
+scalability and training efficiency in the case of large state-action spaces. Quantum Reinforcement Learning
+(QRL) merges RL techniques with quantum computing, offering the potential for faster convergence and
+more efficient policy representation compared to classical methods.
+Despite the growing interest in quantum technologies, there remains a notable gap in applying them to
+dynamic portfolio optimization. Most existing studies in the quantum realm either treat portfolio problems as
+a static QUBO and solve it using quantum solvers, or explore QRL on simple control tasks without addressing
+complex real-world applications like sequential investment decisions.
+This paper aims to bridge this gap by introducing a novel QRL framework for dynamic portfolio optimization
+and systematically benchmarking it against classical baselines. We propose a fully quantum RL approach
+where the agent learns an optimal trading policy based on a hybrid optimization loop over a dynamic
+state-action space, while harnessing the entanglement-induced expressivity and potential for parallelism that
+is inherent to Variational Quantum Circuits (VQCs).
+By integrating quantum computing into a sequential financial decision-making process, we demonstrate how
+this technology can enhance and accelerate traditional portfolio management practices and pave the way for
+more advanced investment strategies, but also highlight the current limitations of quantum hardware and
+cloud computing solutions.
+
+
+
+2   Literature Review
+
+In the following we contextualize our work within the landscape of portfolio optimization, RL, and quantum
+machine learning by examining the evolution and current state of research across these intersecting fields.
+We summarize foundational methods in classical portfolio theory, highlight recent advances in quantum
+algorithms for static optimization, and identify the emerging role of QRL. By identifying gaps in the exisiting
+literature we motivate our proposed QRL framework for portfolio optimization.
+Portfolio optimization is a fundamental problem in finance, describing the process of allocating capital across
+a set of financial assets. This objective is typically formulated as identifying the optimal portfolio weights
+w = [w1 , . . . , wN ] over N assets to balance expected return and risk. The majority of modern portfolio
+optimization methodologies build on the foundational model of Markowitz [1952], in which the balance
+between expected return and portfolio risk is expressed as a constrained quadratic optimization problem:
+
+
+                                                              N
+                                                              X
+                       max µ⊤ w − η w⊤ Σ w         s.t.             wi = 1, wi ≥ 0, η ∈ [0, 1] ,          (2.1)
+                         w
+                                                              i=1
+
+                      where   µ⊤ w : portfolio return,
+                              w⊤ Σ w : portfolio variance (risk).
+
+
+
+In the Black–Litterman model, the Markowitz formulation is extended by replacing the return vector µ
+with a posterior estimate µBL , which combines equilibrium market returns with subjective investor views
+[Black and Litterman, 1992]. This approach stabilizes portfolio optimization by reducing the sensitivity to
+input return estimates while enabling the explicit incorporation of informed opinions. The posterior mean of
+expected returns is given by
+
+
+                                                          2
+      Variational Quantum Circuit-Based Reinforcement Learning for Dynamic Portfolio Optimization
+
+
+
+
+                        µBL = π + τ ΣP ⊤ (P τ ΣP ⊤ + Ω)−1 (q − P π),                                      (2.2)
+
+               where    π = λΣwm : implied equilibrium returns,
+                        P : view matrix defining assets involved in each investor view,
+                        q : vector of expected returns associated with investor views,
+                        Ω : covariance matrix representing uncertainty of the views,
+                        τ : scalar reflecting the uncertainty of the prior equilibrium returns.
+
+
+
+For experienced investors, this framework allows the integration of domain knowledge and market intuition
+into quantitative allocation. However, in empirical or data-driven applications, a key challenge lies in
+quantitatively inferring coherent “views” from market sentiment or alternative data sources, introducing an
+additional layer of model complexity.
+The Markowitz Constrained Quadratic Model (CQM) can also easily be extended to include additional
+constraints, such as limits on individual asset weights, sector exposures, transaction costs, CO2 emissions, or
+ESG criteria [Fabozzi et al., 2012]. Salirrosas et al. [2025] extend the classic Markowitz formulation with
+binary asset weights by adding a market sentiment variable that increases diversification during “anxious”
+market sentiment periods, but find no advantage over the standard formulation.
+Classical static optimization methods have a long history of being used to solve these problems [Salo et al.,
+2024]. However, dynamically rebalancing a portfolio over time (e.g. across many trading periods) is a complex
+decision-making task that challenges classical optimization techniques. Recent advances in RL offer powerful
+data-driven solutions for such dynamic portfolio management. Deep neural network-based RL algorithms,
+particularly Deep Q-Networks (DQNs), have achieved state-of-the-art performance in portfolio trading and
+asset allocation, outperforming traditional strategies in terms of both Sharpe ratio and cumulative returns
+[Zhang et al., 2020].
+At the same time, quantum computing has emerged as a promising paradigm for tackling computationally
+hard optimization problems in finance. Leveraging superposition and entanglement, quantum algorithms
+can explore vast solution spaces and identify high-quality approximate solutions to NP-hard optimization
+problems, within practical runtime limits. While many of these approaches were initially described only
+theoretically, recent advances in Quantum Processing Units (QPUs) have enabled the implementation on
+real hardware, albeit with limitations regarding noise and qubit counts [Orús et al., 2019, Egger et al., 2020,
+Buonaiuto et al., 2023].
+QRL lies at the intersection of these trends, aiming to integrate quantum computing into the RL framework.
+It is an emerging field with the potential to enhance learning and decision-making processes by using quantum
+circuits as function approximators or by accelerating parts of RL algorithms [Meyer et al., 2024]. In this
+section, we review prior work on quantum computing for portfolio optimization and on QRL, followed by a
+synthesis of the key research gaps that motivate our study.
+
+
+
+2.1   Quantum Portfolio Optimization
+
+Recent reviews highlight three main strands of research in quantum portfolio optimization: the Variational
+Quantum Eigensolver (VQE), the Quantum Approximate Optimization Algorithm (QAOA), and Quantum
+Annealing (QA) approaches, particularly those implemented on D-Wave hardware [Yulianti and Surendro,
+2022, Sehrawat, 2024, Volpe et al., 2025].
+A unified mathematical formulation underlies all three of these approaches: they require the optimization
+to be expressed as a QUBO problem [Buonaiuto et al., 2023]. A QUBO is a quadratic objective function
+defined over binary decision variables without explicit constraints:
+
+
+                                                      3
+

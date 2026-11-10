@@ -1,0 +1,310 @@
+                                                                                                                                                                                           1
+
+
+
+
+                                             Quantum Restricted Boltzmann Machine for Fast Unit Commitment
+                                                                 Yuji Cao, Graduate Student Member, IEEE, Yue Chen, Senior Member, IEEE
+
+
+                                             Abstract—Network-constrained unit commitment (UC) prob-                  decisions; θkt and Djt are renewable output and load demand;
+                                          lems must be solved repeatedly to ensure power system reliability,          and Πg , Πθ , and Πd are power transfer distribution factors.
+                                          yet face computational challenges from the growing system scale             The quadratic functions FiC and FiU denote generation and
+                                          and fast response requirements. This letter proposes a quantum
+                                          restricted Boltzmann machine (qRBM) method to accelerate UC                 commitment-related costs. Y is the feasible set of UC de-
+                                          solution by predicting solution patterns via quantum-hardware-              cisions, consisting of startup/shutdown logic and minimum
+                                          compatible energy scoring and recovering optimal solutions                  up/down times, while Ω(z) collects the generation capacity
+                                          through affine mapping. This method reduces the computation                 and ramping limits. Constraints (1c) and (1d) are the power
+                                          time for UC by 99.96%. Compared to existing quantum methods,                balance condition and power network constraints, respectively.
+                                          it cuts the number of qubits needed by 276 times.
+                                                                                                                         Each update of the renewable forecast θ necessitates re-
+                                            Index Terms—unit commitment, Boltzmann machines, Ising                    solving the UC problem (1). However, due to the large number
+                                          model, quantum computing, multi-parametric programming
+                                                                                                                      of binary variables, solving (1) is time-consuming. In the fol-
+                                                                I. I NTRODUCTION                                      lowing, we propose a reformulation of (1), based on which the
+                                             In practice, unit commitment (UC) must be solved re-                     quantum restricted Boltzmann machine method is developed
+arXiv:2606.22542v2 [math.OC] 3 Aug 2026
+
+
+
+
+                                          peatedly to accommodate changing renewable forecasts, but                   to accelerate the solution process. Let y = (zit , uit , vit , ∀i, ∀t)
+                                          the underlying mixed-integer optimization problem remains                   collect the binary variables and x = (Pit , ∀i, ∀t) collect the
+                                          computationally challenging due to combinatorial commitment                 continuous variables. For a given θ, if a binary vector y is
+                                          decisions and growing network scale. Quantum computing                      known, the commitment costs become constant and (1) reduces
+                                          shows great potential for combinatorial optimization and offers             to a parametric QP in x:
+                                          a promising solution to this challenge [1], [2]. However,                         min 12 x⊤ Qx + c⊤
+                                                                                                                                            x x,       s.t. Ax ≤ (e − Ey) + Bθ,         (2)
+                                                                                                                              x
+                                          most existing approaches reformulate UC as quadratic uncon-
+                                          strained binary optimization (QUBO) via binary expansion,                   where Q ≻ 0 is block-diagonal with entries 2ai , cx collects the
+                                          which demands qubit resources far exceeding current quantum                 linear cost coefficients bi , and A, e, B, E collect the constraint
+                                          hardware capability, even for small instances [1].                          coefficients.
+                                             To enable large-scale UC solution on real quantum hard-                     By multi-parametric programming [3], for a fixed binary
+                                          ware, this letter proposes a quantum restricted Boltzmann                   vector y, the optimal solution x∗ (θ) of (2) is piecewise affine
+                                          machine (qRBM) method that first predicts UC solution                       in θ. Based on this observation, the feasible region of the
+                                          patterns (i.e., commitment decisions and active constraint                  uncertainty parameter θ can be partitioned into a set of critical
+                                          sets) via quantum-hardware-compatible energy scoring, and                   regions (CRs), such that for all θ within the same CR, both
+                                          then recovers optimal solutions through affine mapping. By                  the optimal binary variables and the active constraint set of
+                                          encoding learned pattern partitions rather than the full problem            the resulting problem (2) remain unchanged; the ℓ-th critical
+                                          formulation, this method significantly reduces qubit require-               region is defined by
+                                          ments and improves scalability on near-term quantum devices.                            CRℓ := θ : y ∗ (θ) = yℓ , A∗ (θ) = Aℓ ,
+                                                                                                                                           
+                                                                                                                                                                                      (3)
+                                          Furthermore, the trained qRBM can be deployed directly on
+                                          real Ising-type quantum hardware and is practical.                          where yℓ is the optimal binary vector and Aℓ is the active
+                                                                                                                      constraint set of problem (2). We also call (yℓ , Aℓ ) a UC
+                                             II. U NIT C OMMITMENT P ROBLEM R EFORMULATION
+                                                                                                                      pattern. Within each critical region, the continuous dispatch
+                                            We consider a network-constrained unit commitment (UC)                    x∗ is affine in θ and can be recovered without re-solving (2).
+                                          problem over T periods, parameterized by renewable forecasts.               Specifically, substituting y = yℓ into (2) and deriving its
+                                          The problem is a mixed-integer quadratic program (MIQP):                    Karush–Kuhn–Tucker (KKT) conditions yields:
+                                                    XT XN
+                                                                                                                              Q A⊤
+                                                                                                                                          ∗ 
+                                                                   FiC (Pit ) + FiU (zit , uit , vit ) , (1a)
+                                                                                                                                                                     
+                                             min                                                                                     Aℓ    x            −cx           0
+                                            z,u,v,P       t=1     i=1                                                                           =                 +        θ,    (4)
+                                                                                                                             AAℓ     0     λ∗       eAℓ − EAℓ yℓ     BAℓ
+                                                 s.t. (z, u, v) ∈ Y, z, u, v ∈ {0, 1}N T , P ∈ Ω(z), (1b)                  |     {z     }         |      {z      } | {z }
+                                                      X           X           X                                                   Kℓ                        dℓ              Rℓ
+                                                            Pit +      θkt =       Djt , ∀t,         (1c)
+                                                          i             k           j                                 where AAℓ , eAℓ , BAℓ , EAℓ are the active-set rows of A, e, B,
+                                                      − f max ≤ Πg Pt + Πθ θt − Πd Dt ≤ f max , ∀t. (1d)              E and λ∗ contains the optimal dual variables. Denote the left-
+                                                                                                                      hand side coefficient matrix in (4) by Kℓ and the right-hand
+                                          Here, Pit is the power output of generator i at time t; zit ,
+                                                                                                                      side coefficients by dℓ and Rℓ , respectively. Inverting Kℓ and
+                                          uit , and vit are commitment, startup, and shutdown binary
+                                                                                                                      extracting the first nx rows gives the dispatch solution:
+                                            This work was supported by the Hong Kong Innovation and Technology
+                                          Commission Innovation and Technology Fund under Grant ITS/335/24.                   x∗ (θ) = Mℓ θ + mℓ ,      y ∗ (θ) = yℓ ,   θ ∈ CRℓ ,      (5)
+                                            Y. Cao and Y. Chen are with the Department of Mechanical and Automation
+                                          Engineering, The Chinese University of Hong Kong, Hong Kong, China. (e-     with Mℓ = [Kℓ−1 Rℓ ]x and mℓ = [Kℓ−1 dℓ ]x , where [·]x selects
+                                          mail: {yjcao, yuechen}@mae.cuhk.edu.hk). Corresponding author: Y. Chen.     the first nx rows and CRℓ is the ℓ-th critical region. Therefore,
+                                                                                                                                          2
+
+
+
+once the critical region containing θ is identified, x∗ (θ) and   The qRBM is trained on classical hardware by minimizing
+y ∗ (θ) can be recovered directly from (5). The UC problem (1)    L(ψ), where D is the training set and ℓ∗ is the CR label cor-
+is thereby recast as a critical region prediction problem.        responding to the MIQP optimal solution. Training adjusts the
+    To construct the candidate CRs, the UC problem (1) is         parameters ψ so that the correct CR receives high probability
+solved for each sampled renewable forecast. Each optimal          for each input parameter (renewable power) θ (or ξ).
+solution yields a pair (y ∗ , A∗ ), and all distinct pairs are       Step 3: UC Solution. The trained qRBM is used to accel-
+enumerated as L critical regions. For each CRℓ , the matrices     erate the UC solution process. Specifically, given a renewable
+Mℓ and mℓ in (5) are precomputed from (4).                        input θ, we encode it as ξ = enc(θ), form the visible states
+       III. Q UANTUM B OLTZMANN M ACHINE FOR UC                   rℓ (ξ), ∀ℓ = 1, · · · , L, and map them to Ising spin vectors
+                                                                  sℓ (ξ) = 1 − 2rℓ (ξ) ∈ {−1, +1}nvis . The trained parameters ψ
+   In this section, we develop a qRBM for predicting the
+                                                                  define the corresponding Ising Hamiltonian on the quantum
+critical region CRℓ for a given θ. Once the optimal CR
+                                                                  computer. The quantum computer samples low-energy states,
+appears among the top-ranked candidates, (5) recovers the
+                                                                  which correspond to candidate CRs with large pψ (ℓ | ξ). We
+exact optimal UC solution.
+                                                                  select the ncand most likely CRs and then choose the lowest-
+   Specifically, the qRBM serves as a pattern scorer: for
+                                                                  cost feasible one:
+each candidate CR, the model assigns a free-energy score
+conditioned on the input θ. The lower the free energy, the            S(ξ)
+                                                                      b =        argmax        pψ (ℓ | ξ),
+                                                                               ncand , ℓ∈{1,...,L}
+more likely θ belongs to the candidate CR. The qRBM consists                                                                          (11)
+of two layers: 1) a visible layer encoding the input and                 ℓ̂ = arg min J(ℓ, θ) : Mℓ θ + mℓ is feasible .
+                                                                                   ℓ∈S(ξ)
+                                                                                     b
+output information, and 2) a hidden layer capturing latent
+dependence between them. In this letter, we use the qRBM          where argmaxncand returns the indices of the ncand largest
+architecture in [4], where the visible layer stores classical     values, and J(ℓ, θ) is the objective value after applying the
+binary information and the hidden layer is represented by         affine solution mapping (5), given (ℓ, θ). Each candidate is
+quantum units. We follow three steps:                             recovered by (5) and checked in (1). If a feasible candidate
+   Step 1: State Preparation. Before applying the qRBM,           exists in S(ξ),
+                                                                             b      (11) returns the lowest-cost one. If the UC
+we encode each input parameter (renewable generation) and         pattern of (1) lies in S(ξ),
+                                                                                         b     the returned solution is optimal.
+candidate CR as one visible state. The renewable input is                              IV. C ASE S TUDIES
+encoded as ξ = enc(θ) ∈ {0, 1}nξ by binary expansion.
+                                                                     The proposed method is validated on modified IEEE 9-
+The pre-collected L candidate CRs are represented by one-hot
+                                                                  bus, 57-bus, and 118-bus systems with a 24-hour horizon. For
+codes cℓ ∈ {0, 1}L ; for CRℓ , cℓ,ℓ = 1 and cℓ,k = 0, ∀k ̸= ℓ.
+                                                                  each system, we solve UC problems under sampled renewable
+Combining them, for CRℓ , the corresponding visible state is
+                                                                  scenarios and construct the datasets. The sample sizes for
+        rℓ (ξ) = [ξ, cℓ ] ∈ {0, 1}nvis ,   nvis = nξ + L.   (6)   9-bus, 57-bus, and 118-bus are 3,840, 80,000, and 97,412,
+After encoding, each visible bit is mapped to an Ising spin,      respectively, with an 80%/20% training-test split.
+i.e., sℓ,n = 1 − 2rℓ,n ∈ {−1, +1}, ∀n = 1, · · · , nvis .         A. Overall UC Performance
+   Step 2: qRBM Training. Given a visible state r, let ψ denote      We compare the proposed method with four benchmarks:
+all trainable qRBM parameters. The qRBM free energy Gψ (r)        1) M1: artificial neural network (ANN) with direct prediction
+is defined as                                                     [5]. For binary variables, it predicts directly. For continuous
+            Xnvis               Xnhid
+  Gψ (r) =         si (ri )αi −
+                                                          
+                                      log cosh ∥Φj (r)∥2 , (7)    variables, k-means clustering and linear regressions are ap-
+              i=1                   j=1                           plied to approximate the division of critical regions and the
+where si (ri ) = 1 − 2ri as above, αi is a trainable visible      mapping between continuous variables and optimal solutions,
+bias, nhid is the number of quantum hidden units, and Φj (r)      respectively. 2) M2: ANN with direct prediction and simple
+measures how strongly the visible state r activates the j-th      repair1 ; 3) M3: qRBM with direct prediction and simple repair;
+hidden unit. The first term in (7) scores the visible bits of     4) M4: variational quantum circuit (VQC) with the proposed
+r; the second term aggregates the hidden-unit contribution        reformulation.
+induced by r. For a given renewable input, a more probable           Table I reports the mean feasibility and optimality rates
+CR receives a lower free energy Gψ (r) and is ranked higher.      on the three systems. Feasibility and optimality rates are
+   To train the qRBM, we first convert the free energy score      the share of test scenarios with a feasible recovered solution
+into the unnormalized probability below:                          and an objective matching the optimum of (1), respectively.
+                                                                  Direct methods (M1–M3) have poor performance, especially
+                    p̃ψ (r) = exp[−Gψ (r)].                 (8)
+                                                                  in optimality, whereas reformulation improves both M4 and
+Thus, lower free energy gives larger probability. For a given     the proposed method. Compared to VQC, the proposed method
+input ξ, the conditional probability of CRℓ is defined over       reaches higher feasibility and greatly improves the optimality
+valid one-hot labels as                                           on all three systems. Fig. 1 further zooms in on 200 scenarios
+                          p̃ψ (rℓ (ξ))                            of the 118-bus system. The proposed method keeps the cost
+           pψ (ℓ | ξ) = PL                ,                (9)    gap below 0.1% in most cases (187 / 200), and its cumulative
+                         i=1 p̃ψ (ri (ξ))
+                         X
+               L(ψ) = −          ∗
+                                       log pψ (ℓ∗ | ξ).  (10)       1 Simple repair: Unit commitment decisions are projected to the feasible
+                               (ξ,ℓ )∈D                           region to meet constraints (1b)-(1d).
+                                                                                                                                                                                                                                                                                                                                              3
+
+
+
+                                                                                                      TABLE I
+                                                                     N ETWORK - CONSTRAINED UC P ERFORMANCE ACROSS D IFFERENT S YSTEMS (U NIT: %)
+
+                                                                                                                                                           9-bus                                                                              57-bus                                             118-bus
+                             Method
+                                                                                                                                          Feasibility Rate            Opt. Rate                                         Feasibility Rate                 Opt. Rate       Feasibility Rate                  Opt. Rate
+                             M1: ANN direct prediction                                                                                         27.37 ± 2.33        20.36 ± 0.83                                           0.00 ± 0.00                  0.00 ± 0.00           28.14 ± 1.75              23.94 ± 1.48
+                             M2: ANN direct prediction with simple repair                                                                      74.11 ± 1.87        36.95 ± 2.92                                          88.14 ± 1.40                 14.94 ± 0.26           44.26 ± 1.16              30.50 ± 1.74
+                             M3: qRBM direct prediction with simple repair                                                                     71.69 ± 1.33        42.58 ± 1.45                                          97.88 ± 0.41                 15.34 ± 0.15           51.68 ± 1.74              45.72 ± 0.96
+                             M4: VQC with reformulation                                                                                        93.54 ± 1.33        45.08 ± 1.65                                          99.86 ± 0.15                 58.94 ± 1.25           88.56 ± 0.82              83.20 ± 1.26
+                             Ours: qRBM with reformulation                                                                                    100.00 ± 0.00        97.66 ± 0.50                                         100.00 ± 0.00                 96.08 ± 0.15           97.38 ± 0.33              93.32 ± 0.35
+
+
+time stays well below the baselines and orders of magnitude                                                                                                                               shows the Ising-Hamiltonian energy evolutions of six represen-
+below Gurobi.                                                                                                                                                                             tative test scenarios. In all tested scenarios, the CIM rapidly
+                                                                                                                                                                                          converges to a low-energy state and returns 10 candidates,
+                                  Cost gap < 0.1%     Infeasible
+                                       Cost gap 0.1%--0.5%                          103                                                                                                   from which the optimal CR can be found. This result validates
+                                                                   Total Time (s)
+
+
+
+                       M1         58          142
+                                                                                                                               M1        M3      Ours                                     the practicability of applying the proposed method on real
+Method
+
+
+
+
+                       M2          81     16    103
+                                                                                    101                                        M2        M4      Gurobi                                   quantum hardware.
+                       M3            108          88
+                       M4                177         17
+                                                                                10−1                                                                                                                              1.0
+                      Ours                187
+
+
+
+
+                                                                                                                                                                                                                                  Frequency
+
+
+
+
+                                                                                                                                                                                                                                                                         Frequency
+
+
+
+
+                                                                                                                                                                                                                                                                                                                  Frequency
+                          0         50      100 150 200                                   0                                         50          100       150         200
+
+
+
+
+                                                                                                                                                                                         Normalized Hamiltonian
+                                                                                                                                                                                                                  0.5
+                            Number of Test Scenarios                                                                 Number of Test Scenarios                                                                                                  Pattern index                         Pattern index                            Pattern index
+                                                                                                                                                                                                                  0.0
+Fig. 1. Cost gap and total time comparison on the 118-bus system.                                                                                                                                                 1.0
+
+
+
+
+                                                                                                                                                                                                                                  Frequency
+
+
+
+
+                                                                                                                                                                                                                                                                         Frequency
+
+
+
+
+                                                                                                                                                                                                                                                                                                                  Frequency
+                                                                                                                                                                                                                  0.5
+B. qRBM Learned Patterns                                                                                                                                                                                                                       Pattern index                         Pattern index                            Pattern index
+   Next, we assess whether the qRBM assigns low energy to                                                                                                                                                         0.0
+                                                                                                                                                                                                                    0.000      0.015              0.030        0.000 0.025 0.050 0.075 0.0                  0.1               0.2       0.3
+the CR corresponding to the optimal solution. For each test                                                                                                                                                                    Time (ms)                              Time (ms)                             Time (ms)
+sample, candidate CRs are ranked by qRBM energy, and we
+                                                                                                                                                                                          Fig. 3. Ising-Hamiltonian evolution on the QBoson coherent Ising machine.
+check whether the MIQP-optimal CR appears among the top-
+ncand candidates. Fig. 2 (left) shows that the optimality rate                                                                                                                               Table II compares qubit requirement and computation time
+increases rapidly with ncand . Notably, the top-5 low-energy                                                                                                                              against a direct QUBO encoding and Gurobi solver. From the
+candidates already include an MIQP-optimal CR for over 95%                                                                                                                                9-bus to the 1354-bus systems, a QUBO formulation needs
+of test samples. Fig. 2 (right) reports the energy rank at which                                                                                                                          4,513–212,457 qubits, whereas the proposed method uses only
+the MIQP-optimal CR appears. Bubble size and color indicate                                                                                                                               46–448 qubits, because the qRBM hardware size follows the
+the percentage of test samples at each rank. Large bubbles on                                                                                                                             learned CR representation rather than the full UC formulation.
+rank 1 show that the optimal CRs are concentrated among the                                                                                                                               The resulting encoding efficiency is 98.1×–474.2× (mean
+top-ranked low-energy candidates.                                                                                                                                                         276×). The computation time of our method (CIM plus affine
+                                                                                                                                                                                          recovery) remains within 0.778–2.739 ms across all systems,
+                      100                                                                                                                                        100
+                                                                                              Energy Rank of Optimal Pattern
+
+
+
+
+                                                                                                                                1                                                         compared with 670–13,820 ms for Gurobi, corresponding to
+Optimality Rate (%)
+
+
+
+
+                                                                                                                                                                 80                       a 861×–10,080× speedup and reducing computation time by
+                                                                                                                                                                      Test Samples (%)
+
+
+
+
+                       90                                                                                                       2
+                                                                                                                                3                                60                       99.96% on average.
+                       80
+                                                                   Case9                                                        4                                40                                              V. C ONCLUSION
+                       70                                          Case57                                                       5                                20
+                                                                   Case118                                                     >5                                                            This letter proposes a novel qRBM method with solution
+                       601    2      3     4      5     6      7    8          9 10                                                 Case9 Case57Case118          0                        pattern prediction for UC problems, enabling large-scale so-
+                                    Top-K Candidate Patterns                                                                                                                              lution with far fewer qubits and better optimality than current
+Fig. 2. Top-ncand optimality and optimal-CR energy rank by learned qRBM.
+                                                                                                                                                                                          quantum formulations.
+                                                                                                                                                                                                                                                                R EFERENCES
+C. Performance on Real Quantum Hardware                                                                                                                                                   [1] N. Nikmehr, P. Zhang, and M. A. Bragin, “Quantum distributed unit
+                                                                                                                                                                                              commitment: An application in microgrids,” IEEE Transactions on Power
+                                               TABLE II                                                                                                                                       Systems, vol. 37, no. 5, pp. 3592–3603, 2022.
+                        C OMPUTATION T IME AND Q UBIT R EQUIREMENT C OMPARISON                                                                                                            [2] Y. Zhuang, L. Cheng, Y. Cao, T. Li, N. Qi, Y. Xu, and Y. Chen, “Quantum
+                                                                                                                                                                                              learning and estimation for coordinated operation between distribution
+                                   Qubits          Qubits            Qubit                           Gurobi                                      Ours            Time                         networks and energy communities,” CSEE Journal of Power and Energy
+System
+                                  (QUBO)           (Ours)          Efficiency                       Time (ms)                                  Time (ms)        Speedup                       Systems, pp. 1–12, 2026.
+9-bus                               4,513              46            98.1×                                               670                      0.778           861×                    [3] E. N. Pistikopoulos, N. A. Diangelakis, and R. Oberdieck, Multi-
+57-bus                             33,185             113           293.7×                                              1,960                     0.197          9,949×                       parametric optimization and control. John Wiley & Sons, 2020.
+118-bus                            90,433             381           237.4×                                             11,300                     1.121         10,080×                   [4] M. Demidik, C. Tüysüz, N. Piatkowski, M. Grossi, and K. Jansen,
+1354-bus                          212,457             448           474.2×                                             13,820                     2.739          5,046×                       “Expressive equivalence of classical and quantum restricted Boltzmann
+                                                                                                                                                                                              machines,” Communications Physics, vol. 8, p. 413, 2025.
+  We further test the proposed method on a modified IEEE                                                                                                                                  [5] A. Shokry, S. Medina-González, and A. Espuña, “Mixed-integer multi-
+                                                                                                                                                                                              parametric approach based on machine learning techniques,” in Computer
+1354-bus system using a real quantum computer CPQC-X,                                                                                                                                         Aided Chemical Engineering. Elsevier, 2017, vol. 40, pp. 451–456.
+which is a coherent Ising machine (CIM) from QBoson. Fig. 3
+

@@ -1,0 +1,2562 @@
+Bias-field digitized counterdiabatic quantum algorithm for higher-order binary optimization
+Sebastián V. Romero ,1, 2 Anne-Maria Visuri ,1 Alejandro Gomez Cadavid ,1, 2
+Anton Simen ,1, 2 Enrique Solano ,1 and Narendra N. Hegade 1, ∗
+1
+
+arXiv:2409.04477v2 [quant-ph] 24 Aug 2025
+
+2
+
+Kipu Quantum GmbH, Greifswalderstrasse 212, 10405 Berlin, Germany
+Department of Physical Chemistry, University of the Basque Country UPV/EHU, Apartado 644, 48080 Bilbao, Spain
+(Dated: August 26, 2025)
+Combinatorial optimization plays a crucial role in many industrial applications. While classical computing
+often struggles with complex instances, quantum optimization emerges as a promising alternative. Here, we
+present an enhanced bias-field digitized counterdiabatic quantum optimization (BF-DCQO) algorithm to address
+higher-order unconstrained binary optimization (HUBO). We apply BF-DCQO to a HUBO problem featuring
+three-local terms in the Ising spin-glass model, validated experimentally using 156 qubits on an IBM quantum
+processor. In the studied instances, our results outperform standard methods such as the quantum approximate
+optimization algorithm, quantum annealing, simulated annealing, and Tabu search. Furthermore, we provide
+numerical evidence of the feasibility of a similar HUBO problem on a 433-qubit Osprey-like quantum processor.
+Finally, we solve denser instances of the MAX 3-SAT problem in an IonQ emulator. Our results show that
+BF-DCQO offers an effective path for solving large-scale HUBO problems on current and near-term quantum
+processors.
+
+INTRODUCTION
+
+Combinatorial optimization problems arise in a multitude
+of situations in science and industry, from logistics and
+scheduling to computational chemistry and biology. In combinatorial optimization, the best or near-optimal solution is
+searched within a finite but large discrete configuration space.
+Theoretical tools from statistical physics have given insights
+into these problems, as their connection to disordered systems
+was identified early on [1]. These problems generally belong
+to the NP-hard complexity class, requiring a computation time
+that grows exponentially with the problem size on classical
+computers. While complex problem instances test the limits
+of classical computing, quantum computing has emerged as
+a suitable counterpart to drive the state of the art in this field.
+This is possible due to the rapid development of quantum technologies combined with the natural mapping of combinatorial
+optimization problems to the widely studied Ising spin glass
+model, whose ground state encodes the optimal solution [2].
+Several methods have been proposed so far, including adiabatic quantum optimization [3] and the quantum approximate
+optimization algorithm (QAOA) [4], which can be thought as
+a digitized version of adiabatic quantum computing [5].
+In addition to the capacity of quantum hardware to embed
+large-scale systems, the potential of quantum computing to
+surpass classical optimization methods has been demostrated
+through dedicated quantum algorithms [6–13]. Among these,
+QAOA has emerged as one of the front-runner candidates for
+showing quantum speedup in optimization. Recent studies on
+8-SAT problems with up to 20 variables [14] show that the
+time to solution for QAOA outperforms best-known classical
+methods. Similar evidence of quantum speedup for solving
+the low autocorrelation binary sequence (LABS) problem has
+also been found [15–17].
+
+∗ narendrahegade5@gmail.com
+
+In parallel with quantum algorithms, quantum-inspired algorithms run on classical hardware, especially those based on
+tensor networks (TNs) [18–22], have evolved rapidly in the recent years. They were developed over the past three decades
+mostly for the study of condensed-matter physics [21, 23]
+and have been adopted as efficient simulators of quantum
+hardware, as classical benchmarks for quantum algorithms,
+and in hybrid approaches combining TNs and quantum algorithms [24–27]. The recent kicked-Ising-model experiment
+of IBM on a 127-qubit device [28–32] and D-Wave’s simulation of quantum quench dynamics across a spin-glass phase
+transition [33, 34] highlighted the interplay of quantum simulations and TNs. For combinatorial optimization, new approaches have combined generative machine learning models with TNs [35–37], and ground-state search methods have
+been applied to problems with up to quadratic terms on higherdimensional graphs [38–40].
+Compared to quadratic problems, higher-order ones are significantly more difficult to solve. While a number of experiments have recently demonstrated higher-order unconstrained
+binary optimization (HUBO) implementations on quantum
+hardware [41–44], there are hardware limitations that complicate the effective implementation of these protocols on largeand even intermediate-scale problems. These include short
+decoherence times, qubit connectivities, and the presence of
+noise. Several alternative methods, such as counterdiabatic
+driving (CD) protocols, have been proposed to overcome these
+issues [45–50]. By suppressing diabatic transitions, CD protocols can find better solutions in different scenarios.
+In this work, we develop and exploit an improved version
+of the recently introduced bias-field digitized counterdiabatic
+quantum optimization (BF-DCQO) formulation [51] to address HUBO problems on both ideal simulators and hardware.
+We make use of the entire new 156-qubit IBM quantum computer ibm fez and a matrix product state (MPS) simulation of
+the upcoming IBM Osprey processor with 433 qubits. To test
+BF-DCQO on denser instances, we consider a MAX 3-SAT
+problem at the critical density and employ the 25-qubit IonQ
+Aria 1 emulator with a noise model. All results are compared
+
+2
+with those obtained through well-established classical optimization methods as well as the D-Wave quantum annealing
+platform. Unlike these methods, BF-DCQO does not require
+additional qubits for mapping the initial HUBO problem into
+a quadratic one. Even though our work addresses problems
+with up to three-body terms, our method is equally applicable
+to higher-order optimization problems, including the LABS
+problem [17], MAX k-SAT [52], factorization [53] and protein folding [54, 55], among others.
+
+METHODS
+Digitized counterdiabatic quantum optimization (DCQO)
+
+Adiabatic quantum optimization aims to prepare the ground
+state of a given problem Hamiltonian. An initial state is
+evolved within the time window t ∈ [0, T ] under the adiabatic protocol Had (λ) = (1 − λ)Hi + λH f . Here, λ(t) is a
+time-dependent scheduling function that describes the adiabatic evolution of the system, starting from an initial Hamiltonian Hi , whose corresponding ground state is easy to prepare,
+towards the problem Hamiltonian H f . Relying on the adiabatic theorem, this protocol reaches the desired ground state
+of H f in the adiabatic limit λ̇(t) → 0. We consider the disordered Ising Hamiltonian with up to three-body terms:
+X
+X
+X
+Hf =
+hzi σzi +
+Ji j σzi σzj +
+Ki jk σzi σzj σzk ,
+(1)
+i< j
+
+i
+
+i< j<k
+
+in contrast to Ref. [51], which only considers up to quadratic
+terms. We use here natural units with ℏ = 1. The ground state
+of this Hamiltonian is called a p-spin glass with p = 3 [56],
+and the model is commonly known in quantum optimization
+as the higher-order Ising chain [41, 42]. In the following, we
+use λ(t) = sin2 (π sin2 (πt/2T )/2) as the scheduling function.
+The initial Hamiltonian is
+X
+X
+Hi =
+h xj σ xj +
+hbj σzj
+(2)
+j
+
+j
+
+with h xj (hbj ) the transverse- (longitudinal bias-) field contributions acting on the jth spin. We set h xj = −1 and hbj = 0, thus
+P
+x
+Hi = − N−1
+j=0 σ j , so that the N-qubit ground state of Hi is
+|+ð
+
+¹N
+
+|0ð + |1ð
+=
+√
+2
+
+!¹N
+
+.
+
+(3)
+
+In order to overcome the intrinsic slow adiabatic evolution,
+it is possible to introduce an auxiliary counterdiabatic driving
+contribution which accelerates the original protocol and suppresses diabatic transitions [45, 46]. The transitionless protocol takes the form
+Hcd (λ) = Had (λ) + λ̇Aλ ,
+
+(4)
+
+where Aλ is the adiabatic gauge potential [57]. Nevertheless, its exact implementation is severely impractical due to
+
+its many-body structure and the necessity for the knowledge
+of the full energy spectrum. To overcome these issues, several approximate implementations have been proposed [57–
+61]. One such proposal is the approximation of the adiabatic
+gauge potential by a nested-commutator series expansion
+A(lλ = i
+
+l
+X
+
+αk (t)O2k−1 (t),
+
+(5)
+
+k=1
+
+where O0 (t) = ∂λ Had and Ok (t) = [Had , Ok−1 (t)]. In the limit
+l → ∞, this expansion converges to the exact gauge potential. The coefficients αk are obtained by minimizing the ac
+
+tion S l = tr[G2l ] with Gl = ∂λ Had − i Had , A(lλ . For simplicity, we consider the first-order (l = 1) nested-commutator
+term (see Supplementary Note 1 for a step-by-step derivation),
+which takes the form
+X
+hX
+O1 = −2i
+hzi σyi +
+Ji j (σyi σzj + σzi σyj )
+i
+
++
+
+X
+
+i< j
+
+i
+
+Ki jk (σyi σzj σzk + σzi σyj σzk + σzi σzj σyk ) .
+
+i< j<k
+
+(6)
+
+Higher-order terms demand significantly more computational
+resources, and their complexity increases with the system size.
+In the fast evolution regime, the adiabatic term Had (λ)
+in Eq. (4) can be omitted, reducing the number of required
+quantum gates and thereby decreasing hardware noise, while
+still maintaining the quality of the solution [51, 55, 62, 63].
+This approach is adopted in the present study, where only the
+CD contribution is considered without compromising performance. The time evolution of such Hamiltonians remains a
+challenge on current analog quantum platforms, and may even
+be highly difficult due to the nonstoquasticity [64]. To address this issue, digitized counterdiabatic quantum protocols
+have been proposed for implementation on digital quantum
+computers [65]. The resulting time-evolution operator can
+be decomposed using a first-order Trotter-Suzuki decomposition [66] and digitized with a gate-based approach,
+U(T, 0) =
+
+ntrot nY
+terms
+Y
+k=1 j=1
+
+i
+h
+exp −iγ j (k∆t)∆tH j ,
+
+(7)
+
+Pnterms
+where Hcd (t) =
+j=1 γ j (t)H j is encoded in nterms different Pauli operators H j and ntrot are the Trotter steps considered with ∆t = T/ntrot . We use T = 1 in units of the inverse energy scale relevant for each problem as defined below, and ntrot = 3, thus one effective Trotter step is implemented. The number of gates required for implementation is
+reduced by optimally decomposing the desired circuit following Refs. [67, 68]. Furthermore, we set a gate-cutoff threshold
+θcutoff in our experiments, such that any term of Eq. (7) with
+an angle with absolute value below this threshold is discarded,
+thus if |γ j (k∆t)∆t| mod 2π < θcutoff is met. The larger the
+θcutoff , the lower is the amount of resources that are required,
+but the obtained circuit expressivity is also lower. Therefore,
+it is crucial to select an appropriate value of this parameter to
+significantly reduce the amount of gates to implement without
+compromising the quality of the outcomes.
+
+3
+
+H̃i = Hi +
+
+N 1
+X
+
+hbj (hσzj i)σzj
+
+j=0
+
+åntrot
+x2
+
+hσz0 i
+hσz1 i
+..
+.
+z
+hσN 2 i
+
+Probabilities
+
+...
+x3
+
+x1
+
+...
+|ψ̃i i
+
+hσzN 1 i
+
+...
+
+α
+
+x5
+x4
+
+x6
+
+Energy
+
+...
+(b) Digitized counterdiabatic evolution
+
+(a) Optimization problem
+
+(c) CVaR-based updating
+
+FIG. 1. Schematic of the BF-DCQO protocol. Given a binary optimization problem of arbitrary order (depicted in a) encoded as a p-spin
+glass [Eq. (1)], the BF-DCQO algorithm performs DCQO iteratively, updating the input bias hbj from the solutions obtained from the previous
+step. Each iteration consists of running the corresponding DCQO circuit (depicted in b), sampling the final state, and updating the bias fields.
+It amounts to the use of (i) the CVaR-based approach, which considers only a subset of the low-energy samples, and (ii) the updating strategy
+as a function of the expectation value, i.e., hbj (ïσzj ð) (depicted in c).
+Bias-field updating protocol
+
+State initialization is crucial for the performance of quantum optimization routines, where an initial state with a
+nonzero overlap with the desired final state is advantageous [69, 70]. Several warm-starting techniques have been
+proposed, where a relaxed version of the problem is solved
+classically and its solution fed into the quantum algorithm,
+leveraging the complexity and cost of the quantum routine
+while ensuring a better performance [71, 72].
+In BF-DCQO, the standard DCQO is performed iteratively,
+so that the solution from each step serves as the input bias
+for the next iteration [50, 51, 69]. See Fig. 1 for a schematic
+diagram of the protocol. The initial Hamiltonian is changed
+after each bias-field update,
+H̃i = Hi +
+
+N−1
+X
+j=0
+
+hbj (ïσzj ð)σzj ,
+
+(8)
+
+so that its ground state also changes and has to be prepared for the circuit execution.
+The smallest
+eigenvalue of
+h
+i
+the single-body operator hix σix − hbi σzi is given by λmin
+=
+i
+q
+− (hbi )2 + (hix )2 , and its associated eigenvector is |φ̃ði =
+
+ b
+h +λ
+Ry (θi ) |0ði where θi = 2 tan−1 i hx min . Therefore, the ground
+i
+
+state of H̃i can be prepared using N y-axis rotations as
+|ψ̃i ð =
+
+N
+O
+i=1
+
+|φ̃ði =
+
+N
+O
+i=1
+
+Ry (θi ) |0ði .
+
+(9)
+
+In each iteration, the bias field hbj for the jth qubit is updated
+based on the measured longitudinal component of the qubit
+ïσzj ð. This update follows the rule hbj = hbj (ïσzj ð), where the
+functional form of hbj represents the specific bias-field strategy
+employed. In this work, we explore the following strategies:
+
+• Unsigned antibias(+)/bias(−): hbj = ± ïσzj ð. This strategy offers bias fields whose strength is exactly the longitudinal component. This is a sensible choice when a
+qubit is effectively close to an equal superposition, such
+that there is no clear direction of bias.
+• Signed antibias(+)/bias(−): hbj = ± sgn ïσzj ð. This strategy offers bias fields that are equivalent to the effective
+orientation of the qubit, regardless the magnitude. This
+is a sensible choice when a qubit has a clear preferred
+direction of bias.
+Once a suitable updating method has been selected, BFDCQO iteratively measures the final state after time evolution in the computational basis and the longitudinal bias fields
+hbj are updated accordingly. In the following, we set hbj = 0
+for the first bias-field iteration. According to the findings of
+Ref. [51], modifying the selected updating strategy throughout the entire routine can circumvent local minima and lead
+to faster convergence. For our results, we use the unsigned
+bias followed by a final iteration with a weighted signed
+bias. Specifically, the strength of hbj is increased by rescaling hbj 7→ κhbj with κ > 0. In our experiments, we rescale by a
+factor of five to ensure that the magnitude of the bias is significantly larger than the transverse term, restricting the search
+space near the previous solution. Since the solution provided
+by DCQO, from the first iteration, samples low-energy states
+of the spin-glass Hamiltonian [Eq. (1)], the expectation values of local Pauli-z operators can be used as an effective bias
+in subsequent iterations, facilitating convergence.
+Although this updating strategy is employed in our experiments, alternative approaches might be more convenient depending on the nature of the problem at hand. Using κ ∈ (0, 1)
+grants more importance to the transverse contribution in H̃i ,
+whose ground state is an equal superposition of the computational basis. Thereby, a broader energy landscape is explored
+by flattening the expected sampling distribution. The algorithm is less prone to getting stuck in local minima with this
+
+4
+choice, though it may significantly slow down convergence.
+On the other hand, using κ > 1 provides greater strength to
+the longitudinal bias-field update, i.e. the optimal solution
+obtained from the last BF-DCQO iteration, constraining the
+search space around this solution. This accelerates the convergence but may lead to an undesired local minimum.
+Once the circuit has been executed, all qubits are measured
+nshots times, returning an N-bitstring x0 . . . xN−1 . Each measurement trivially translates into a sample of H f due to its
+construction as a weighted sum of Pauli-z operators. Denoting each of these samples
+as Ek , the sample mean energy is deP shots
+Ek . It can be used as an estimator
+fined as E = (1/nshots ) nk=1
+of the expectation value of H f after ground-state preparation.
+It has been demonstrated that incorporating Conditional
+Value-at-Risk (CVaR) techniques into quantum optimization
+routines [73] can lead to significant improvements. Recent
+studies have explored the impact of noise when sampling bitstrings from quantum computers. They determined upper and
+lower bounds for noiseless expectation values using CVaR
+noisy samples and quantified the sampling overhead needed
+to achieve good solutions [43]. Building upon this knowledge,
+we propose a CVaR-inspired method for iteratively updating
+the bias fields. Accordingly, let α be the ratio between the
+number of measurements considered and the total number of
+shots nshots . Rather than taking the entire distribution of samples into account (α = 1), we first sort them in terms of energy
+so that Ek f Ek+1 . Next, the bias is updated using a fraction
+0 < α < 1 of the lowest-energy outcomes taken from
+E(α) =
+
++αn
+shots ,
+X
+1
+Ek ,
++αnshots , k=1
+
+(10)
+
+thus taking only a part of the total distribution into account.
+From the results drawn from both noiseless simulators and
+hardware, we find the fastest convergence to the best solutions
+for values of α ∼ 1%. This value is found empirically and the
+optimal value will depend on the problem and the number of
+shots. For example, we find that using smaller (larger) values
+of α shows faster convergence if the number of shots is large
+(small) with respect to the numbers used here.
+Apart from seeking a reduction in the resources required
+and depth of the circuits considered, it is important to quantify
+the quality of the results obtained by the routines. In order to
+evaluate the performance of our routines, we use two metrics:
+the approximation ratio
+AR =
+
+E(α = 1)
+,
+E0
+
+(11)
+
+In this section, we present the HUBO Hamiltonians that
+are employed for testing BF-DCQO. Based on the gate error
+rates and on the coupling map connectivities of the selected
+platforms, we work with a nearest-neighbour three-body spin
+glass. In order to tackle industry-related use cases, we furthermore consider the weighted MAX 3-SAT problem [52].
+To the best of our knowledge, this is the first work to tackle a
+binary satisfiability problem with the aid of CD protocols. For
+both cases, the corresponding circuit decomposition is shown
+in Supplementary Note 3.
+Nearest-neighbour spin glass.—For the first case, the
+nearest-neighbour (NN) three-body Hamiltonian takes the
+form of
+X
+X
+X
+z z
+z z
+H NN
+=
+h
+σ
++
+J
+σ
+σ
++
+Ki jk σzi σzj σzk ,
+(13)
+i
+j
+f
+i i
+i j
+i
+
+ïi jð
+
+ïi jkð
+
+where ï·ð indicates that the enclosed qubit indices are nearest
+neighbours in the one-dimensional chain (thus j = i + 1 and
+k = i + 2). The coupling constants hi , Ji j and Ki jk are taken
+as random Gaussian-distributed numbers with zero mean and
+unit variance. The first-order nested-commutator expansion
+for this Hamiltonian is given by Eq. (6) but it only contains
+the nearest-neighbour qubit indices as in Eq. (13). Due to its
+linearity, it perfectly fits the heavy-hex IBM qubit coupling
+maps [75]. Furthermore, the ease with which this and related models can be simulated using tensor networks makes
+their simulation an ideal benchmark for evaluating the performance of quantum platforms. In addition to the 156-qubit experiment, we conduct a similar test consider a 433-qubit NN
+HUBO instance with the objective of simulating ideally (without noise) the expected performance of the upcoming IBM
+Osprey quantum platform via MPS.
+Weighted MAX 3-SAT problem.—The maximum ksatisfiability (MAX k-SAT) problem belongs to the NPcomplete complexity class [76] and its weighted variant is
+defined as follows: given a Boolean formula in conjunctive normal form (thus conjunction of disjuncted clauses),
+the weighted maximum k-satisfiability problem (MAX W-kSAT) aims to find an assignment of truth-valued variables that
+maximizes the sum of weights of all the k-variable clauses
+met [52]. The MAX k-SAT problem can be recovered simply by setting the weights equal to one. If we let k = 3, this
+problem can be written as
+^
+C MW3S (l) =
+ωi jk li ( l j ( lk ,
+(14)
+i jk
+
+and the distance to solution
+DS = 1 −
+
+HUBO instances considered
+
+shots
+min{Ek }nk=1
+.
+E0
+
+(12)
+
+In all our studies of 156 and 433 qubits, the exact ground-state
+energies E0 are obtained numerically by an iterative method
+similar to Ref. [74] (see Supplementary Note 2 for details).
+For 25-qubit instances, we obtain the exact solution using a
+brute force method.
+
+with li a literal representing a propositional variable, either ui
+or its negation ūi , and ωi jk are the weights. The problem can
+be mapped into binary variables by performing the substitution ui 7→ 1 − xi and ūi 7→ xi with xi ∈ {0, 1}. For each clause,
+the OR product of literals can be expanded into products of
+binary variables, e.g.
+ui ( ū j ( uk 7→ (1 − xi )x j (1 − xk ).
+
+(15)
+
+5
+In order to address this problem with the aid of quantum
+computers, we perform an additional map turning the binary variables into Ising variables using the transformation
+xi 7→ (I − σzi )/2.
+Setting ci = 1 if li is negated and ci = 0 otherwise, we
+finally define the problem Hamiltonian as
+X ωi jk
+H MW3S
+=
+[I + (−1)ci σzi ][I + (−1)c j σzj ][I + (−1)ck σzk ].
+f
+8
+i jk
+(16)
+Here, ωi jk is chosen as a random uniformly distributed variable between zero and one. As this is a maximization problem, it can be transformed into a minimization one by per. The first-order nested7→ −H MW3S
+forming the map H MW3S
+f
+f
+commutator of Eq. (16) yields
+X ωi jk h
+OMW3S
+=
+−i
+(−1)ci σyi [I + (−1)c j σzj ][I + (−1)ck σzk ]
+1
+4
+i jk
++ (−1)c j [I + (−1)ci σzi ]σyj [I + (−1)ck σzk ]
+i
++ (−1)ck [I + (−1)ci σzi ][I + (−1)c j σzj ]σyk .
+
+(17)
+
+It can be seen that MAX W-3-SAT is in general a highly
+nonlocal Hamiltonian and thus is challenging to implement.
+We consider here the NN version of the MAX W-3-SAT
+Hamiltonian of Eq. (16), where consecutive indices are
+summed over as in Eq. (13). This model is similar to the
+nearest-neighbour spin-glass Hamiltonian H NN
+f but with additional next-to-nearest neighbour terms, namely σzi σzi+2 , which
+makes it more complex to implement. In essence, this is due
+to the fact that such terms are seen as three-body interactions
+for a heavy-hex lattice, where an additional number of entangling gates are needed to couple distant qubits.
+In contrast to physical phase transitions where variations of
+the system parameters lead to qualitative changes in its properties, in computer science, computational phase transitions
+occur at critical points where algorithms require an increasing
+amount of computational resources, becoming less and less
+tractable [77]. The computational phase transitions of k-SAT
+have been the subject of several works [77–79]. They depend
+critically on the density of the problem, i.e., the ratio between
+its clauses and variables. For random 3-SAT instances, it has
+been proven that the critical point is located around a density
+of αC = 4.3.
+von Neumann entanglement entropy
+
+The role of entanglement in quantum optimization is an interesting question that has been discussed recently in the context of adiabatic [80, 81] and variational [82–86] algorithms,
+with no clear consensus. Here, we study how entanglement
+changes with each bias-field iteration, by means of MPS simulations, to support our understanding of how BF-DCQO converges to the final solution.
+The entanglement between two subsystems, in the case of a
+composite pure state, can be quantified by the von Neumann
+
+entropy of the reduced density matrix of either subsystem. In
+an MPS representation of the wavefunction [87], the entanglement entropy for any bipartition is given by the singular
+values corresponding to the bond that connects the two parts.
+For bond index i, we denote the jth-largest singular value by
+λi j . Here, j has values j ∈ {1, 2, . . . , χi } up to the bond dimension χi and the bonds between qubits (tensors in the MPS) are
+indexed by i ∈ {1, . . . , N − 1}. We consider the entanglement
+entropy averaged over bonds
+S =−
+
+N−1 χi
+1 XX
+λ2 log λ2 .
+N − 1 i=1 j=1 i j 2 i j
+
+(18)
+
+This quantity is minimally zero when the state is a product
+state and has an upper bound ∼ log2 2N = N when the reduced
+density matrix of either subsystem is maximally mixed [88].
+While entanglement generally scales with the subsystem volume, in special cases, stricter bounds such as area laws can
+be derived [89, 90]. Nonequilibrium states resulting from
+global parameter quenches are expected to follow a volume
+law, though recent quantum simulations of paramagnetic-tospin-glass quench dynamics exhibited area-law scaling [34].
+Here, we do not analyze the scaling behavior but rather focus
+on the entanglement generated in the short-time dynamics of
+the counterdiabatically driven systems, as discussed in Entanglement in the iterative optimization.
+RESULTS AND DISCUSSION
+Enhanced BF-DCQO
+
+In the following lines, we perform a comparison of the original BF-DCQO approach [51] and our proposed variant. We
+study a 433-qubit NN HUBO instance [Eq. (13)], using MPS
+to simulate the expected performance of the upcoming IBM
+Osprey quantum platform without noise. In this case, the
+values nshots = 10000 and θcutoff = 0.06 are set for both approaches and α = 0.01 for our variant. The results can be
+seen in Fig. 2 and the amount of resources needed per iteration in Table I.
+Figure 2 shows that before applying the signed bias, we obtain a 10.6% enhancement of the AR and 59.1% for the DS,
+demonstrating that our new CVaR-based approach for updating the bias fields provides a better performance than standard
+BF-DCQO. After the signed-bias method is applied in the last
+iteration for our variant, these values increase to 34.4% and
+84.4%, respectively, showing that this additional feature remarkably contributes to improving the results obtained from
+standard BF-DCQO.
+In addition, we find as an intrinsic signature of our BFDCQO variant that the circuits implemented for each iteration require less and less resources even while the outcomes
+are more optimal. Conceptually, the goal of BF-DCQO is
+to encode the ground state of H f , which can be either a
+product state in the computational basis or a superposition
+of them if the optimal solution is degenerate. For the first
+case—a separable state with no entanglement—BF-DCQO
+
+(a)
+
+0.03
+
+AR
+
+0.02
+BF-DCQO (this work)
+Exact
+
+0.01
+0.00
+0.03
+
+(b)
+
+1.0
+0.9
+0.8
+0.7
+0.6
+0.5
+0.4
+
+(c)
+
+0.3
+
+0.02
+
+DS
+
+Probability
+
+Probability
+
+6
+
+0.01
+
+0.2
+0.1
+
+BF-DCQO (Ref. [51])
+
+0.0
+
+0.00
+−650
+
+−600
+
+−550
+
+−500
+Energy
+
+−450
+
+−400
+
+−350
+
+(d)
+1
+
+−300
+
+2
+
+3
+
+4
+
+5 6 7
+Iteration
+
+8
+
+9 10 11
+
+FIG. 2. Performance comparison of the BF-DCQO variants for the 433-qubit NN HUBO results simulated via MPS. a, Energy distributions for iterations 1, 3, 5, 7, 9 and 11; from grey to maroon using our novel BF-DCQO variant. The continuous line corresponds to the exact
+ground-state energy E0 given by an iterative method [Supplementary Note 2], and the dashed lines correspond to the minima obtained from
+the distributions. Here, we report energies in units of the standard deviation of the coupling constants in Eq. (13). b, Same plot as a, going
+from grey to teal, but considering the original BF-DCQO approach [51]. c-d, Approximation ratios and distances to solution obtained for each
+iteration for both approaches. For both panels and only for our variant (maroon markers), the shaded area indicates that the bias update is
+changed from unsigned to signed bias in the last iteration. See Table I.
+TABLE I. 433-qubit NN HUBO resources needed and results simulated via MPS. We compare both our BF-DCQO variant (left columns)
+and the original approach (right columns) with nshots = 10000 and θcutoff = 0.06. For our variant, we used α = 0.01 and we perform a signed
+bias in the last iteration.
+√
+Iteration
+X
+X
+RZ(θ)
+CZ
+Depth
+AR
+DS
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+
+497
+470
+466
+436
+455
+479
+474
+455
+464
+447
+100
+
+497
+453
+446
+427
+441
+450
+448
+435
+456
+447
+456
+
+5910
+5563
+5412
+5314
+5283
+5287
+5287
+5283
+5283
+5284
+1879
+
+5910
+5421
+5310
+5314
+5310
+5310
+5301
+5301
+5310
+5277
+5283
+
+5934
+5525
+5365
+5254
+5240
+5238
+5247
+5198
+5210
+5210
+1653
+
+5934
+5379
+5247
+5261
+5242
+5251
+5207
+5226
+5251
+5214
+5225
+
+pushes the energy distribution towards the preparation of this
+state, reducing the amount of entanglement required per iteration. This feature indicates that BF-DCQO returns a lowerresource-demanding circuit per iteration, yielding a more classically tractable instance. Therefore, the combination of both
+quantum and classical computation paradigms appears like a
+promising route to address optimization problems by means of
+our BF-DCQO protocol. In the case of a superposition ground
+state, entanglement might still be reduced depending on the
+instance. We discuss the reduction of entanglement in more
+detail in Entanglement in the iterative optimization.
+
+Comparison of methods
+
+In order to assess the potential of our proposed BF-DCQO
+variant, we conduct a comprehensive benchmark study comparing it against several well-established classical optimization techniques as well as the D-Wave platform. In particular, we optimize the nearest-neighbour three-body spin glass
+
+2275
+2156
+2106
+2063
+2052
+2052
+2052
+2052
+2052
+2052
+496
+
+2275
+2108
+2066
+2065
+2063
+2063
+2061
+2061
+2063
+2052
+2052
+
+99
+98
+98
+98
+98
+98
+99
+98
+98
+99
+80
+
+99
+98
+98
+98
+98
+98
+98
+99
+98
+98
+97
+
+0.477
+0.612
+0.686
+0.720
+0.741
+0.756
+0.765
+0.772
+0.777
+0.781
+0.949
+
+0.477
+0.589
+0.628
+0.651
+0.678
+0.702
+0.705
+0.708
+0.701
+0.706
+0.706
+
+0.361
+0.229
+0.163
+0.152
+0.123
+0.106
+0.101
+0.094
+0.078
+0.068
+0.023
+
+0.370
+0.289
+0.251
+0.218
+0.178
+0.180
+0.171
+0.161
+0.161
+0.166
+0.150
+
+of Eq. (13) using a 156-qubit instance.
+The results are presented in Fig. 3, where the methods and
+parameters are given by:
+• Simulated annealing (SA) [91] with 100000 number of
+reads, initial (final) temperature T i = 2 (T f = 0.05) using a geometric cooling scheduling with 1000 sweeps.
+• Local search (LS) algorithm, which can be seen as
+SA with zero-temperature Metropolis-Hastings criterion [92, 93], with 100000 reads and 10000 sweeps.
+• Tabu search (TS) [94] with 100000 reads starting from
+randomly generated initial states.
+• D-Wave
+quantum
+annealers
+using
+Advantage system4.1 with an annealing time of 2000 µs
+and nshots = 100000. Based on Ref. [42], we set
+a coupling strength that is two times the largest
+coupling of Eq. (1) in absolute value. We thereby
+introduce a penalty term after the HUBO-into-QUBO
+
+7
+SA
+
+LS
+
+-230
+
+-220
+
+TS
+
+D-Wave
+
+BF-DCQO (ibm fez)
+
+QAOA (p = 3)
+
+DMRG
+
+Exact
+
+Probability
+
+0.04
+0.03
+0.02
+0.01
+0.00
+-240
+
+-210
+
+-200
+
+-190
+
+-180
+
+-170
+
+-160 -150
+Energy
+
+-140
+
+-130
+
+-120
+
+-110
+
+-100
+
+-90
+
+-80
+
+FIG. 3. 156-qubit NN HUBO instance under different approaches. We solve Eq. (13) considering simulated annealing (SA, blue), local
+search algorithm (LS, purple), Tabu search (TS, orange), D-Wave (green), BF-DCQO on ibm fez (maroon), the best outcome of QAOA up to
+p = 3 layers (dashed red), DMRG solution (dashed grey) and the exact solution (black line). The last two mostly overlap as DMRG reaches a
+nearly optimal solution [Supplementary Note 4].
+The dashed vertical lines indicate the minimum energy values obtained for each approach. The D-Wave and BF-DCQO distributions
+correspond to experiments run on quantum hardware. Energies are in units the standard deviation of the coupling constants in Eq. (13).
+
+mapping when a product constraint is not met in the
+corresponding reduced spin glass model.
+• Tenth iteration of BF-DCQO [51], with α = 0.02 run on
+ibm fez using θcutoff = 0.06, ntrot = 3 and nshots = 10000,
+ten times less than SA, TS and D-Wave to compensate
+the number of iterations. Previously, the ten BF-DCQO
+iterations were simulated using MPS without noise.
+• CVaR-QAOA [4, 73] with p = 3 layers, nshots = 10000
+and α = 0.1 via MPS using the SPSA optimizer.
+• The DMRG implementation of the ITensor library [95].
+We find convergence with 10 sweeps, maximum bond
+dimension 10, truncation error cutoff of 10−10 , and a
+noise parameter that is gradually reduced from 10−3 to
+zero through the sweeps (see Supplementary Note 4).
+• Exact solution using a numerical iterative method [Supplementary Note 2].
+Figure 3 illustrates that BF-DCQO is capable of outperforming other established methods on current noisy quantum
+platforms, returning an energy distribution whose minimum
+outcome is very close to the exact ground state energy. In particular, we have obtained a 26.7% enhancement of the AR and
+92.3% of the DS metrics with respect to D-Wave and a 71.7%
+enhancement of DS for SA approach but a small −8.0% lowering for the AR metric. Despite the fact that three layers were
+chosen for CVaR-QAOA to recover the expected behaviour of
+BF-DCQO with ntrot = 3, the obtained results show the worst
+performance, even in comparison with D-Wave. This finding
+is in accordance with the results presented in Ref. [42]. Furthermore, it should be noted that BF-DCQO and QAOA do not
+suffer from the inherent qubit overhead required for mapping
+HUBO into QUBO problems, as D-Wave does. In addition, as
+the order of many-body terms in the problem Hamiltonian H f
+increases, the qubit overhead increases and more resources are
+required. In particular, regular quadratization methods require
+a number of ancillary qubits proportional to nk-body (k−2), with
+nk-body the number of k-body terms of H f [96–98]. Therefore,
+a worse performance is expected. Other known methods such
+
+as Gurobi [99] and CPLEX [100] also suffer from this drawback. For the results presented in Fig. 3, 334 variables were
+needed for D-Wave. This feature is absent in BF-DCQO, making it a suitable technique for working with large-scale optimization problems with minimal resource requirements.
+Up to this point, we have compared the performance of BFDCQO to other methods by simulating the entire BF-DCQO
+routine with MPS and running the circuit obtained in the last
+iteration on hardware. In the following section, the impact of
+running the entire routine under noisy environments is examined. To this end, larger values of θcutoff will be set in order to
+guarantee implementability. We note that considering a larger
+number of measurements might allow us to partially recover
+the lost expressivity due to the increase of θcutoff .
+
+Hardware implementation on IBM
+
+We first make use of the 156-qubit superconducting √quantum platform ibm fez with the native gate set
+{X, X, RZ(θ), CZ} (see Supplementary Note 3). The linearity of its heavy-hex qubit coupling map encourages us to
+work with Hamiltonians whose many-body terms are nearest
+neighbours, thereby avoiding an overhead of entangling gates
+for coupling distant qubits. With this in mind, we solve the
+same 156-qubit NN HUBO instance that was previously tested
+in Fig. 3, but we now run the entire routine on ibm fez. The
+computation is thus conducted in a purely quantum manner.
+We use nshots = 10000, α = 0.01, θcutoff = 0.13 and a total
+of eleven iterations, considering an unsigned-bias update for
+the first ten and a signed bias for the last one. The results are
+presented in Fig. 4, which depicts the iterative procedure of
+BF-DCQO and how the obtained outcomes move towards the
+desired solution. The amount of resources needed per iteration is given in Table II.
+As a final remark, the final iteration of the purely quantum BF-DCQO routine exhibits a slightly worse performance
+when compared to the results of Fig. 3, which employed a
+noiseless simulation with a considerably lower gate threshold.
+The purely quantum BF-DCQO still outperforms the optimal
+
+8
+0.04
+
+AR
+
+0.03
+0.02
+0.01
+
+ibm fez
+Exact
+
+DS
+
+Probability
+
+0.9
+
+(a)
+
+0.00
+−225
+
+−200
+
+−175
+
+−150
+−125
+Energy
+
+−100
+
+−75
+
+0.7
+
+(b)
+
+0.5
+0.3
+0.4
+0.3
+0.2
+0.1
+0.0
+
+−50
+
+(c)
+1
+
+2
+
+3
+
+4
+
+5 6 7
+Iteration
+
+8
+
+9 10 11
+
+FIG. 4. 156-qubit NN HUBO results on ibm fez. a, Energy distributions for iterations 1, 3, 5, 7, 9 and 11; from grey to maroon respectively.
+The continuous line corresponds to the exact ground state energy E0 [Supplementary Note 2]. The dashed lines correspond to the minima
+obtained from the distributions. Energies are in units the standard deviation of the coupling constants in Eq. (13). b-c, Approximation ratios
+and distances to solution for each iteration. For both panels, the shaded area indicates that the bias update is changed from unsigned to signed
+bias in the last iteration. See Table II.
+0.04
+
+AR
+
+0.02
+DS
+
+Probability
+
+0.03
+
+0.9
+
+(a)
+
+ibm fez
+Exact
+
+0.01
+0.00
+
+0
+
+2
+
+4
+
+6
+
+8
+
+10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46
+Cost
+
+(b)
+
+0.7
+0.5
+0.3
+0.5
+0.4
+0.3
+0.2
+0.1
+0.0
+
+(c)
+1
+
+2
+
+3
+
+4
+
+5 6 7
+Iteration
+
+8
+
+9 10 11
+
+FIG. 5. 156-qubit MAX W-3-SAT HUBO results on ibm fez. a, Cost function distributions for iterations 1, 3, 5, 7, 9 and 11; from grey to
+maroon respectively. The continuous line corresponds to the exact ground-state energy E0 [Supplementary Note 2]. The cost function is in
+units of max(ωi jk ) in Eq. (16). The dashed lines correspond to the maxima of the distributions. b-c, Approximation ratios and distances to
+solution obtained for each iteration. The shaded area indicates that the bias update is changed from unsigned to signed in the last iteration.
+See Table III.
+TABLE II. 156-qubit NN HUBO results and resources needed on
+ibm fez. We consider nshots = 10000, α = 0.01 and θcutoff = 0.13. At
+the last iteration, we performed signed bias.
+√
+Iteration
+X
+X
+RZ(θ) CZ Depth
+AR
+DS
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+
+115
+86
+92
+85
+93
+83
+85
+79
+79
+79
+3
+
+1020
+969
+958
+937
+938
+941
+940
+899
+903
+941
+330
+
+1030
+916
+869
+861
+862
+878
+878
+834
+835
+859
+180
+
+477
+430
+424
+410
+410
+410
+410
+386
+386
+410
+13
+
+129
+126
+129
+124
+127
+124
+125
+90
+93
+130
+39
+
+0.274
+0.372
+0.415
+0.470
+0.494
+0.458
+0.499
+0.514
+0.484
+0.494
+0.815
+
+0.397
+0.344
+0.261
+0.225
+0.176
+0.227
+0.188
+0.203
+0.245
+0.218
+0.038
+
+solution obtained on the D-Wave platform, where we obtained
+34.1% of AR enhancement and 66.1% of DS enhancement
+with respect the experiment run on D-Wave in Fig. 3.
+With the aim of solving more industrially relevant and
+denser large-scale problems, we also solve a 156-qubit NN
+MAX W-3-SAT instance on ibm fez, described by Eq. (16)
+with only nearest-neighbour terms. We use the same parameters as for the previous instance but change θcutoff = 0.06
+for convenience. The results are shown in Fig. 5, and the
+
+TABLE III. 156-qubit NN MAX W-3-SAT HUBO results and resources needed on ibm fez. We consider nshots = 10000, α = 0.01,
+and θcutoff = 0.06. In the last iteration, we apply a signed bias, where
+no entangling gates are used.
+√
+Iteration
+X
+X
+RZ(θ) CZ Depth
+AR
+DS
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+
+88
+39
+2
+3
+0
+2
+2
+2
+2
+2
+-
+
+1359
+949
+450
+427
+421
+411
+416
+417
+412
+417
+311
+
+1309
+808
+296
+271
+267
+265
+267
+263
+252
+261
+156
+
+495
+285
+64
+56
+50
+50
+50
+50
+50
+50
+-
+
+189
+103
+23
+23
+23
+19
+23
+23
+18
+22
+4
+
+0.311
+0.426
+0.509
+0.559
+0.589
+0.600
+0.608
+0.609
+0.606
+0.621
+0.894
+
+0.453
+0.277
+0.271
+0.209
+0.157
+0.153
+0.162
+0.142
+0.146
+0.146
+0.013
+
+amount of resources needed per iteration is listed in Table III.
+For this particular problem, the best outcome obtained is quite
+close to the optimal solution despite a purely quantum routine,
+which highlights the efficacy of BF-DCQO under noisy environments. Additionally, we solved the same HUBO instance
+on D-Wave using nshots = 100000. The purely quantum BFDCQO again outperforms the D-Wave results: we obtain a
+43.0% enhancement of the AR and an 88.5% enhancement of
+
+0.02
+
+(a)
+
+0.00
+0.06
+
+Noisy
+
+Cost
+
+AR
+
+0.04
+
+1.0
+0.8
+0.6
+0.2
+
+DS
+
+Ideal
+Exact
+
+0.1
+
+AR
+
+0.06
+
+0.0
+1.0
+0.8
+0.6
+0.2
+
+DS
+
+Probability
+
+Probability
+
+9
+
+0.1
+
+0.04
+0.02
+0.00
+
+(b)
+
+0.0
+
+0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32
+Cost
+
+(c)
+
+(d)
+1 2
+(e)
+
+3
+
+4
+
+5 6 7
+Iteration
+
+8
+
+9 10 11
+
+3
+
+4
+
+5 6 7
+Iteration
+
+8
+
+9 10 11
+
+(f)
+1
+
+2
+
+FIG. 6. 25-qubit dense MAX 3-SAT HUBO results on IonQ Aria 1 emulator. a-b, Cost function distributions for the first two and
+three iterations without noise (grey to maroon) and including an IonQ Aria 1 noise model profile plus debiased error mitigation (grey to
+teal), respectively. The exact ground state (continuous line) is reached for both scenarios. The dashed lines correspond to the maximum
+cost obtained from the distributions. The cost function is in units of the coupling ωi jk in Eq. (16), which here is chosen as uniform. c-f,
+approximation ratios and distance to solution for both ideal and noisy emulations, respectively. Shaded areas indicate that the bias updating is
+changed from unsigned to signed bias at the last iteration. See Table IV.
+TABLE IV. 25-qubit dense MAX 3-SAT HUBO results and resources needed on IonQ Aria 1 emulator. Noiseless (left) and IonQ Aria
+1-noise profile with debiased error mitigation (right) simulations are considered with nshots = 1000, α = 0.01 and θcutoff = 0.06. At the last
+iteration, we performed signed bias, where no entangling gates were used.
+Iteration
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+
+MS(φ0 , φ1 , θ)
+96
+96
+96
+96
+96
+96
+96
+96
+96
+96
+-
+
+GPi(φ)
+96
+96
+96
+96
+96
+96
+96
+96
+96
+96
+-
+
+282
+282
+282
+282
+282
+282
+282
+282
+282
+282
+26
+
+282
+282
+282
+282
+282
+282
+282
+282
+282
+282
+26
+
+GPi2(φ)
+948
+948
+948
+948
+948
+948
+948
+948
+948
+948
+52
+
+the DS with respect the experiment run on the D-Wave platform.
+
+Dense problems with all-to-all connectivity
+
+The sparsity and high locality of the terms involved in the
+instances considered on IBM render the problems amenable
+to classical simulation. To evaluate the efficacy of BF-DCQO
+in more intricate scenarios with long-range couplings, we extend our analysis to denser versions of MAX 3-SAT. In particular, we set as clause-to-variable ratio the critical density for
+3-SAT, αC = 4.3. Dense MAX 3-SAT instances with uniform
+couplings equal to unity are then generated randomly with the
+number of clauses given by +NαC ,. It is important to note
+that the expected optimal solutions of MAX k-SAT instances,
+where clauses are uniformly weighted, can be either a product
+state or a low-entangled superposition of few bitstrings. As
+a last remark, optimal solution degeneracy was not present in
+our previous studies and it may compromise the performance.
+We employ the 25-qubit IonQ Aria 1 emulator with native
+gate set given by {MS(φ0 , φ1 , θ), GPi(φ), GPi2(φ)} (see Supplementary Note 3). It mimics an all-to-all connected trapped-
+
+Depth
+
+948
+948
+948
+948
+948
+948
+948
+948
+948
+948
+52
+
+219
+219
+219
+219
+219
+219
+219
+219
+219
+219
+7
+
+AR
+219
+219
+219
+219
+219
+219
+219
+219
+219
+219
+7
+
+0.582
+0.704
+0.763
+0.764
+0.772
+0.769
+0.769
+0.775
+0.778
+0.773
+0.979
+
+DS
+0.580
+0.707
+0.761
+0.766
+0.770
+0.776
+0.775
+0.774
+0.769
+0.777
+0.943
+
+0.134
+0.000
+0.000
+0.000
+0.000
+0.000
+0.000
+0.000
+0.000
+0.000
+0.000
+
+0.134
+0.031
+0.000
+0.000
+0.000
+0.000
+0.000
+0.000
+0.000
+0.000
+0.000
+
+ion platform and encompasses both noiseless and noisy simulations, applying debiased error mitigation [101] with a noise
+profile that matches the Aria 1 expected performance. The
+system size of the problem allows to obtain the exact optimal solution to be obtained by our protocol. The results for
+nshots = 1000, α = 0.01 and θcutoff = 0.06 can be seen in Fig. 6,
+where the amount of resources required at each iteration presented in Table IV. The data shows that the BF-DCQO protocol is able to reach the exact optimal state in both noiseless
+and noisy environments at the second iteration, which serves
+to further validate the efficacy of the method.
+
+Entanglement in the iterative optimization
+
+The role of entanglement dynamics in quantum algorithms
+is an interesting and nontrivial question. In adiabatic quantum optimization, both the initial state and the desired final state are product states or low-entangled multipartite
+states, while the adiabatic path may explore highly entangled
+states [80, 81]. To gain insight into our observation that the
+required number of entangling gates is reduced with increasing iterations, we consider the flow of entanglement along the
+
+10
+
+1
+
+S
+
+0.1
+
+0.01
+
+First instance
+Second instance
+1
+
+2
+
+3
+
+4
+
+5
+
+6
+7
+Iteration
+
+8
+
+9
+
+10
+
+11
+
+FIG. 7. Average entanglement entropy S as a function of the iteration. The first instance corresponds to 433-qubit NN HUBO problem and the second instance to a 25-qubit dense MAX 3-SAT HUBO
+problem. Signed bias is applied at the last iteration, significantly
+reducing the number of entangling gates used and consequently the
+entanglement entropy. For the second instance, the entanglement entropy drops to zero at the last iteration as there are no entangling
+gates. We therefore leave out the last data point.
+
+dynamical process.
+We compute the entanglement entropy of Eq. (18) for the
+433-qubit NN and the 25-qubit dense MAX 3-SAT HUBO
+instances solved previously in Figs. 2 and 6. As mentioned
+before, the first case corresponds to a sparse problem with a
+nondegenerate optimal solution and the second one to a dense
+problem with a degenerate optimal solution. For the second
+case, we only consider the noisy simulation including debiased error mitigation [Fig. 6b]. We show, in Fig. 7, how the
+entanglement entropy decays with the subsequent BF-DCQO
+iterations for both problems. Due to the dense nonlocal couplings, the average entanglement entropy generated in the second instance is larger than in the first. The numbers of entangling gates used here are listed in Tables I and IV. We can see
+that for the second instance, in the first three iterations, the average entanglement entropy decreases even when the number
+of entangling gates remains the same. Similar to the AR and
+DS in Figs. 2 and 6, the entropy then nearly saturates up to
+the last iteration. The signed bias applied in the last iteration
+significantly reduces the number of entangling gates and the
+entanglement entropy drops to a value close to zero. This indicates that the iteration protocol produces a classical ground
+state as expected.
+We note that while the entanglement entropy analyzed here
+is naturally obtained from the MPS representation, it is not
+a straightforward quantity to measure experimentally. In order to characterize entanglement in experiments run on quantum hardware, for instance in the case of highly entangled
+states not amenable to tensor network simulations, alternative
+measures would be required, such as correlator functions by
+means of quantum measurements [90, 102].
+
+CONCLUSIONS
+
+In this study, we investigate and evaluate the performance
+of variants of the recently proposed BF-DCQO algorithm [51]
+by solving large-scale HUBO instances on IBM quantum processors and IonQ noisy emulators. The superiority of our BF-
+
+DCQO variant over well-established classical techniques and
+optimization on the D-Wave Advantage system4.1 is verified
+through computing the approximation ratio and the distance to
+solution in an iterative process. We obtain better optimal solutions even while the circuits after each iteration demand less
+resources. This is achieved by means of an iterative learning
+procedure, where the optimal solutions obtained from the last
+iteration are used for the subsequent one, providing several
+techniques to guarantee convergence under different scenarios. Furthermore, in order to address not only the current but
+also the near-term hardware, we examine the expected performance of BF-DCQO on the upcoming IBM Osprey platform
+with 433 qubits. Simulating 433-qubit HUBO instances without noise yields promising results. The BF-DCQO algorithm
+does not require any classical optimization subroutines, thus
+avoiding potential trainability drawbacks, nor does it require
+extra qubits for mapping the initial HUBO into a QUBO problem.
+We provide numerical evidence of how our protocol disentangles the states obtained after each iteration, one of the
+key signatures of our method. This feature enables an iterative reduction in the number of resources required, thus making subsequent circuits more classically tractable and opening the door to employing hybrid quantum-classical strategies. Therefore, the BF-DCQO algorithm emerges as a suitable algorithm for solving higher-order binary optimization
+problems on both current and near-term quantum platforms,
+paving the path towards solving large-scale optimization problems with status-quo and next-generation quantum processors.
+
+ACKNOWLEDGMENTS
+
+We would like to thank Shubham Kumar for preparing the
+schematic figure. We also thank Gaurav Dev and Bhargava A.
+Balaganchi for fruitful discussions. We acknowledge the use
+of IBM Quantum services for this work. The views expressed
+are those of the authors and do not reflect the official policy or
+position of IBM or the IBM Quantum team.
+Data availability. Data is available from the corresponding
+author upon reasonable request.
+Code availability. The codes used to generate data for this
+paper are available from the corresponding author upon reasonable request.
+Competing interests. The authors declare no competing interests.
+Author contributions. E.S. and N.N.H. conceived and supervised the work. S.V.R., A.-M.V., A.G.C. and N.N.H. developed the theoretical framework. S.V.R., A.-M.V., A.G.C.
+and A.S. developed the codes for obtaining the benchmark and
+hardware results. S.V.R. and N.N.H. analyzed the results. All
+authors participated in the discussion of results and writing
+the manuscript.
+
+11
+REFERENCES
+[1] Y. Fu and P. W. Anderson, Application of statistical mechanics
+to NP-complete problems in combinatorial optimisation, Journal of Physics A: Mathematical and General 19, 1605 (1986).
+[2] A. Lucas, Ising formulations of many NP problems, Front.
+Phys. 2, 5 (2014).
+[3] T. Albash and D. A. Lidar, Adiabatic quantum computation,
+Rev. Mod. Phys. 90, 015002 (2018).
+[4] E. Farhi, J. Goldstone, and S. Gutmann, A Quantum Approximate Optimization Algorithm (2014), arXiv:1411.4028
+[quant-ph].
+[5] R. Barends, A. Shabani, L. Lamata, J. Kelly, A. Mezzacapo,
+U. L. Heras, R. Babbush, A. G. Fowler, B. Campbell, Y. Chen,
+et al., Digitized adiabatic quantum computing with a superconducting circuit, Nature 534, 222–226 (2016).
+[6] C. Durr and P. Hoyer, A Quantum Algorithm for Finding the
+Minimum (1999), arXiv:quant-ph/9607014 [quant-ph].
+[7] A. Montanaro, Quantum-Walk Speedup of Backtracking Algorithms, Theory of Computing 14, 1 (2018).
+[8] A. Montanaro, Quantum speedup of branch-and-bound algorithms, Phys. Rev. Res. 2, 013056 (2020).
+[9] S. Chakrabarti, P. Minssen, R. Yalovetzky, and M. Pistoia, Universal Quantum Speedup for Branch-and-Bound,
+Branch-and-Cut, and Tree-Search Algorithms (2022),
+arXiv:2210.03210 [quant-ph].
+[10] R. D. Somma, S. Boixo, H. Barnum, and E. Knill, Quantum
+Simulations of Classical Annealing Processes, Phys. Rev. Lett.
+101, 130504 (2008).
+[11] P. Wocjan and A. Abeyesinghe, Speedup via quantum sampling, Phys. Rev. A 78, 042336 (2008).
+[12] M. B. Hastings, A Short Path Quantum Algorithm for Exact
+Optimization, Quantum 2, 78 (2018).
+[13] A. M. Dalzell, N. Pancotti, E. T. Campbell, and F. G. Brandão,
+Mind the Gap: Achieving a Super-Grover Quantum Speedup
+by Jumping to the End, in Proceedings of the 55th Annual
+ACM Symposium on Theory of Computing, STOC 2023 (Association for Computing Machinery, New York, NY, USA, 2023)
+p. 1131–1144.
+[14] S. Boulebnane and A. Montanaro, Solving Boolean Satisfiability Problems With The Quantum Approximate Optimization Algorithm, PRX Quantum 5, 030348 (2024).
+[15] A. Boehmer, Binary pulse compression codes, IEEE Transactions on Information Theory 13, 156 (1967).
+[16] M. Schroeder, Synthesis of low-peak-factor signals and binary
+sequences with low autocorrelation (Corresp.), IEEE Transactions on Information Theory 16, 85 (1970).
+[17] R. Shaydulin, C. Li, S. Chakrabarti, M. DeCross, D. Herman,
+N. Kumar, J. Larson, D. Lykov, P. Minssen, Y. Sun, et al.,
+Evidence of scaling advantage for the quantum approximate
+optimization algorithm on a classically intractable problem,
+Science Advances 10, eadm6761 (2024).
+[18] R. Orús, A practical introduction to tensor networks: Matrix
+product states and projected entangled pair states, Annals of
+Physics 349, 117 (2014).
+[19] P. Silvi, F. Tschirsich, M. Gerster, J. Jünemann, D. Jaschke,
+M. Rizzi, and S. Montangero, The Tensor Networks Anthology: Simulation techniques for many-body quantum lattice
+systems, SciPost Phys. Lect. Notes , 8 (2019).
+[20] S.-J. Ran, E. Tirrito, C. Peng, X. Chen, L. Tagliacozzo, G. Su,
+and M. Lewenstein, Tensor network contractions: methods
+and applications to quantum many-body systems, Vol. 964
+(Springer Nature, 2020).
+
+[21] J. I. Cirac, D. Pérez-Garcı́a, N. Schuch, and F. Verstraete, Matrix product states and projected entangled pair states: Concepts, symmetries, theorems, Rev. Mod. Phys. 93, 045003
+(2021).
+[22] M. C. Bañuls, Tensor network algorithms: A route map, Annual Review of Condensed Matter Physics 14, 173 (2023).
+[23] R. Orús, Tensor networks for complex quantum systems, Nature Reviews Physics 1, 538 (2019).
+[24] S.-H. Lin, R. Dilip, A. G. Green, A. Smith, and F. Pollmann,
+Real- and imaginary-time evolution with compressed quantum
+circuits, PRX Quantum 2, 010342 (2021).
+[25] M. S. Rudolph, J. Miller, D. Motlagh, J. Chen, A. Acharya,
+and A. Perdomo-Ortiz, Synergistic pretraining of
+parametrized quantum circuits via tensor networks, Nature Communications 14, 8367 (2023).
+[26] B. Anselme Martin, T. Ayral, F. Jamet, M. J. Rančić, and
+P. Simon, Combining matrix product states and noisy quantum
+computers for quantum simulation, Phys. Rev. A 109, 062437
+(2024).
+[27] D. W. Berry, Y. Tong, T. Khattar, A. White, T. I. Kim, G. H.
+Low, S. Boixo, Z. Ding, L. Lin, S. Lee, et al., Rapid InitialState Preparation for the Quantum Simulation of Strongly Correlated Molecules, PRX Quantum 6, 020327 (2025).
+[28] Y. Kim, A. Eddins, S. Anand, K. X. Wei, E. van den Berg,
+S. Rosenblatt, H. Nayfeh, Y. Wu, M. Zaletel, K. Temme, and
+A. Kandala, Evidence for the utility of quantum computing
+before fault tolerance, Nature 618, 500–505 (2023).
+[29] J. Tindall, M. Fishman, E. M. Stoudenmire, and D. Sels, Efficient Tensor Network Simulation of IBM’s Eagle Kicked Ising
+Experiment, PRX Quantum 5, 010308 (2024).
+[30] T. Begušić, J. Gray, and G. K.-L. Chan, Fast and converged
+classical simulations of evidence for the utility of quantum computing before fault tolerance, Science Advances 10,
+eadk4321 (2024).
+[31] S. Patra, S. S. Jahromi, S. Singh, and R. Orús, Efficient tensor network simulation of IBM’s largest quantum processors,
+Phys. Rev. Res. 6, 013326 (2024).
+[32] H.-J. Liao, K. Wang, Z.-S. Zhou, P. Zhang, and T. Xiang, Simulation of IBM’s kicked Ising experiment with Projected Entangled Pair Operator (2023), arXiv:2308.03082 [quant-ph].
+[33] A. D. King, J. Raymond, T. Lanting, R. Harris, A. Zucca,
+F. Altomare, A. J. Berkley, K. Boothby, S. Ejtemaee, C. Enderud, et al., Quantum critical dynamics in a 5,000-qubit programmable spin glass, Nature 617, 61–66 (2023).
+[34] A. D. King, A. Nocera, M. M. Rams, J. Dziarmaga,
+R. Wiersema, W. Bernoudy, J. Raymond, N. Kaushal,
+N. Heinsdorf, R. Harris, et al., Beyond-classical computation
+in quantum simulation, Science 388, 199 (2025).
+[35] Z.-Y. Han, J. Wang, H. Fan, L. Wang, and P. Zhang, Unsupervised Generative Modeling Using Matrix Product States,
+Phys. Rev. X 8, 031012 (2018).
+[36] J. Lopez-Piqueres, J. Chen, and A. Perdomo-Ortiz, Symmetric tensor networks for generative modeling and constrained
+combinatorial optimization, Machine Learning: Science and
+Technology 4, 035009 (2023).
+[37] J. Alcazar, M. Ghazi Vakili, C. B. Kalayci, and A. PerdomoOrtiz, Enhancing combinatorial optimization with classical
+and quantum generative models, Nature Communications 15,
+2761 (2024).
+[38] S. Mugel, C. Kuchkovsky, E. Sánchez, S. Fernández-Lorenzo,
+J. Luis-Hita, E. Lizaso, and R. Orús, Dynamic portfolio optimization with real datasets using quantum processors and
+quantum-inspired tensor networks, Phys. Rev. Res. 4, 013006
+(2022).
+
+12
+[39] T. Hao, X. Huang, C. Jia, and C. Peng, A QuantumInspired Tensor Network Algorithm for Constrained Combinatorial Optimization Problems, Frontiers in Physics 10,
+10.3389/fphy.2022.906590 (2022).
+[40] S. Patra, S. Singh, and R. Orús, Projected entangled pair states
+with flexible geometry, Phys. Rev. Res. 7, L012002 (2025).
+[41] E. Pelofske, A. Bärtschi, and S. Eidenbenz, Quantum Annealing vs. QAOA: 127 Qubit Higher-Order Ising Problems on
+NISQ Computers, in High Performance Computing: 38th International Conference, ISC High Performance 2023, Hamburg, Germany, May 21–25, 2023, Proceedings, Lecture
+Notes in Computer Science, Vol. 13944 (Springer Nature
+Switzerland, Cham, 2023) pp. 240–258.
+[42] E. Pelofske, A. Bärtschi, and S. Eidenbenz, Short-depth
+QAOA circuits and quantum annealing on higher-order ising
+models, npj Quantum Information 10, 1–19 (2024).
+[43] S. V. Barron, D. J. Egger, E. Pelofske, A. Bärtschi, S. Eidenbenz, M. Lehmkuehler, and S. Woerner, Provable bounds for
+noise-free expectation values computed from noisy samples,
+Nature Computational Science 4, 865–875 (2024).
+[44] N. Sachdeva, G. S. Hartnett, S. Maity, S. Marsh, Y. Wang,
+A. Winick, R. Dougherty, D. Canuto, Y. Q. Chong, M. Hush,
+P. S. Mundada, C. D. B. Bentley, M. J. Biercuk, and
+Y. Baum, Quantum optimization using a 127-qubit gatemodel IBM quantum computer can outperform quantum annealers for nontrivial binary optimization problems (2024),
+arXiv:2406.01743 [quant-ph].
+[45] M. Demirplak and S. A. Rice, Adiabatic Population Transfer
+with Control Fields, The Journal of Physical Chemistry A 107,
+9937 (2003).
+[46] M. V. Berry, Transitionless quantum driving, Journal of
+Physics A: Mathematical and Theoretical 42, 365303 (2009).
+[47] X. Chen, A. Ruschhaupt, S. Schmidt, A. del Campo,
+D. Guéry-Odelin, and J. G. Muga, Fast Optimal Frictionless
+Atom Cooling in Harmonic Traps: Shortcut to Adiabaticity,
+Phys. Rev. Lett. 104, 063002 (2010).
+[48] A. del Campo, Shortcuts to adiabaticity by counterdiabatic
+driving, Phys. Rev. Lett. 111, 100502 (2013).
+[49] P. Chandarana, N. N. Hegade, K. Paul, F. AlbarránArriagada, E. Solano, A. del Campo, and X. Chen, Digitizedcounterdiabatic quantum approximate optimization algorithm,
+Phys. Rev. Res. 4, 013141 (2022).
+[50] N. N. Hegade, X. Chen, and E. Solano, Digitized counterdiabatic quantum optimization, Phys. Rev. Res. 4, L042030
+(2022).
+[51] A. G. Cadavid, A. Dalal, A. Simen, E. Solano, and N. N.
+Hegade, Bias-field digitized counterdiabatic quantum optimization, Phys. Rev. Res. 7, L022010 (2025).
+[52] R. Battiti, Maximum satisfiability problem, in Encyclopedia
+of Optimization, edited by C. A. Floudas and P. M. Pardalos
+(Springer US, Boston, MA, 2009) pp. 2035–2041.
+[53] N. N. Hegade, K. Paul, F. Albarrán-Arriagada, X. Chen, and
+E. Solano, Digitized adiabatic quantum factorization, Phys.
+Rev. A 104, L050403 (2021).
+[54] A. Robert, P. K. Barkoutsos, S. Woerner, and I. Tavernelli,
+Resource-efficient quantum algorithm for protein folding, npj
+Quantum Information 7, 1–5 (2021).
+[55] P. Chandarana, N. N. Hegade, I. Montalban, E. Solano, and
+X. Chen, Digitized Counterdiabatic Quantum Algorithm for
+Protein Folding, Phys. Rev. Appl. 20, 014024 (2023).
+[56] E. Gardner, Spin glasses with p-spin interactions, Nuclear
+Physics B 257, 747 (1985).
+[57] M. Kolodrubetz, D. Sels, P. Mehta, and A. Polkovnikov, Geometry and non-adiabatic response in quantum and classical
+
+systems, Physics Reports 697, 1 (2017).
+[58] D. Sels and A. Polkovnikov, Minimizing irreversible losses in
+quantum systems by local counterdiabatic driving, Proceedings of the National Academy of Sciences 114, E3909 (2017).
+[59] P. W. Claeys, M. Pandey, D. Sels, and A. Polkovnikov,
+Floquet-Engineering Counterdiabatic Protocols in Quantum
+Many-Body Systems, Phys. Rev. Lett. 123, 090602 (2019).
+[60] T. Hatomura and K. Takahashi, Controlling and exploring
+quantum systems by algebraic expression of adiabatic gauge
+potential, Phys. Rev. A 103, 012220 (2021).
+[61] K. Takahashi and A. del Campo, Shortcuts to Adiabaticity in
+Krylov Space, Phys. Rev. X 14, 011032 (2024).
+[62] S. V. Romero, X. Chen, G. Platero, and Y. Ban, Optimizing
+edge-state transfer in a Su-Schrieffer-Heeger chain via hybrid
+analog-digital strategies, Phys. Rev. Appl. 21, 034033 (2024).
+[63] A. Dalal, I. Montalban, N. N. Hegade, A. G. Cadavid,
+E. Solano, A. Awasthi, D. Vodola, C. Jones, H. Weiss, and
+G. Füchsel, Digitized counterdiabatic quantum algorithms for
+logistics scheduling, Phys. Rev. Appl. 22, 064068 (2024).
+[64] L. Hormozi, E. W. Brown, G. Carleo, and M. Troyer, Nonstoquastic Hamiltonians and quantum annealing of an Ising spin
+glass, Phys. Rev. B 95, 184416 (2017).
+[65] N. N. Hegade, K. Paul, Y. Ding, M. Sanz, F. AlbarránArriagada, E. Solano, and X. Chen, Shortcuts to Adiabaticity
+in Digitized Adiabatic Quantum Computing, Phys. Rev. Appl.
+15, 024038 (2021).
+[66] M. Suzuki, Fractal decomposition of exponential operators
+with applications to many-body theories and Monte Carlo simulations, Physics Letters A 146, 319 (1990).
+[67] P. V. Sriluckshmy, V. Pina-Canelles, M. Ponce, M. G. Algaba,
+F. Šimkovic IV, and M. Leib, Optimal, hardware native decomposition of parameterized multi-qubit Pauli gates, Quantum Science and Technology 8, 045029 (2023).
+[68] M. G. Algaba, P. V. Sriluckshmy, M. Leib, and F. Šimkovic IV,
+Low-depth simulations of fermionic systems on square-grid
+quantum hardware, Quantum 8, 1327 (2024).
+[69] T. Graß, Quantum Annealing with Longitudinal Bias Fields,
+Phys. Rev. Lett. 123, 120501 (2019).
+[70] T. Grass, Quantum Annealing Sampling with a Bias Field,
+Phys. Rev. Appl. 18, 044036 (2022).
+[71] D. J. Egger, J. Mareček, and S. Woerner, Warm-starting quantum optimization, Quantum 5, 479 (2021).
+[72] F. Truger, J. Barzen, M. Bechtold, M. Beisel, F. Leymann,
+A. Mandl, and V. Yussupov, Warm-Starting and Quantum
+Computing: A Systematic Mapping Study, ACM Comput.
+Surv. 56, 1 (2024).
+[73] P. K. Barkoutsos, G. Nannicini, A. Robert, I. Tavernelli, and
+S. Woerner, Improving Variational Quantum Optimization using CVaR, Quantum 4, 256 (2020).
+[74] E. Gardner and B. Derrida, Zero temperature magnetization of
+a one-dimensional spin glass, Journal of Statistical Physics 39,
+367–377 (1985).
+[75] C. Chamberland, G. Zhu, T. J. Yoder, J. B. Hertzberg, and
+A. W. Cross, Topological and Subsystem Codes on LowDegree Graphs with Flag Qubits, Phys. Rev. X 10, 011022
+(2020).
+[76] R. Impagliazzo and R. Paturi, On the Complexity of k-SAT, J.
+Comput. Syst. Sci. 62, 367–375 (2001).
+[77] H. Philathong, V. Akshay, K. Samburskaya, and J. Biamonte,
+Computational phase transitions: benchmarking Ising machines and quantum optimisers, Journal of Physics: Complexity 2, 011002 (2021).
+[78] B. Zhang, A. Sone, and Q. Zhuang, Quantum computational
+phase transition in combinatorial problems, npj Quantum In-
+
+13
+formation 8, 87 (2022).
+[79] H. Philathong, V. Akshay, I. Zacharov, and J. Biamonte, Computational phase transition signature in Gibbs sampling, Journal of Physics: Complexity 4, 045010 (2023).
+[80] P. Hauke, L. Bonnes, M. Heyl, and W. Lechner, Probing entanglement in adiabatic quantum optimization with trapped ions,
+Frontiers in Physics 3, 10.3389/fphy.2015.00021 (2015).
+[81] B. Bauer, L. Wang, I. Pižorn, and M. Troyer, Entanglement as a resource in adiabatic quantum optimization (2015),
+arXiv:1501.06914 [cond-mat.dis-nn].
+[82] M. Dupont, N. Didier, M. J. Hodson, J. E. Moore, and
+M. J. Reagor, Entanglement perspective on the quantum approximate optimization algorithm, Phys. Rev. A 106, 022423
+(2022).
+[83] M. Dupont, N. Didier, M. J. Hodson, J. E. Moore, and
+M. J. Reagor, Calibrating the Classical Hardness of the Quantum Approximate Optimization Algorithm, PRX Quantum 3,
+040339 (2022).
+[84] R. Sreedhar, P. Vikstål, M. Svensson, A. Ask, G. Johansson,
+and L. Garcı́a-Álvarez, The Quantum Approximate Optimization Algorithm performance with low entanglement and high
+circuit depth (2022), arXiv:2207.03404 [quant-ph].
+[85] A. C. Nakhl, T. Quella, and M. Usman, Calibrating the role
+of entanglement in variational quantum circuits, Phys. Rev. A
+109, 032413 (2024).
+[86] G. C. Santra, S. S. Roy, D. J. Egger, and P. Hauke, Genuine multipartite entanglement in quantum optimization, Phys.
+Rev. A 111, 022434 (2025).
+[87] U. Schollwöck, The density-matrix renormalization group in
+the age of matrix product states, Annals of Physics 326, 96
+(2011).
+[88] M. A. Nielsen and I. L. Chuang, Quantum Computation
+and Quantum Information: 10th Anniversary Edition, 1st ed.
+(Cambridge University Press, 2012).
+[89] J. Eisert, M. Cramer, and M. B. Plenio, Colloquium: Area laws
+for the entanglement entropy, Rev. Mod. Phys. 82, 277 (2010).
+[90] A. K. Srivastava, G. Müller-Rigat, M. Lewenstein, and
+
+G. Rajchel-Mieldzioć, Introduction to quantum entanglement in many-body systems, in New Trends and Platforms
+for Quantum Technologies, edited by R. Aguado, R. Citro,
+M. Lewenstein, and M. Stern (Springer Nature Switzerland,
+Cham, 2024) pp. 225–285.
+[91] S. Kirkpatrick, C. D. Gelatt, and M. P. Vecchi, Optimization
+by Simulated Annealing, Science 220, 671 (1983).
+[92] N. Metropolis, A. W. Rosenbluth, M. N. Rosenbluth, A. H.
+Teller, and E. Teller, Equation of State Calculations by Fast
+Computing Machines, The Journal of Chemical Physics 21,
+1087 (1953).
+[93] W. K. Hastings, Monte carlo sampling methods using markov
+chains and their applications, Biometrika 57, 97 (1970).
+[94] F. Glover, E. Taillard, and D. de Werra, A User’s Guide to Tabu
+Search, Annals of Operations Research 41, 3 (1993).
+[95] M. Fishman, S. R. White, and E. M. Stoudenmire, The ITensor Software Library for Tensor Network Calculations, SciPost Phys. Codebases , 4 (2022).
+[96] H. Ishikawa, Transformation of General Binary MRF Minimization to the First-Order Case, IEEE Transactions on Pattern Analysis and Machine Intelligence 33, 1234 (2011).
+[97] M. Anthony, E. Boros, Y. Crama, and A. Gruber, Quadratic
+reformulations of nonlinear binary optimization problems,
+Mathematical Programming 162, 115–144 (2017).
+[98] N. Dattani, Quadratization in discrete optimization and quantum mechanics (2019), arXiv:1901.04405 [quant-ph].
+[99] Gurobi Optimization, LLC, Gurobi Optimizer Reference
+Manual (2024).
+[100] I. I. Cplex, V12.10.0: User’s Manual for CPLEX, International
+Business Machines Corporation 46, 157 (2009).
+[101] A. Maksymov, J. Nguyen, Y. Nam, and I. Markov, Enhancing
+quantum computer performance via symmetrization (2023),
+arXiv:2301.07233 [quant-ph].
+[102] D. Rossini, G. M. Andolina, D. Rosa, M. Carrega, and
+M. Polini, Quantum Advantage in the Charging Process of
+Sachdev-Ye-Kitaev Batteries, Phys. Rev. Lett. 125, 236402
+(2020).
+
+Supplementary Information for:
+“Bias-field digitized counterdiabatic quantum algorithm for higher-order binary optimization”
+Sebastián V. Romero ,1, 2 Anne-Maria Visuri ,1 Alejandro Gomez Cadavid ,1, 2
+Anton Simen ,1, 2 Enrique Solano ,1 and Narendra N. Hegade 1, ∗
+2
+
+1
+Kipu Quantum GmbH, Greifswalderstrasse 212, 10405 Berlin, Germany
+Department of Physical Chemistry, University of the Basque Country UPV/EHU, Apartado 644, 48080 Bilbao, Spain
+
+SUPPLEMENTARY NOTE 1: FIRST-ORDER NESTED-COMMUTATOR CALCULATION
+
+In order to include the counterdiabatic driving contribution into our protocol, we have to perform the map Had (λ) 7→ Had (λ) +
+iλ̇α1 (λ)O1 (λ) with Ok = [Had (λ), Ok−1 (λ)] starting from O1 (λ) = [Had (λ), ∂λ Had (λ)] = [Hi , H f ] and α1 (λ) = −Γ1 (λ)/Γ2 (λ) with
+
+
+Γk (λ) = tr Ok (λ)Ok (λ) . We start by computing
+X
+X
+X
+O1 (λ) = −2i
+hix hzi σyi − 2i
+Ji j (hix σyi σzj + h xj σzi σyj ) − 2i
+Ki jk (hix σyi σzj σzk + h xj σzi σyj σzk + hkx σzi σzj σyk ).
+(S1)
+i
+
+i< j
+
+i< j<k
+
+Next, we compute Γ1 (λ) as
+X
+X
+hX
+i
+
+
+Γ1 (λ) = tr O1 (λ)O1 (λ) = 4
+(hix hzi )2 +
+(hix )2 Ji2j +
+Ki2jk [(hix )2 + (h xj )2 + (hkx )2 ]
+i
+
+i, j
+
+(S2)
+
+i< j<k
+
+Following the same procedure for computing Γ2 (λ) and finally taking the squared norm of each separated Pauli string, we obtain
+X
+X
+X
+h
+
+i2
+Γ2 (λ) = 16 (hix )2 (1 − λ)hbi hzi + λ (hzi )2 +
+Ji2j +
+Ki2jk
+i
+
+j,i
+
+j,k,i
+
+X
+X
+X
+X
+h
+
+i2
++ 16 (hix )2 (1 − λ)Ji j hbi + 2λ Ji j hzi +
+Kik j Jik +
+Ki jk Jik +
+Kki j Jki
+i< j
+
+i<k< j
+
+X
+
++ 16
+
+i< j
+
+k> j
+
+k<i
+
+X
+X
+X
+h
+
+i2
+(h xj )2 (1 − λ)Ji j hbj + 2λ Ji j hzj +
+Kik j Jk j +
+Ki jk J jk +
+Kki j Jk j
+i<k< j
+
+k> j
+
+k<i
+
+X
+X
+hX
+i
++ 16(1 − λ)
+(hix )4 (hzi )2 +
+[(hix )2 + (h xj )2 ]2 Ji2j +
+Ki2jk [(hix )2 + (h xj )2 + (hkx )2 ]2
+2
+
+i
+
+i< j
+
+i< j<k
+
+X
+hX
+i
++ 64(1 − λ)
+(hix )2 (h xj )2 Ji2j +
+Ki2jk [(hix )2 (h xj )2 + (hix )2 (hkx )2 + (h xj )2 (hkx )2 ]
+2
+
+i< j
+
++16
+
+X
+i< j<k
+
++16
+
+X
+i< j<k
+
++16
+
+X
+i< j<k
+2
+
++64λ
+
+i< j<k
+
+h
+
+
+
+h
+
+
+
+(hix )2 (1 − λ)Ki jk hbi + 2λ Ji j Jik + Ki jk hzi +
+(h xj )2 (1 − λ)Ki jk hbj + 2λ J jk Ji j + Ki jk hzj +
+
+X
+
+X
+
+Ki jp Kipk +
+
+Kip j Kipk +
+
+X
+
+K pi j K p jk +
+
+X
+
+j<p<k
+
+i<p< j
+
+p<i
+
+p>k
+
+X
+
+X
+
+X
+
+X
+
+Ki jp K jpk +
+
+j<p<k
+
+i<p< j
+
+Kip j K p jk +
+
+K pi j K p jk +
+
+p<i
+
+i2
+(S3)
+
+Ki jp K jkp
+
+i2
+
+p>k
+
+X
+X
+X
+X
+h
+
+i2
+(hkx )2 (1 − λ)Ki jk hbk + 2λ Jik J jk + Ki jk hzk +
+Kipk K jpk +
+Kipk K p jk +
+K pik K p jk +
+Kikp K jkp
+j<p<k
+
+X
+
+i<p< j
+
+p<i
+
+[(hix )2 (Kikp Ji j + Ki jp Jik + Ki jk Jip )2 + (h xj )2 (K jkp Ji j + Ki jp J jk + Ki jk J jp )2
+
+i< j<k<p
+
++ (hkx )2 (K jkp Jik + Kikp J jk + Ki jk Jkp )2 + (h xp )2 (K jkp Jip + Kikp J jp + Ki jp Jkp )2 ]
++64λ2
+
+Ki jp Kikp
+
+X
+
+[(hix )2 (Ki jk Kipq + Kikq Ki jp + Kikp Ki jq )2 + (h xj )2 (Ki jk K jpq + Ki jp K jkq + Ki jq K jkp )2
+
+i< j<k<p<q
+
++ (hkx )2 (Ki jk Kkpq + Kikp K jkq + Kikq K jkp )2 + (h xp )2 (Ki jp Kkpq + Kikp K jpq + Kipq K jkp )2
++ (hqx )2 (Ki jq Kkpq + Kikq K jpq + Kipq K jkq )2 ].
+∗ narendrahegade5@gmail.com
+
+p>k
+
+2
+This provides an analytical derivation of the first-order nested-commutator expansion of Eq. (5) in the main text for a generic
+three-body spin-glass problem.
+SUPPLEMENTARY NOTE 2: ITERATIVE SOLUTION OF THE EXACT GROUND STATE
+
+To obtain numerically the exact ground state energies of the Hamiltonians of Eqs. (13) and (16) in the main text, we use an
+iterative algorithm similar to Ref. [S1]. This method is similar to the zero-temperature limit of the transfer matrix method [S2,
+S3], and can be generalized to any (sufficiently small) range r and locality of coupling terms. We summarize it here briefly for
+r = 3 and up to three-body interactions, locality of the Hamiltonians studied in this work.
+The energy contribution at site i depends only on the local configuration si B (si−2 , si−1 , si ), where si = ±1, for 3 f i f N.
+This allows us to iteratively construct the ground state from the three-site subsystem configurations. The ground state is found
+by minimizing the consecutive energy increments
+∆Ei = hi si +
+
+r−1
+X
+
+Ji−r+ j,i si−r+ j si +
+
+j=1
+
+r−1
+X
+
+Ki−r+ j,i−r+k,i si−r+ j si−r+k si ,
+
+(S4)
+
+j,k=1
+j<k
+
+with spin indices within 1, . . . , i. At each step i, we generate all possible configurations si = {±1}r , updating the previously
+computed state by retaining only the configuration with minimum total energy. Therefore, this method scales as O[2r N], offering
+an efficient protocol for moderate r values but converging to a brute force method when r → N.
+SUPPLEMENTARY NOTE 3: CIRCUIT DECOMPOSITION
+
+An important aspect of preparing and running quantum circuits on hardware is to transpile the required quantum operations
+according to the corresponding native gate sets provided by the platform. These typically consist of an universal gate set
+containing several one-qubit gates and a single two-qubit entangling gate. For ibm fez, its native gate set is composed by
+#
+"
+#
+"
+√
+θ z
+1 1+i 1−i
+0 1
+,
+RZ(θ) = e−i 2 σ ,
+(S5)
+X=
+,
+X=
+1
+−
+i
+1
++
+i
+1 0
+2
+with the entangling gate CZ = diag(1, 1, 1, −1). For the IonQ Aria 1 platform, the native gate set is given by [S4]
+"
+"
+#
+#
+1
+1 −ie−iφ
+0 e−iφ
+GPi(φ) = iφ
+,
+,
+GPi2(φ) = √
+iφ
+1
+e
+0
+2 −ie
+
+(S6)
+
+with entangling gate the so-called partially entangling Mølmer-Sørenson gate
+
+
+
+MS(φ0 , φ1 , θ) = 
+
+
+cos 2θ
+0
+0
+−i(φ0 +φ1 )
+
+−ie
+
+0
+cos 2θ
+
+sin 2θ
+
+−ie−i(φ0 −φ1 ) sin 2θ
+0
+
+0
+−i(φ0 −φ1 )
+
+−ie
+
+cos 2θ
+0
+
+sin 2θ
+
+
+−ie−i(φ0 +φ1 ) sin 2θ 
+
+0
+
+ .
+0
+
+θ
+cos 2
+
+(S7)
+
+The constrained connectivity among qubits of ibm fez, and quantum platforms with heavy-hex coupling maps in general,
+suggests to work with highly sparse problems. The linearity of the Hamiltonians considered naturally fits into the heavy-hex
+IBM qubit coupling maps, whose corresponding circuit decomposition can be seen in Supplementary Figure 1. To overcome
+this issue, higher connectivities between qubits are required. Among others, trapped ion-based platforms, like IonQ Aria 1, offer
+a natural architecture with which to acquire all-to-all connectivities with very precise gate fidelities. Therefore, these platforms
+can also be used for addressing denser problems.
+SUPPLEMENTARY NOTE 4: DMRG ESTIMATION OF GROUND STATE ENERGIES
+
+To obtain optimal energies of the nearest-neighbour Hamiltonian of Eq. (13) in the main text, we also test the DMRG algorithm [S5], which is an optimization method using a matrix product state (MPS) as a variational ansatz. Due to entanglement
+area laws [S6], DMRG works particularly well for one-dimensional systems described by MPSs and for local Hamiltonians, and
+could be used in cases where an exact solution is not available. We use the implementation in the ITensor Julia library [S7]. As
+the initial state, we choose a random MPS with bond dimension χ > 1 since setting the initial bond dimension to one results in
+
+3
+
+×ntrot
+
+ψ̃i
+
+E
+
+SUPPLEMENTARY FIGURE 1. Circuit decomposition of a five-qubit NN HUBO instance. The first one-qubit operator layer prepares
+NN
+the initial ground state |ψ̃ð =
+R (θ ) |0ði . Afterwards, ntrot Trotter steps are applied to implement the digitized time-evolution operator of
+i=1 y i
+Eq. (7) in the main text. Finally, all qubits are measured, and their energy distribution is used for updating the bias field of the subsequent
+iteration.
+
+higher energies of the final state. We apply a noise parameter in the DMRG sweeps to improve convergence in the presence of
+many local minima [S8]. For the value shown in Fig. 3 in the main text, we find convergence to a product state (χ = 1) with
+10 sweeps, a maximum initial bond dimension 10, a truncation error cutoff of 10−10 , and a noise parameter that is gradually
+reduced from 10−3 to zero through the sweeps. The energy EDMRG = −236.07 shown in Fig. 3 in the main text is close to the
+exact ground-state energy Eexact = −236.18, indicating that DMRG converges to a low-lying excited state. Note that the random
+coupling constants are fixed here, i.e. there is no averaging over disorder configurations.
+The DMRG algorithm is known to be particularly efficient when the Hamiltonian has an exact MPO representation with a small
+bond dimension [S5]. This occurs for Hamiltonians with short-range coupling terms such as considered here, or exponentially
+decaying ones. The convergence of DMRG, as a variational method, may however be prevented by the algorithm getting
+stuck in local minima. In previous DMRG studies of classical spin glasses, a quantum wavefunction annealing method was
+found to improve convergence [S9, S10]. As an alternative to DMRG, the ground state search can be performed by imaginary
+time evolution. This approach was recently used for solving QUBO problems via projected entangled pair states with flexible
+geometry [S11].
+SUPPLEMENTARY REFERENCES
+[S1] E. Gardner and B. Derrida, Zero temperature magnetization of a one-dimensional spin glass, Journal of Statistical Physics 39, 367–377
+(1985).
+[S2] M. Kardar, Statistical Physics of Fields, 1st ed. (Cambridge University Press, 2007).
+[S3] L. Turban, One-dimensional ising model with multispin interactions, Journal of Physics A: Mathematical and Theoretical 49, 355002
+(2016).
+[S4] See https://ionq.com/docs/getting-started-with-native-gates.
+[S5] U. Schollwöck, The density-matrix renormalization group in the age of matrix product states, Annals of Physics 326, 96 (2011).
+[S6] J. Eisert, M. Cramer, and M. B. Plenio, Colloquium: Area laws for the entanglement entropy, Rev. Mod. Phys. 82, 277 (2010).
+[S7] M. Fishman, S. R. White, and E. M. Stoudenmire, The ITensor Software Library for Tensor Network Calculations, SciPost Phys.
+Codebases , 4 (2022).
+[S8] S. R. White, Density matrix renormalization group algorithms with a single center site, Phys. Rev. B 72, 180403 (2005).
+[S9] J. Rodrı́guez-Laguna, Quantum wavefunction annealing of spin glasses on ladders, Journal of Statistical Mechanics: Theory and Experiment 2007, P05008 (2007).
+[S10] J. Rodrı́guez-Laguna, Density matrix renormalization on random graphs and the quantum spin-glass transition, Journal of Physics A:
+Mathematical and Theoretical 40, 12043 (2007).
+[S11] S. Patra, S. Singh, and R. Orús, Projected entangled pair states with flexible geometry, Phys. Rev. Res. 7, L012002 (2025).
+
+

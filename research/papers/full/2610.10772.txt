@@ -1,0 +1,2121 @@
+Scaling Quantum Optimization to the Thousand-Qubit Scale with Distributed Quantum
+Sampling
+Amana Liaqat,1 Ahmed Darwish,2 Stephen DiAdamo,2, ∗ Dan Holme,1 Kieran
+McDowall,3, 4 Emre Sahin,5 Naeimeh Mohseni,6 Giorgio Cortiana,6 and Corey O’Meara6, †
+1
+
+arXiv:2610.10772v1 [quant-ph] 7 Oct 2026
+
+Qoro Quantum Ltd., United Kingdom
+2
+Qoro Quantum GmbH, Germany
+3
+National Quantum Computing Centre, United Kingdom
+4
+Quantum Software Lab, The University of Edinburgh, United Kingdom
+5
+Hartree Centre, STFC, United Kingdom
+6
+E.ON Digital Technology GmbH, Germany
+The Minimum Birkhoff Decomposition (MBD) seeks a sparse weighted sum of matchings and is a
+challenging optimization problem with applications in network scheduling and energy trading. We
+scale a quantum-assisted decomposition method by combining single-layer QAOA sampling with
+Extended Fully-Corrective Frank-Wolfe (E-FCFW) optimization, spectral graph partitioning, and
+greedy feasibility repair. We demonstrate the pipeline on the 1,354-node PEGASE bus test case
+(representing a 1,354-bus transmission grid with 1,710 transmission lines), whose 1,710 edges define
+a native 1,710-variable matching optimization problem requiring 1,710 qubits in the unpartitioned
+encoding. Partitioning enables distributed execution on IBM superconducting quantum processors.
+The best reported hardware result uses a 50-qubit partition bound, while reducing partitions to 20
+qubits degrades convergence in the partition-size comparison. Larger partitions are more demanding
+for matrix product state (MPS) simulation, and bond-dimension tests show that truncating quantum
+correlations reduces candidate quality. The results therefore motivate retaining a substantive quantum
+sampling task within each partition as the overall problem scales. On the PEGASE-1354 benchmark,
+repaired QAOA samples achieve lower residual decomposition error than both simulated annealing
+and uniform random sampling baselines, while spatial circuit packing reduces hardware execution time
+by approximately a factor of three. These results demonstrate that combining spectral partitioning,
+spatial circuit packing, and classical feasibility repair provides an executable path for deploying
+gate-based quantum sampling on thousand-variable constrained optimization problems on current
+hardware.
+I.
+
+INTRODUCTION
+
+Network scheduling, optical switching, and peer-to-peer
+energy trading [1, 2] require weighted demands to be
+served through compatible sets of connections [3, 4]. Representing each set as a matching gives a graph decomposition problem: reconstruct the demand graph with
+as few weighted matchings as possible. Fewer matchings
+reduce switching and reconfiguration overhead. This extends the Birkhoff–von Neumann decomposition from
+bipartite graphs to general network topologies [5].
+Minimum Birkhoff Decomposition (MBD) is NPhard [6] and can challenge classical optimization at small
+instance sizes. Its inclusion in the Quantum Optimization
+Benchmarking Library (QOBLIB) identifies it as a relevant test problem for progress toward quantum advantage
+in optimization [7]. The difficulty lies in selecting a sparse
+decomposition; finding an individual maximum-weight
+matching remains polynomial-time solvable. Quantum
+sampling is therefore considered here as a way to enrich
+the candidate pool of a classical decomposition algorithm.
+Building on Extended Fully-Corrective Frank-Wolfe (EFCFW) [8], we use single-layer (p = 1) QAOA to supply di-
+
+∗ stephen@qoroquantum.de
+† corey.omeara@eon.com
+
+verse matching candidates and optimize their weights classically. Fixed, offline-calibrated angles avoid variational
+tuning during execution. Although complexity-theoretic
+results motivate studying shallow QAOA sampling [9],
+they do not establish an advantage for the instances studied here.
+
+While divide-and-conquer and multilevel methods have
+scaled unconstrained QUBO subproblems on quantum
+processors to tens of thousands of variables [10, 11], our
+contribution is to scale quantum-assisted constrained optimization for graph decomposition beyond the width of an
+individual processor. Spectral partitioning reduces circuit
+width and routing overhead; stitching and greedy repair
+reconstruct feasible global candidates; and spatial circuit
+packing executes independent subproblems concurrently.
+Figure 1 summarizes the workflow. We examine its dependence on matrix product state (MPS) bond dimension
+and partition size, then demonstrate hardware execution
+on the 1,354-node, 1,710-edge PEGASE bus test case
+[12], which models a realistic 1,354-bus, 1,710-line European high-voltage transmission network developed by
+the Pan-European Grid Advanced Simulation and State
+Estimation (PEGASE) project. The central question is
+whether partitioning can make execution practical while
+retaining useful quantum sampling within each partition.
+
+2
+Concurrent execution on multiple QPUs
+
+Residual demand graph
+
+Partitions
+
+Max-weight QUBO encoding
+
+P1
+H
+
+RZ
+
+H
+
+RZ
+
+Spatial
+circuit packing
+
+ibm_marrakesh
+
+RZ
+
+140
+
+141
+
+142
+
+144
+
+145
+
+146
+
+148
+
+149
+
+150
+
+152
+
+153
+
+154
+
+120
+
+121
+
+122
+
+123
+
+124
+
+125
+
+126
+
+127
+
+128
+
+129
+
+130
+
+131
+
+132
+
+133
+
+134
+
+135
+
+102
+
+103
+
+104
+
+106
+
+107
+
+108
+
+110
+
+111
+
+112
+
+113
+
+114
+
+115
+
+92
+
+93
+
+94
+
+95
+
+75
+
+RX
+
+RZ
+
+147
+137
+
+116
+100
+
+H
+
+143
+136
+
+RX
+
+101
+
+RX
+
+105
+
+81
+
+82
+
+83
+
+61
+
+84
+
+85
+
+86
+
+87
+
+P2
+
+H
+
+RZ
+
+H
+
+RZ
+
+H
+
+RZ
+
+H
+
+RZ
+
+H
+
+RZ
+
+H
+
+RZ
+
+..
+.
+
+RX
+RZ
+
+RZ
+
+41
+
+63
+
+64
+
+65
+
+43
+
+44
+
+23
+
+24
+
+4
+
+36
+
+66
+
+67
+
+21
+
+22
+
+RX
+
+0
+
+1
+
+2
+
+3
+
+RX
+
+H
+
+140
+
+141
+
+120
+
+142
+
+143
+
+121
+
+71
+
+72
+
+73
+
+74
+
+48
+
+25
+
+26
+
+27
+
+28
+
+5
+
+6
+
+8
+
+49
+
+53
+
+54
+
+55
+
+35
+
+59
+
+50
+
+51
+
+52
+
+29
+
+30
+
+31
+
+32
+
+33
+
+34
+
+9
+
+10
+
+12
+
+13
+
+14
+
+38
+
+39
+
+7
+
+18
+
+19
+
+11
+
+Retrieve results
+
+15
+
+101
+
+144
+
+145
+
+146
+
+148
+
+149
+
+150
+
+152
+
+153
+
+154
+
+123
+
+124
+
+125
+
+126
+
+127
+
+128
+
+129
+
+130
+
+131
+
+132
+
+133
+
+134
+
+135
+
+102
+
+103
+
+104
+
+106
+
+147
+
+107
+
+108
+
+110
+
+111
+
+112
+
+113
+
+114
+
+115
+
+92
+
+93
+
+94
+
+95
+
+75
+
+137
+
+105
+
+81
+
+82
+
+83
+
+60
+
+61
+
+62
+
+63
+
+Measure
+
+84
+
+64
+
+85
+
+86
+
+87
+
+88
+
+65
+
+43
+
+44
+
+23
+
+24
+
+66
+
+67
+
+68
+
+4
+
+22
+
+0
+
+1
+
+2
+
+3
+
+90
+
+45
+
+91
+
+69
+
+99
+
+79
+70
+
+71
+
+72
+
+73
+
+74
+
+53
+
+54
+
+55
+
+35
+
+58
+
+46
+
+47
+
+48
+
+25
+
+26
+
+27
+
+28
+
+5
+
+6
+
+8
+
+37
+
+21
+
+89
+78
+
+49
+
+59
+
+50
+
+51
+
+52
+
+29
+
+30
+
+31
+
+32
+
+33
+
+34
+
+9
+
+10
+
+12
+
+13
+
+14
+
+38
+
+16
+
+k
+
+98
+
+57
+
+42
+
+20
+
+119
+
+97
+
+56
+41
+
+109
+
+39
+
+17
+7
+
+155
+139
+
+118
+
+77
+
+RX
+
+151
+138
+
+117
+
+76
+
+RX
+
+Mixer
+
+Samples from packed
+circuits on both QPUs
+
+122
+
+116
+100
+
+Cost layer
+
+70
+
+17
+
+36
+
+Gk
+
+47
+
+136
+
+40
+
+Initialize
+
+69
+
+79
+
+ibm_kingston
+
+RX
+
+RZ
+
+99
+
+91
+
+58
+
+46
+
+96
+
+RZ
+
+90
+
+RX
+
+80
+
+with residual D∗ − X
+
+45
+
+16
+
+Pm
+RZ
+
+68
+
+37
+
+20
+
+89
+
+57
+
+42
+
+RX
+
+..
+.
+H
+
+88
+
+78
+
+56
+40
+
+98
+
+77
+62
+
+119
+
+97
+
+76
+60
+
+109
+
+155
+139
+
+118
+
+96
+80
+
+151
+138
+
+117
+
+18
+11
+
+19
+15
+
+Update
+residual
+
+E-FCFW active-set update
+
+Candidate selection
+
+Add M M W and samples
+
+Retain top d distinct
+repaired matchings
+
+Solve constrained QP;
+update weights αl
+
+Global repair
+Repair stitched candidates
+to resolve cross-partition
+conflicts
+
+Msample
+
+Stitching
+
+Local repair
+
+Combine samples across QPUs
+
+Enforce matching validity
+
+{S1 } × {S2 } × · · · × {Sm }
+
+Sample
+
+Cartesian product
+or beam search
+
+Repaired
+
+FIG. 1. Residual graphs are partitioned into QAOA subproblems and dispatched across IBM QPUs using spatial circuit packing.
+Samples are stitched, repaired to enforce matching feasibility, and added to the classical E-FCFW active set.
+
+II.
+
+needed to reconstruct D∗ , formulated as an ℓ0 -norm minimization:
+
+PROBLEM FORMULATION
+
+In this section, we formulate the problem of decomposing general network demand graphs into sparse linear
+combinations of valid matchings. We first define the MBD
+as a cardinality-minimization problem over symmetric doubly substochastic matrices. We then review the Extended
+Fully-Corrective Frank–Wolfe (E-FCFW) optimization
+framework, which augments classical Frank–Wolfe steps
+with diverse candidate sampling to achieve sparser graph
+representations.
+
+A.
+
+Minimum Birkhoff Decomposition
+
+Let G(V, E) denote a weighted, undirected graph with
+edge weights w(e) ≥ 0 representing demand or connection
+intensity. A subgraph M ⊆ E is a valid matching if no two
+edges in M share a common vertex. We represent G as
+a symmetric doubly substochastic matrix D∗ ∈ [0, 1]n×n
+with non-negative entries satisfying:
+n
+X
+j=1
+
+∗
+Dij
+≤ 1,
+
+n
+X
+i=1
+
+∗
+Dij
+≤ 1 ∀i, j,
+
+(1)
+
+∗
+with zero diagonal entries (Dii
+= 0, no self-loops) and
+∗
+∗
+symmetric weights (Dij
+= Dji
+).
+A matching matrix P belongs to the feasible set P:
+
+P := {U ∈ {0, 1}n×n | U = U T , U 1 ⪯ 1, Uii = 0 ∀i},
+(2)
+where 1 denotes the vector of all ones. The MBD problem
+seeks to minimize the number of constituent matchings
+
+min ∥α∥0
+
+(3)
+
+α,Pl
+
+s.t.
+
+D∗ =
+
+m
+X
+
+αl Pl ,
+
+l=1
+
+αl ≥ 0,
+
+m
+X
+l=1
+
+Pl ∈ P,
+
+αl ≤ 1,
+
+where ∥α∥0 = |{l : αl > 0}| counts the non-zero weights
+across a decomposition
+of length m. An exact decompoP
+sition with l αl ≤ 1 requires D∗ to lie in the convex
+hull of matching matrices (including the empty matching). On non-bipartite graphs, double substochasticity
+alone is insufficient; otherwise, the framework below computes a sparse approximation. Even in the classical doubly
+stochastic setting, minimizing decomposition cardinality
+is NP-hard [6]. The hard MBD instances documented
+in QOBLIB motivate sampling-based approaches beyond
+greedy decomposition [7, 13].
+
+B.
+
+The Extended Fully-Corrective Frank-Wolfe
+Framework
+
+We seek sparse approximations using the Frank-Wolfe
+(FW) framework [14, 15]. For graph decomposition, the
+objective function is the scaled squared Frobenius norm
+distance between the target demand D∗ and the approximation matrix D:
+f (D) :=
+
+1
+∥D − D∗ ∥2F .
+n2
+
+(4)
+
+3
+At iteration k, standard FW linearizes f (D) around the
+current iterate Dk and queries a Linear Minimization
+Oracle (LMO):
+M M W ∈ arg min
+U ∈P
+
+n
+X
+i,j=1
+
+∇f (Dk )ij Uij ,
+
+(5)
+
+which maps to finding a maximum-weight matching on
+the residual graph D∗ − Dk [16].
+Fully-Corrective Frank-Wolfe (FCFW) re-optimizes
+weights over all previously collected matchings in an
+active set M. Defining
+Pm the substochastic unit simplex
+∆m := {u ∈ Rm
+:
+≥0
+i=1 ui ≤ 1}, the weights are updated
+via:
+|M|
+X
+1
+ui Mi
+(α1 , . . . , α|M| ) = arg min 2 D∗ −
+u∈∆|M| n
+i=1
+
+2
+
+. (6)
+F
+
+Deterministic oracle calls can yield similar matchings,
+motivating additional candidate diversity. The E-FCFW
+algorithm [8] addresses this by augmenting the candidate pool at each iteration: alongside the deterministic maximum-weight matching M M W (which supplies
+a Frank-Wolfe descent direction before cardinality restriction), a sampling subroutine generates d diverse candidate matchings Msample , updating the active pool as
+M ← M ∪ {M M W } ∪ Msample . E-FCFW then enforces an
+explicit ℓ0 -norm constraint:
+|M|
+X
+1
+∗
+ui Mi
+D −
+min
+u∈∆|M| n2
+i=1
+
+2
+
+s.t.
+
+∥u∥0 ≤ k + 1. (7)
+
+F
+
+The cardinality restriction retains at most k + 1 positive weights. Weight optimization on a fixed support is
+a convex quadratic program; support selection remains
+combinatorial.
+III.
+
+METHODOLOGY
+
+Each E-FCFW iteration partitions the residual graph,
+samples local QAOA circuits, reconstructs global matchings, and updates the decomposition weights. We describe
+the essential components here; calibration, reconstruction
+settings, pseudocode, and scheduling details are collected
+in Appendix A.
+A.
+
+QAOA Matching Sampler
+
+Each edge j ∈ E is encoded by a qubit, with xj = 1
+indicating its selection. For residual edge weights wj , we
+use the QUBO
+X
+X
+C(x) = −
+wj xj + λ
+xj xk ,
+(8)
+j∈E
+
+j∈E,
+k∈Γ(j)
+
+where Γ(j) contains edges sharing an endpoint with j. The
+sum follows the ordered-pair convention, counting each
+conflicting pair twice. The penalty λ = 0.2 discourages
+collisions; greedy repair subsequently enforces feasibility.
+Substituting xj = (I − Ẑj )/2 defines the diagonal cost
+Hamiltonian ĤC and the single-layer state
+|ψ(β, γ)⟩ = e−iβ
+
+PN
+
+j=1 X̂j
+
+e−iγ ĤC |+⟩⊗N ,
+
+(9)
+
+with N = |E|. The sampler supplies a pool of candidates
+rather than a single optimal matching.
+Angles are calibrated offline and transferred across related subgraphs, following prior work on QAOA parameter
+transfer [8, 17]. We use (γ0 , β0 ) = (0.5, −0.5) for the 120node benchmark and approximately (2.49, 0.16) for the
+PEGASE bus test case. They remain fixed throughout
+execution, eliminating online parameter optimization.
+B.
+
+Partitioning and Reconstruction
+
+While recursive Kernighan–Lin bisection was evaluated
+in preliminary benchmarking, multi-way spectral partitioning produced subgraphs with fewer cut edges and superior downstream convergence, and was therefore adopted
+throughout this work. Multi-way spectral partitioning
+clusters affinity-matrix eigenvectors using k-means and
+recursively refines oversized clusters. Throughout, ps denotes the maximum number of edges per partition, hence
+the maximum circuit qubit count, rather than a bound on
+graph vertices. Spectral partitioning groups strongly connected regions while limiting the number of connections
+removed from local Hamiltonians.
+The residual graph is repartitioned at each iteration.
+Cut edges cannot be sampled by that iteration’s local
+circuits, but their residual weights can influence later
+partitions. This provides a route to recovering omitted
+connections, without guaranteeing that every edge becomes internal within a finite iteration budget. The global
+classical maximum-weight matching oracle also remains
+available to the outer solver.
+Local samples are combined by batched Cartesian products or pruned beam search. We tested both methods and
+used batched Cartesian products, as it maintains sample
+validity more effectively. Recombination can introduce
+conflicts at cut vertices shared across partition boundaries,
+alongside any intra-partition collisions permitted by the
+soft QUBO penalty.
+To restore feasibility without introducing unselected
+edges, greedy repair sorts the candidate edge set Ẽ =
+{ej : xj = 1} by descending residual weight w(ej ) =
+(D∗ − Dk )uv and accepts an edge if and only if both
+endpoints are currently unoccupied. For |Ẽ| selected edges,
+this pruning requires O(|Ẽ| log |Ẽ|) time and guarantees
+matching feasibility. Because repair alters the sample
+distribution without adding edges beyond those proposed
+by the quantum sampler, the experiments compare QAOA
+and random samples under the identical repair procedure
+to isolate the contribution of sampling.
+
+4
+C.
+
+Classical Update and Hardware Execution
+
+The best distinct repaired candidates are added to
+the active pool together with a global maximum-weight
+matching. E-FCFW updates the nonnegative weights subject to its cardinality bound and removes zero-weight
+matchings. The loop stops at the target error, a relativeimprovement plateau, or the iteration limit. Decomposition length counts retained positive-weight matchings and
+need not equal the iteration index. Algorithm 1 gives the
+full workflow.
+Qoro’s Divi framework [18] coordinates circuit generation, sampling, reconstruction, and execution on
+ibm_kingston and ibm_marrakesh. Qoro’s scheduler
+packs independent circuits into disjoint regions of the
+156-qubit Heron lattice, using otherwise idle capacity and
+buffer qubits between subproblem boundaries to reduce
+dispatch rounds (Fig. 1).
+
+IV.
+
+EXPERIMENTAL RESULTS
+
+In this section, we evaluate the performance of the
+distributed QAOA sampling framework on graph decomposition benchmarks. We compare partitioned E-FCFW
+across varying partition bounds against classical simulated annealing and uniform random sampling baselines,
+implemented both via MPS tensor network simulation
+and directly on superconducting quantum processors. We
+further isolate the impact of classical feasibility repair on
+solution quality and demonstrate throughput speedups
+achieved through multi-circuit spatial packing on an IBM
+Heron device.
+
+A.
+
+Experimental Setup
+
+We evaluate a synthetic Heron-topology graph with
+120 vertices and 132 edges, followed by the PEGASE1354 bus test case with 1,354 vertices and 1,710 edges.
+The generation of the graphs is detailed in [8]. QAOA
+circuits use p = 1 and 25,000 shots per partition per
+round. Simulated annealing (SA) [19] uses 1,500 reads
+per partition, each with 1,000 sweeps. Uniform random
+samples pass through the same stitching and repair as
+QAOA and SA. These are specified sampling budgets, not
+matched computational costs.
+Hardware execution relied on heuristic transpilation
+passes targeting minimal two-qubit gate depth. While
+active error mitigation techniques—specifically dynamical decoupling using the Xp Xm pulse sequence and gate
+twirling with 32 randomizations—were evaluated, empirical testing showed they degraded candidate quality on
+these partitioned workloads. Consequently, hardware runs
+omitted pulse-level mitigation in favor of depth-minimized
+compilation coupled with downstream greedy repair (Appendix A.1).
+
+All samplers supply the top five distinct valid candidates
+to E-FCFW. The stopping criteria are normalized error
+ϵ = 10−6 or relative cost improvement at most 10−3 .
+Standalone greedy Birkhoff decomposition (BKF) is also
+included as a baseline. Appendix A.1 gives the calibration
+and stopping details.
+
+B.
+
+Classical Simulation and Hardware Convergence
+
+To classically emulate and diagnose the distributed
+quantum sampling pipeline, we simulate the QAOA circuits using MPS tensor networks via Maestro [20]. In this
+representation, the MPS bond dimension χ bounds the
+bipartite entanglement entropy across any cut by log χ,
+directly controlling the amount of quantum correlation
+retained in the simulated state. This allows us to systematically probe how truncating entanglement impacts
+candidate sample quality and downstream decomposition
+performance.
+We compare final decomposition cost with mirror fidelity: the probability of recovering the all-zero state after
+simulating a state-preparation circuit and its inverse at
+finite χ (Appendix A.3). Higher bond dimensions improve
+both mirror fidelity and final cost in Fig. 2(b). Thus, retaining the correlations lost at low χ matters for this
+sampling task. This diagnostic measures the limitations
+of the tested MPS approximation; it does not establish
+hardness for all classical simulation methods.
+Figure 2(a) compares hardware and simulated QAOA
+with the classical baselines. Hardware QAOA tracks the
+simulated convergence and achieves lower costs than random sampling and simulated annealing. Partitioning at
+ps = 50 retains convergence close to the unpartitioned
+hardware run, supporting its use to reduce circuit size without losing the useful sampling behavior in this instance.
+SA makes initial progress but triggers the plateau criterion at round 18, with decomposition length 15; QAOA
+continues to improve. These observations compare the
+tested samplers and budgets, rather than establishing a
+general separation from classical optimization.
+
+C.
+
+Partition Size and Circuit Density
+
+The bounds ps ∈ {20, 50, 80} expose a trade-off between
+graph fragmentation and circuit complexity. Aggressive
+partitioning (ps = 20) yields uniformly shallow circuits
+that are readily approximated at low MPS bond dimension
+(χ ≤ 16), but convergence deteriorates as more edges are
+cut. Relaxing the bound to ps = 50 and ps = 80 preserves
+better convergence while reducing hardware requirements
+relative to the unpartitioned problem, but circuit depth
+and routing overhead become heavily dependent on local
+subgraph topology rather than qubit count alone.
+Table I makes this topological dependence explicit. An
+80-qubit circuit has transpiled two-qubit depth 67, whereas
+circuits with only 42–52 qubits reach depths 110–169.
+
+5
+(a) Cost convergence (n=120, |E|=132)
+
+10−4
+
+1.4 · 10−5
+
+10
+
+10−5
+
+1.6 · 10−5
+
+100
+
+1.2 · 10−5
+
+−0.5
+
+Final cost
+
+Mirror fidelity Fmirror
+
+10−3
+
+∥D − D∗ ∥2F /n2
+
+(b) Bond dim. analysis (|E|=132)
+
+1 · 10−5
+
+Decomposition length
+QAOA Sim
+SA
+
+QAOA Sim (ps=50)
+QAOA HW
+
+Uniform Random
+QAOA HW (ps=50)
+
+29
+
+28
+
+25
+
+27
+
+20
+
+26
+
+15
+
+25
+
+10
+
+24
+
+5
+
+22
+
+0
+
+23
+
+10−6
+
+Bond dimension χ
+BKF
+
+Mirror fidelity
+
+Final cost
+
+FIG. 2. Benchmark on synthetic demand graphs inspired by heavy-hex topology (n = 120, |E| = 132). (a) Normalized
+approximation cost versus decomposition length for hardware QAOA, MPS simulation, and classical baselines. All methods
+except greedy Birkhoff (BKF) supply candidates to E-FCFW. (b) Mirror fidelity and final cost versus MPS bond dimension χ:
+retaining more entanglement improves simulation fidelity and candidate quality.
+
+Because qubits represent edges rather than vertices, two
+qubits interact whenever their edges share an endpoint
+vertex. While the synthetic graph is generated on Heron’s
+degree-3 lattice, its line graph (the interaction graph of
+the edge-qubits) introduces triangles and higher local
+connectivity. Subgraphs that contain dense loop structures
+or clustered degree-3 junctions produce tightly coupled
+line graphs that require extensive SWAP routing when
+mapped back onto Heron’s physical qubits.
+Conversely, partitions that form predominantly linear
+paths or open trees route with minimal SWAP overhead.
+Consequently, logical two-qubit depth tracks local interaction density rather than qubit count, and directly governs
+the transpiled routing depth. Recent experimental demonstrations on IBM quantum computers reach two-qubit
+gate depths of up to 452 with reliable output at this
+qubit count [21]. However, qubit count alone is an inadequate partitioning objective: local interaction density and
+hardware embedding determine execution cost. The next
+scaling step should control partition density alongside
+size, retaining enough interactions to challenge classical
+sampling while keeping routed depth manageable.
+
+D.
+
+Deployment on PEGASE-1354
+
+The PEGASE-1354 transmission graph would require
+1,710 qubits under an unpartitioned edge encoding. Spectral partitioning at ps = 50 instead produces 41 subgraphs for distributed execution (illustrated conceptually
+in Fig. 1 and detailed in the complete 41-subgraph layout of Fig. 4, Appendix A.5). Spatial packing combines
+independent subproblems concurrently on a processor;
+specifically, two 38-qubit and two 34-qubit circuits occupy
+144 of the 156 available qubits on ibm_marrakesh, sepa-
+
+TABLE I. Circuit width and two-qubit depth before (logical)
+and after transpilation to IBM Heron. The partition bound
+ps counts edges (qubits). Logical two-qubit depth reflects
+the maximum degree of interacting edge pairs, which governs
+transpiled depth on heavy-hex hardware.
+ps
+80
+
+50
+
+20
+
+Qubits
+80
+52
+46
+49
+42
+50
+20
+
+2Q depth
+28
+66
+62
+74
+50
+38
+14
+
+Transpiled 2Q depth
+67
+169
+133
+164
+110
+119
+24
+
+rated by idle buffer qubits (mapped to physical hardware
+in Fig. 5).
+Figure 3(a) compares convergence under partition
+bounds ps ∈ {20, 50, 80} using MPS tensor network simulation with bond dimension set to χ = 128, compared with
+partitioned SA and repaired uniform random sampling
+baselines. Partitioning at ps = 50 and ps = 80 significantly
+improves on ps = 20, which cuts too many edges and stalls
+early. Under identical ps = 50 partitioning, QAOA sampling achieves lower residual decomposition error than
+simulated annealing and random sampling baselines.
+Figure 3(b) evaluates hardware execution and spatial
+packing on ibm_marrakesh. Unpacked hardware closely
+tracks 128-bond-dimension MPS simulation, reaching
+1.11 × 10−6 at the 20-round limit. Packed execution stops
+at its round-17 plateau with error 1.58 × 10−6 , while reducing measured execution time by approximately 3×.
+The modest difference in final convergence (4.7 × 10−7 ) re-
+
+6
+
+Cost: ∥D − D∗ ∥2F /n2
+
+(a) Partitioning & baselines
+
+(b) Hardware vs. simulation
+
+(c) Impact of repair
+
+10−3
+
+10−3
+
+10−3
+
+10−4
+
+10−4
+
+10−4
+
+10−5
+
+10−5
+
+10−5
+
+10−6
+
+10−6
+
+10−6
+
+0
+
+4
+
+8
+
+12
+
+16
+
+20
+
+0
+
+4
+
+Decomposition length
+
+8
+
+12
+
+16
+
+Decomposition length
+
+20
+
+0
+
+4
+
+8
+
+12
+
+16
+
+20
+
+Decomposition length
+
+QAOA (ps = 50)
+
+QAOA (ps = 80)
+
+QAOA Sim (ps = 50)
+
+Rep. (ps = 50)
+
+Unrep. (ps = 50)
+
+QAOA (ps = 20)
+
+SA (ps = 50)
+
+QAOA HW (ps = 50)
+
+Rep. (ps = 80)
+
+Unrep. (ps = 80)
+
+SA (ps = 80)
+
+Rand. (ps = 50)
+
+QAOA HW packed (3×)
+
+Rep. (ps = 20)
+
+Unrep. (ps = 20)
+
+Rand. (ps = 50)
+
+FIG. 3. Cost convergence of partitioned E-FCFW versus decomposition length on simulation and quantum hardware compared
+with classical baselines, with and without repair. (a) Partitioning bounds ps ∈ {20, 50, 80} evaluated via MPS simulation
+(χ = 128), compared with partitioned simulated annealing (SA) and uniform random sampling baselines (all using feasibility
+repair). (b) Hardware execution on IBM Heron (ibm_marrakesh) tracking 128-bond-dimension MPS simulation, with spatial
+circuit packing yielding a 3× execution speedup with minimal degradation in candidate quality. (c) Convergence with and
+without greedy feasibility repair; discarding invalid matchings without repair stalls QAOA convergence above 10−5 , while uniform
+random sampling without repair yields zero valid matchings. Random sampling is shown with repair. Cost is ∥D − D∗ ∥2F /n2 ;
+decomposition length counts retained matchings, not outer iterations.
+
+flects a practical trade-off: spatial packing constrains each
+circuit to a fixed sub-region, reducing transpiler choice
+for high-fidelity qubits and exposing circuits to potential
+spectator crosstalk, in exchange for a three-fold speedup.
+Figure 3(c) isolates the impact of feasibility repair. Discarding invalid matchings without repair stalls convergence near 10−5 , whereas random sampling without repair produces zero valid matchings and fails to make any
+progress. Random samples with repair improve feasibility
+but retain residual error above 2 × 10−6 , whereas QAOA
+with the same repair reaches 1.1 × 10−6 , demonstrating
+that QAOA provides structured candidates that repair
+enhances rather than replaces.
+
+V.
+
+DISCUSSION AND CONCLUSION
+
+Partitioned QAOA sampling extends E-FCFW decomposition to a 1,710-edge grid using circuits that fit current
+quantum hardware. On the PEGASE-1354 bus test case,
+QAOA with repair improves on random sampling with the
+same repair, and spatial packing reduces execution time
+by approximately a factor of three. These results establish
+an executable distributed workflow for a problem class
+whose classical difficulty makes it relevant to the search
+for quantum advantage.
+For that goal, the partitions must retain a useful quantum sampling task. Reducing them to small, easily simulated fragments would remove the reason to use a quantum
+
+processor. The ps = 50 results provide evidence for this requirement: partitioned hardware retains the unpartitioned
+convergence behavior, while the bond-dimension study
+shows that aggressive truncation of quantum correlations
+degrades candidate quality. This is evidence of a useful
+regime, not proof of classical intractability or quantum
+advantage.
+Beyond partition width, the underlying topology determines where quantum sampling provides distinct utility. While extremely sparse graphs admit efficient classical solutions and dense topologies incur prohibitive
+SWAP-routing overhead, intermediate-density modular
+networks—such as power transmission grids—represent
+the primary target regime. In these modular architectures, classical heuristics frequently become trapped in
+frustrated local minima across partition cut boundaries,
+whereas shallow QAOA states maintain the candidate
+diversity necessary to sustain Frank-Wolfe convergence.
+The next step is to target partitions of at least 100
+qubits and vary their density systematically: enough connectivity to preserve useful quantum correlations, with
+transpiled two-qubit depth low enough for reliable execution. Table I shows why width and density must be
+optimized together.
+Preliminary work towards this has been carried out on
+three benchmark instances from QOBLIB’s MBD track up
+to 4,096 variables [7], using partitioned QAOA executed
+on IBM Heron hardware. The initial results show that the
+method consistently reaches the target tolerance within
+
+7
+15 outer iterations and achieves substantially sparser decompositions (retaining 50 to 75 matchings) than classical
+greedy baselines such as Birkhoff+ (which required over
+250 matchings). Future work will extend this evaluation
+across the full benchmark suite with comprehensive runtime accounting and comparisons against strong classical
+solvers. The objective is to preserve a useful quantum
+contribution within each partition as the overall problem
+grows.
+
+DATA AND CODE AVAILABILITY
+
+The pipeline implementation, example Divi workflows,
+demonstration notebooks, and benchmark datasets will
+be made available. Code requests may be addressed to
+the authors.
+
+ACKNOWLEDGEMENTS
+
+We acknowledge support from the UK STFC National Quantum Computing Centre SparQ programme
+through grant SQPOC02 to Qoro Quantum Ltd., entitled “Quantum-Enhanced Optimisation for Peer-to-Peer
+Energy Trading”.
+
+Appendix A: Extended Methods and Hardware
+Layouts
+1.
+
+Parameter Calibration and Sampling Budgets
+
+Offline training uses small prototypes (N ≤ 16) with
+similar topology, degree distribution, and edge-weight encoding to the target family. The prototype calibration
+requires approximately 100 parallel circuits and about ten
+minutes of MPS simulation in the reported setup. The
+resulting angles are transferred to larger circuits instead
+of being optimized at each E-FCFW iteration.
+For the PEGASE bus test case, the calibration landscape in Fig. 6 is evaluated on a representative 49-qubit
+partition with Maestro at bond dimension 128, scanning
+γ ∈ [−π, π] and β ∈ [0, π/4]. Its marked minimum near
+(γ0 , β0 ) = (2.49, 0.16) supplies fixed execution angles [with
+an equivalent symmetric basin near (−0.65, 0.16) due to
+π-periodicity in γ]. Finite bond dimension makes this an
+approximate MPS calibration; bond dimension 128 alone
+does not guarantee exact simulation of a 49-qubit circuit.
+SA uses a geometric cooling schedule with 1,000 sweeps
+per read and 1,500 reads per partition per round, totaling 1.5 × 106 sweeps per partition. In preliminary tuning, increasing the sweep count beyond 1,000 yielded diminishing energy improvements due to thermalization
+saturation, while generating 1,500 independent Markov
+chain reads provided comparable serial CPU runtime to
+the acquisition window of 25,000 quantum measurement
+shots. Because quantum projective measurements sample
+
+independent configurations without sequential equilibration sweeps, the shot count reflects hardware execution
+throughput rather than matched algorithmic operations.
+Candidate ranking and the outer stopping criteria are
+shared across sampling methods.
+During hardware benchmarking on ibm_kingston and
+ibm_marrakesh, we evaluated dynamical decoupling [22]
+with an Xp Xm pulse sequence and Pauli gate twirling
+with 32 randomizations [23]. However, for shallow p = 1
+QAOA sampling across distributed partitions, the additional pulse overhead and circuit duration increased effective decoherence and sampling variance without improving
+the downstream repaired candidate quality. We therefore
+used Qiskit’s heuristic transpilation passes (optimization
+level 3) focused strictly on minimizing SWAP routing and
+two-qubit depth, leaving feasibility enforcement to the
+classical greedy repair routine.
+Writing ck = ∥Dk − D∗ ∥2F /n2 , the loop stops when
+ck+1 ≤ 10−6 , when |ck+1 − ck |/ck ≤ 10−3 for ck > 0, or
+after 20 iterations. Decomposition length is |{l : αl >
+0}|. Thus a run’s round count and its final horizontal
+coordinate in the convergence plots need not coincide.
+
+Algorithm 1: Partitioned E-FCFW Pipeline
+Input: Demand matrix D∗ , convergence tolerance ϵ,
+max iterations K, sample count d, partition
+bound ps .
+|M|
+Output: Sparse decomposition {(αl , Ml )}l=1 .
+Initialize M ← ∅, D0 ← 0;
+for k = 0, 1, . . . , K − 1 do
+Construct residual graph Gk from D∗ − Dk ;
+Partition Gk into subgraphs {G1 , . . . , Gm } with at
+most ps edges using recursive spectral partitioning;
+for each subgraph Gi in parallel do
+Formulate QUBO Hamiltonian ĤC,i ;
+Execute shallow QAOA circuit with
+pre-selected parameters (γ, β) = (γ0 , β0 );
+sample candidate set Si ;
+end
+Recombine local samples via beam search or
+Cartesian stitching;
+Apply greedy repair; retain the top d distinct
+matchings as Msample ;
+Compute a global maximum-weight matching
+M M W on Gk ;
+Update M ← M ∪ {M M W } ∪ Msample ;
+Solve cardinality-constrained QP over M to update
+weights α and iterate Dk+1 ;
+Prune matchings with zero weight (αl = 0) from
+active set M;
+if ∥Dk+1 − D∗ ∥2F /n2 ≤ ϵ or cost improvement has
+plateaued then
+break;
+end
+end
+
+8
+Circuit 2 (38 Qubits)
+
+Circuit 4 (34 Qubits)
+
+140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155
+136
+
+137
+
+138
+
+139
+
+120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135
+116
+
+117
+
+118
+
+119
+
+100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115
+96
+80
+
+81
+
+82
+
+83
+
+97
+84
+
+76
+60
+
+61
+
+85
+
+86
+
+41
+
+62
+
+63
+
+64
+
+65
+
+42
+
+43
+
+21
+
+23
+
+66
+
+44
+
+45
+
+46
+
+24
+
+25
+
+FIG. 4. PEGASE-1354 partitioned into 41 subgraphs with
+edge bound ps = 50. Colors distinguish neighboring partitions;
+gray lines are internal edges and dashed red lines are cut edges.
+Shaded regions illustrate individual partitions.
+
+2.
+
+Stitching and Feasibility Repair
+
+Cartesian stitching evaluates cross-products in local
+batches capped at 55 combinations per step. The alternative beam search groups subgraphs hierarchically, retains
+at most 200 candidates per group, and prunes pairwise
+combinations back to this limit at each merge-tree level.
+Both methods limit the otherwise exponential number of
+combinations.
+Raw stitched candidates frequently violate matching
+feasibility due to two distinct sources of collisions: (i)
+intra-partition collisions, where shallow circuits and finite
+QUBO penalties (λ = 0.2) permit adjacent edges to be
+sampled within a partition; and (ii) boundary collisions,
+where independent subproblems select edges incident on
+the same shared cut vertex across partition boundaries.
+Feasibility repair resolves these conflicts via a greedy
+pruning pass over the candidate edge set Ẽ = {ej ∈ E :
+xj = 1} extracted from the stitched bitstring:
+1. The edges in Ẽ are sorted in descending order of
+current residual weights w(ej ) = (D∗ − Dk )uv , with
+ties broken deterministically by edge index.
+2. An initially empty matching M ← ∅ and an occupied vertex set Vocc ← ∅ are initialized.
+3. Each edge e = (u, v) ∈ Ẽ is evaluated in sorted
+order: if u ∈
+/ Vocc and v ∈
+/ Vocc , the edge is accepted (M ← M ∪{e}) and its endpoints are marked
+(Vocc ← Vocc ∪ {u, v}); otherwise, it is discarded.
+Unselected edges (xj = 0) are never introduced, ensuring
+repair acts strictly as a conflict-resolution filter on the
+quantum candidate rather than an augmenting heuristic.
+
+1
+
+2
+
+3
+
+5
+
+99
+92
+
+67
+
+68
+
+69
+
+47
+
+26
+
+27
+
+6
+
+7
+
+93
+
+94
+
+95
+
+75
+
+79
+70
+
+71
+
+72
+
+73
+
+74
+
+52
+
+53
+
+54
+
+55
+
+35
+
+58
+48
+
+49
+
+50
+
+51
+
+59
+
+28
+
+29
+
+39
+30
+
+17
+4
+
+91
+
+38
+
+16
+0
+
+90
+
+78
+
+37
+22
+
+89
+
+57
+
+36
+20
+
+98
+88
+
+77
+
+56
+40
+
+87
+
+31
+
+32
+
+33
+
+34
+
+12
+
+13
+
+14
+
+18
+8
+
+9
+
+10
+
+11
+
+19
+15
+
+Circuit 1 (38 Qubits)
+
+Circuit 3 (34 Qubits)
+
+Sub-problem 1
+
+Sub-problem 2
+
+Sub-problem 3
+
+Sub-problem 4
+
+Buffer / Idle
+
+FIG. 5. Spatial packing on the 156-qubit IBM Heron processor ibm_marrakesh. Two 38-qubit and two 34-qubit circuits
+occupy 144 qubits in disjoint regions. Idle qubits and unused
+cross-boundary couplers separate the circuits.
+
+The procedure runs in O(|Ẽ| log |Ẽ|) time and guarantees
+matching feasibility. While repair alters the raw sampling
+distribution, candidate quality is strictly bounded by the
+edge set Ẽ proposed by the quantum sampler, which is why
+structured QAOA samples outperform uniform random
+samples under the identical repair procedure.
+3.
+
+MPS Mirror Diagnostic
+
+We assess MPS truncation error using Maestro’s native
+mirror fidelity check (maestro.mirror_fidelity), which
+implements a deterministic compute-uncompute diagnostic conceptually related to the mirror-circuit principle
+[24].
+For a QAOA state-preparation circuit U on N = |E| =
+132 qubits (comprising initial Hadamard gates applied
+to |0⟩⊗N followed by the parameterized cost and mixer
+layers), Maestro appends the adjoint circuit U † in reverse
+order. In exact execution, U † U |0⟩⊗N = |0⟩⊗N , returning the initial state with unit probability. Under MPS
+simulation at bond dimension χ, singular-value truncations during both forward and reverse passes introduce
+approximation errors that reduce the return probability.
+Because full statevector inner products are intractable on
+132 qubits, Maestro evaluates this diagnostic empirically
+via shot-based sampling in the computational basis. Over
+S = 15,000 measurement shots, the mirror fidelity is the
+observed frequency of the all-zero bitstring:
+N ⊗N
+F̂mirror (χ) = 0 ,
+(A1)
+S
+where N0⊗N is the count of shots yielding 0⊗N . Departures from unity diagnose entanglement truncation in the
+
+9
+
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1
+0.0
+
+Minimum: ( =2.49, =0.16)
+
+3
+
+2
+
+1
+
+0
+
+1
+
+Problem Angle [rad]
+
+2
+
+3
+
+200
+175
+150
+125
+100
+75
+50
+25
+0
+
+Expected Cost HC
+
+Mixer Angle [rad]
+
+MPS representation. As noted in Section IV B, this return
+probability characterizes the accuracy of the MPS approximation on the compute-uncompute trajectory rather
+than certifying the forward state directly, and is analyzed
+alongside downstream optimization cost.
+
+FIG. 6. QAOA energy landscape for a representative 49-qubit
+PEGASE partition, simulated with Maestro at bond dimension 128. The marked minimum near (γ0 , β0 ) = (2.49, 0.16)
+supplies fixed angles for the PEGASE-1354 transmission graph
+experiments.
+
+[1] Naeimeh Mohseni, Thomas Morstyn, Corey O’Meara,
+David Bucher, Jonas Nüßlein, and Giorgio Cortiana, “Evidence of quantum scaling advantage in approximate optimization for energy coalition formation with 100+ agents,”
+Quantum Science and Technology 11, 015009 (2026).
+[2] David Bucher, Giorgio Cortiana, Naeimeh Mohseni, Corey
+O’Meara, et al., “Evaluating quantum computing for energy grid management: Benchmarking qaoa on transmission and distribution networks,” IEEE Transactions on
+Smart Grid 15, 5241–5253 (2024).
+[3] Jonas Blenninger, David Bucher, Giorgio Cortiana, Kumar Ghosh, Naeimeh Mohseni, Jonas Nüßlein, Corey
+O’Meara, Daniel Porawski, and Benedikt Wimmer, “Qgrid: quantum optimization for the future energy grid,”
+KI-Künstliche Intelligenz 38, 339–349 (2024).
+[4] Priyanka Arkalgud Ganeshamurthy, Kumar Ghosh, Corey
+O’Meara, Giorgio Cortiana, Jan Schiefelbein-Lach, and
+Antonello Monti, “Next generation power system planning
+and operation with quantum computation,” IEEE Access
+12, 182673–182692 (2024).
+[5] Richard A Brualdi, “Notes on the birkhoff algorithm for
+doubly stochastic matrices,” Canadian Mathematical Bulletin 25, 191–199 (1982).
+[6] Fanny Dufossé and Bora Uçar, “Notes on birkhoff–von
+neumann decomposition of doubly stochastic matrices,”
+
+4.
+
+Orchestration and Circuit Scheduling
+
+Divi represents residual subgraphs as MaxWeight
+MatchingProblem instances within a Partitioning
+ProgramEnsemble, dispatches
+them
+through
+QoroService, and coordinates reconstruction and
+repair. Qoro’s scheduler orders circuits by size and packs
+them into execution rounds with a shared shot count.
+It can replicate circuits with large shot requirements
+on remaining qubits and adjust shot allocation to avoid
+sparsely filled final rounds. Disjoint register regions
+and idle buffer qubits separate packed circuits. This
+reduces dispatch rounds by up to 4× in the reported
+configurations; the observed PEGASE execution-time
+reduction is approximately 3×.
+5.
+
+Partition and Packing Layouts
+
+Figures 4 and 5 expand the partitioning and packing
+stages of the workflow illustrated in Fig. 1. The PEGASE1354 layout shows 41 subgraphs, with a four-coloring of the
+quotient graph to distinguish the subgraphs, emphasizing
+the splitting up of the workload at the level of the principal
+problem. The packing layout places four independent
+circuits (corresponding to different subgraphs) on one
+Heron processor to be run simultaneously within the same
+QPU run for a higher ratio of QPU utilization. Spatial
+circuit packing was possible in this instance because the
+samples of one subgraph do not sequentially depend on
+those of another.
+
+Linear Algebra and its Applications 497, 108–115 (2016).
+[7] Thorsten Koch, David E Bernal Neira, Ying Chen, Giorgio Cortiana, Daniel J Egger, Raoul Heese, Narendra N
+Hegade, Alejandro Gomez Cadavid, Rhea Huang, Toshinari Itoko, et al., “The quantum optimization benchmarking library,” Nature Computational Science 6, 653–671
+(2026).
+[8] George Pennington, Naeimeh Mohseni, Oscar Wallis,
+Francesca Schiavello, Stefano Mensa, Corey O’Meara, Giorgio Cortiana, and Víctor Valls, “Boosting sparsity in
+graph decompositions with qaoa sampling,” arXiv preprint
+arXiv:2509.10657 (2025).
+[9] Edward Farhi and Aram W. Harrow, “Quantum
+supremacy through the quantum approximate optimization algorithm,” arXiv preprint arXiv:1602.07674 (2016).
+[10] Filip B. Maciejewski, Bao Gia Bach, Maxime Dupont,
+P. Aaron Lott, Bhuvanesh Sundar, David E. Bernal Neira,
+Ilya Safro, and Davide Venturelli, “A multilevel approach
+for solving large-scale qubo problems with noisy hybrid quantum approximate optimization,” arXiv preprint
+arXiv:2408.07793 (2024).
+[11] Junde Li, Mahabubul Alam, and Swaroop Ghosh, “Largescale quantum approximate optimization via divide-andconquer,” IEEE Transactions on Computer-Aided Design
+of Integrated Circuits and Systems 42, 1852–1860 (2022).
+
+10
+[12] Leon Thurner, Alexander Scheidler, Florian Schäfer, JanHendrik Menke, Jannis Dollichon, Friederike Meier, Steffen
+Meinecke, and Martin Braun, “pandapower—an opensource python tool for convenient modeling, analysis, and
+optimization of electric power systems,” IEEE Transactions on Power Systems 33, 6510–6521 (2018).
+[13] Srdjan Durkovic and Zoran Cica, “Birkhoff-von neumann
+switch based on greedy scheduling,” IEEE Computer Architecture Letters 17, 13–16 (2017).
+[14] Cyrille W Combettes and Sebastian Pokutta, “Revisiting
+the approximate carathéodory problem via the frank-wolfe
+algorithm,” Mathematical Programming 197, 191–214
+(2023).
+[15] Víctor Valls, George Iosifidis, and Leandros Tassiulas,
+“Birkhoff’s decomposition revisited: Sparse scheduling for
+high-speed circuit switches,” IEEE/ACM Transactions on
+Networking 29, 2399–2412 (2021).
+[16] Jack Edmonds, “Paths, trees, and flowers,” Canadian Journal of Mathematics 17, 449–467 (1965).
+[17] Elijah Pelofske, Andreas Bärtschi, Lukasz Cincio, John
+Golden, and Stephan Eidenbenz, “Scaling whole-chip
+qaoa for higher-order ising spin glass models on heavy-hex
+graphs,” npj Quantum Information 10, 109 (2024).
+[18] Qoro Quantum, “Divi: A python library to automate generating, parallelizing, and executing quantum programs,”
+
+https://github.com/QoroQuantum/divi (2024).
+[19] Scott Kirkpatrick, C Daniel Gelatt Jr, and Mario P Vecchi,
+“Optimization by simulated annealing,” Science 220, 671–
+680 (1983).
+[20] Oriol Bertomeu, Hamzah Ghayas, Adrian Roman,
+and Stephen DiAdamo, “Maestro: Intelligent execution for quantum circuit simulation,” arXiv preprint
+arXiv:2512.04216 (2025).
+[21] Gavin S Hartnett, Khadijeh Sona Najafi, Aleksei Khindanov, Haoran Liao, Michael Schutzman, Michael R Hush,
+Michael J Biercuk, and Yuval Baum, “Fast, accurate,
+high-resolution simulation of large-scale fermi-hubbard
+models on a digital quantum processor,” arXiv preprint
+arXiv:2605.04025 (2026).
+[22] Lorenza Viola, Emanuel Knill, and Seth Lloyd, “Dynamical decoupling of open quantum systems,” Physical Review
+Letters 82, 2417 (1999).
+[23] Nic Ezzell, Bibek Pokharel, Lina Tewala, Gregory Quiroz,
+and Daniel A Lidar, “Dynamical decoupling for superconducting qubits: A performance survey,” Physical Review
+Applied 20, 064027 (2023).
+[24] Timothy Proctor, Kenneth Rudinger, Kevin Young, Erik
+Nielsen, and Robin Blume-Kohout, “Measuring the capabilities of quantum computers,” Nature Physics 18, 75–79
+(2022).
+
+
