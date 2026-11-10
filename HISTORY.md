@@ -450,4 +450,6 @@ forecaster 'actrank'; `QEST_DAYS` subsets. Results, walk-forward: deciders on th
 +6.7 % (+1.5 to +2.6 M, all significant; +7 to +10 % over Chronos-2 + MILP) and under the 25 MW cap by +8.3 / +8.6 % on Q3
 and +8.1 / +8.5 % on Q4 (significant). Sampler fidelity is not what pays: 4 exact scenarios beat 16, the single-flip
 MCMC beats the quantum one; day-level sampler benchmark: quantum proposal equal to local on marginals, worse on
-persistence, 80x the time; tempering helps both. Whole-year capped run and the deck update follow.
+persistence, 80x the time; tempering helps both. Whole year under the 25 MW cap (11 Nov): `milp_scenf` +5.4 % (+1.65 M
++- 0.53 M, 204 / 291 days, every month positive), `milp_scenf16` +5.1 %; MCMC-sampled plans under the cap +8.8-10.2 % on
+Q3 / Q4. Deck v14 (17 slides): new 'scenarios' slide, payback and verdict rewritten. Scripts copied into scripts/.

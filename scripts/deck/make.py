@@ -135,14 +135,15 @@ S['activations'] = sec('activations', h2("Modelling the TSO instead of waiting f
 SC_YEAR = [('4 exact chain scenarios', 41_280_072, '+€2.59 M ± €0.90 M', '193 / 291'), ('16 exact', 40_740_475, '+€2.05 M ± €0.81 M', '192 / 291'),
            ('8 from single-flip MCMC', 40_538_346, '+€1.85 M ± €0.85 M', '167 / 291'), ('8 exact', 40_273_730, '+€1.59 M ± €0.88 M', '174 / 291'),
            ('8 from quantum-enhanced MCMC', 40_236_167, '+€1.55 M ± €0.82 M', '194 / 291')]
-SC_CAP = [('Q3, 92 days, 8 exact', 6_036_478, 6_537_381, '+€501k ± €183k', '65 / 92'), ('Q3, 16 exact', 6_036_478, 6_554_144, '+€518k ± €174k', '69 / 92'),
-          ('Q4, 25 days, 8 exact', 1_327_164, 1_435_138, '+€108k ± €72k', '17 / 25'), ('Q4, 16 exact', 1_327_164, 1_440_006, '+€113k ± €90k', '18 / 25')]
+SC_CAP = [('Whole year, 291 days, 8 exact', 30_375_085, 32_023_349, '+€1.65 M ± €0.53 M', '204 / 291'), ('Whole year, 16 exact', 30_375_085, 31_927_225, '+€1.55 M ± €0.60 M', '204 / 291'),
+          ('Q3, 92 days, 8 exact', 6_036_478, 6_537_381, '+€501k ± €183k', '65 / 92'), ('Q3, 8 from quantum-enhanced MCMC', 6_036_478, 6_567_639, '+€531k ± €179k', '67 / 92'),
+          ('Q4, 25 days, 8 exact', 1_327_164, 1_435_138, '+€108k ± €72k', '17 / 25'), ('Q4, 8 from quantum-enhanced MCMC', 1_327_164, 1_460_775, '+€134k ± €78k', '19 / 25')]
 ACTR = 38_688_597
 S['scenarios'] = sec('scenarios', h2("The uncertainty object pays: planning over joint activation scenarios beats the best deterministic plan in both settlements",
   "Two-stage MILP (qest.stoch): the day-ahead position and the capacity offers are decided once, the battery's response per scenario. Recourse mirrors settlement: an in-the-money bid delivers its whole activated MW, what the SoC cannot back is a deviation at the imbalance price, and under the cap the TSO activates at most its volume. Scenarios are exact draws of the fitted activation chain, rescaled to the plan's own activation probability at its bid margin. Walk-forward, every month from the months before it.") + f"""
 <div style="display:flex;gap:20px">
 {stat('+6.7 %', f'2026 season, organisers’ rules: €41.28 M against €{ACTR/1e6:.2f} M for the rank-gated deterministic plan (+€2.59 M ± €0.90 M, 193 of 291 days); +10.1 % over Chronos-2 + MILP', AQUA)}
-{stat('+8.3 % · +8.1 %', 'Q3 and Q4 under the realistic 25 MW activation cap (+€501k ± €183k, 65 of 92 days; +€108k ± €72k, 17 of 25): the aFRR energy leg more than doubles at unchanged capacity and imbalance', AQUA)}
+{stat('+5.4 %', 'whole year under the realistic 25 MW activation cap: €32.02 M against €30.38 M (+€1.65 M ± €0.53 M, 204 of 291 days), positive in every month; Q3 +8.3 %, Q4 +8.1 %. The aFRR energy leg more than doubles at unchanged capacity and imbalance', AQUA)}
 {stat('not fidelity', '4 exact scenarios beat 16; the single-flip MCMC sampler beats the quantum-enhanced one; all five variants sit within each other’s intervals. The plan pays for scenarios, not for their accuracy', ORANGE)}
 </div>
 <div style="display:flex;gap:24px;align-items:flex-start">
@@ -171,7 +172,7 @@ S['payback'] = sec('payback', h2(f'Expected 2026 revenue: €{BASE/1e6:.1f} M ba
 <div style="display:flex;gap:20px">
 {rule('Break-even uplift', f'€30k / €{BASE/1e6:.1f} M = {100*30e3/BASE:.2f} % (€{30e3/291:,.0f} a day) · €300k = {100*300e3/BASE:.2f} % (€{300e3/291:,.0f} a day). The live QPU sits at −0.13 %, the distilled one at −0.51 %.')}
 {rule('Under the Estonian cap (25 MW, Q4)', 'MILP €1,328,436 · distilled €1,315,734 (−0.96 %) · live QAOA €1,313,247 (−1.14 %): the ranking survives the faithful market.')}
-{rule('What pays: information and recourse, not the solver', 'The activation model with a ranking gate: +3.2 % over the year (±2.1 %), +0.3 % under the cap. Planning over its scenarios with a settlement-faithful recourse: a further +6.7 % (±2.3 %) uncapped and +8 % under the cap. Every quantum decider on the same inputs: ±0.7 %, inside noise.')}
+{rule('What pays: information and recourse, not the solver', 'The activation model with a ranking gate: +3.2 % over the year (±2.1 %), +0.3 % under the cap. Planning over its scenarios with a settlement-faithful recourse: a further +6.7 % (±2.3 %) uncapped and +5.4 % (±1.8 %) under the cap over the year. Every quantum decider on the same inputs: ±0.7 %, inside noise.')}
 </div>""", gap=22)
 S['verdict'] = sec('verdict', h2('Verdict: the euros came from modelling the TSO and the recourse; the qubits tie the MILP and sample no better than tempering') + f'''
 <div style="display:flex;gap:24px">
@@ -182,7 +183,7 @@ S['verdict'] = sec('verdict', h2('Verdict: the euros came from modelling the TSO
 <div style="display:flex;gap:20px">
 {rule('Why parity', "At 24–25 binaries a GPU enumerates the QUBO in a second; every decider returns the MILP's pattern on ~80 % of days. One forecast, one optimum: the sampler cannot add information.")}
 {rule('Where the qubits were measured, honestly', 'Quantum-proposal MCMC on 16-qubit activation windows: fastest decorrelation per step (12–22 vs 15–35), but a classical tempering ladder does more for the marginals at a 200th of the time, and whole-day scenarios from either sampler earn the same in the plan. Deciders on the best inputs: ±0.7 %, the QUBO surrogate is the ceiling (QAOA hits its optimum on 94–98 % of days).')}
-{rule('Next', "Whole-year scenario plan under the cap (running); Elering's activated volumes (CSV inbox ready) to make the cap the real series; a joint target beyond the chain (aFRR + borders + FI price) where the quantum sampler has a job; the distilled training set on IQM / IBM for about $3k.")}
+{rule('Next', "Elering's activated volumes (CSV inbox ready) to make the cap the real series; a joint target beyond the chain (aFRR + borders + FI price) where the quantum sampler has a job; the distilled training set on IQM / IBM for about $3k.")}
 </div>''')
 order = ['cover', 'gates', 'sites', 'taxonomy', 'pipeline', 'forecast', 'day', 'bids', 'markets', 'matrix', 'gap', 'real', 'activations', 'scenarios', 'distill', 'payback', 'verdict']
 for k in order: (D / 'slides' / f'{k}.html').write_text(S[k])

@@ -114,12 +114,30 @@ put the cap on the expected energy instead of the MW lost 6-9 %; corrected:
 |---|---:|---:|---:|---:|
 | `milp_scenf` (8 exact scenarios) | 6,537,381 | **+8.3 % (+501k +- 183k, 65 / 92)** | 1,435,138 | **+8.1 % (+108k +- 72k, 17 / 25)** |
 | `milp_scenf16` (16 exact) | 6,554,144 | **+8.6 % (+518k +- 174k, 69 / 92)** | 1,440,006 | **+8.5 % (+113k +- 90k, 18 / 25)** |
+| `milp_scenf_ls` (8, single-flip MCMC day sampler) | 6,617,897 | +9.6 % (+581k +- 174k, 72 / 92) | 1,462,542 | +10.2 % (+135k +- 83k, 18 / 25) |
+| `milp_scenf_qs` (8, quantum-enhanced MCMC day sampler) | 6,567,639 | +8.8 % (+531k +- 179k, 67 / 92) | 1,460,775 | +10.1 % (+134k +- 78k, 19 / 25) |
 
 Under the cap the deterministic plan hardly trades energy (DA -10k on Q3) because the capped activation energy cannot pay
 for it; the scenario plan buys 1.36 M of day-ahead energy and more than doubles the aFRR energy income (3.1 M against
 1.4 M) at unchanged mFRR, capacity and imbalance. This is the largest gain under the realistic settlement found in the
 project, significant in both quarters, and it comes from the uncertainty object, not from a forecaster or a solver.
-Whole year under the cap and the MCMC samplers under the cap: section 1f (running).
+
+### 1f. The whole year under the 25 MW cap: the number of record for the realistic settlement
+
+291 days, walk-forward, cap-aware scenario plan against the volume-aware deterministic plans (`milp_act_rank` 30,375,085;
+Chronos-2 + MILP 30,277,111):
+
+| Plan, 25 MW cap, whole year | Revenue | vs `milp_act_rank` | vs Chronos-2 + MILP | Days won | Mar-Oct only (239 d) |
+|---|---:|---:|---:|---:|---:|
+| `milp_scenf` (8 exact scenarios) | **32,023,349** | **+5.4 % (+1.65 M +- 0.53 M)** | +5.8 % | 204 / 291 | +7.1 % (+1.45 M +- 0.32 M, 176 / 239) |
+| `milp_scenf16` (16 exact) | 31,927,225 | +5.1 % (+1.55 M +- 0.60 M) | +5.5 % | 204 / 291 | +7.0 % (+1.44 M +- 0.40 M, 178 / 239) |
+
+By month (8 exact): Jan +1.2, Feb +2.7, Mar +3.1, Apr +7.6, May +11.4, Jun +5.0, Jul +9.2, Aug +6.3, Sep +9.3, Oct +8.1 %:
+positive in every month, growing with the activation model's history. (`milp_scenf4` was run under the cap on Jan-Jun only,
++1 to +13 % by month; not quoted for the year.) Under the organisers' rules the same plan family is +4 to +7 %
+(section 1d). The two settlements now agree on the direction and roughly the size, which the deterministic activation
+model never achieved (+3.2 % against +0.3 %): sizing the aFRR leg by scenarios is worth more when the TSO caps the volume,
+because the deterministic plan then stops trading energy altogether.
 
 Settlement itself shows what the deterministic plan does: priced out on 45 % of direction-MTUs (87 of 192 per unit-day),
 626 MWh of UP activation a day, a positive imbalance component (+208k on the 7 days): a one-sided position (buy DA, hold a
@@ -179,4 +197,28 @@ solver, qubit count or distillation can lift this line above the MILP; its value
 season for $0 of QPU time) and the demonstration that the day's charge / discharge pattern is a 24-bit problem a 2026
 device solves. The euros are in the inputs (section 1), where the sampler lives.
 
-## 4. Qubit budget and commercial efficiency (to be completed with sections 2-3)
+## 4. Qubit budget and commercial efficiency: what a QPU should be asked to do here
+
+The 2026 entries that convinced juries (research/README.md) did three things: a real problem with company data, a hybrid
+pipeline that runs end to end, and a stated commercial effect. The ones that convinced reviewers added a random or
+classical control and a cost per decision. This project has all five; the numbers below are the honest version of
+"optimal utilisation of the qubits" for this problem.
+
+| Where a QPU could sit | Qubits | Calls a season | What it earns here | Verdict |
+|---|---:|---:|---|---|
+| Deciding the day's charge / discharge pattern (LR-QAOA, monolithic) | 24-25 | 582 | +-0.7 % of the MILP, inside noise, on every input set tried; QUBO optimum hit 94-98 % | solved; the surrogate is the ceiling, not the solver |
+| Same, partitioned 12-qubit windows, live | 12 | 5,878 | same euros, $4-472k a season across vendors | 5 % of the qubits of the monolithic job, same answer |
+| Same, distilled once (IonQ's route, `qdistill`) | 12 (training only) | 1,891 once, then 0 | same euros, $1.4-152k once, $0 after | the only live-QPU design that is affordable per decision |
+| PCE on the windows (`qsota`) | 4 | 5,878 | 0.74 hit against 0.76 for QAOA | the 2026 qubit-efficient route, 3x fewer qubits again |
+| Sampling joint activation scenarios (quantum-enhanced MCMC, `qscen_q`) | 16 per window, 12 windows a day | 3,492 windows a season x 300 steps | plan euros equal to the exact chain and to single-bit flips; per-step mixing 1.5-2x faster, wall time 80-250x | not needed while the target is a chain; the candidate job when it is not |
+| Forecasting (quantum reservoir, `qforecast`, `qrc`) | 8-12 | daily | loses to Chronos-2 alone, trims balancing errors blended | a feature, not a forecaster |
+
+What moved the euros (whole year, walk-forward, organisers' rules; 25 MW cap in brackets): Chronos-2 + MILP 37.48 M ->
+activation model with ranking gate +3.2 % (+0.3 %) -> two-stage scenario plan +6.7 % more (+8 % on Q3-Q4). Both steps
+are classical and cost cents of compute. The qubits did not move euros on this data, and the design that keeps them in the
+pipeline at an affordable price is: sample once, distil, decide classically; bring the QPU back as a scenario source only
+when the joint target (aFRR + both borders + the Finnish price) stops being exactly samplable, and then benchmark it
+against tempering, which is the cheaper classical upgrade this note found.
+
+Costs quoted at Nov 2026 list prices (Braket $0.30 a task + per shot: IonQ Forte $0.08, IQM Garnet $0.00145, Rigetti
+Cepheus $0.000425; IBM $96 a QPU-minute); the GPU statevector time for the sampler is on an H100-class card.
