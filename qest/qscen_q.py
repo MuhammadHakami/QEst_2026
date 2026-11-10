@@ -40,28 +40,87 @@ def energies(P, X, t0, z0):
     out = np.zeros(4 ** W); out[code] = E; return torch.as_tensor(out, dtype=torch.float32, device=DEV)
 
 
-def mcmc(E, steps, quantum, chains=256, seed=0, T=1.0):
-    """Metropolis at temperature T with a quantum or a single-flip proposal. Returns the visited states (steps, chains)."""
-    g = torch.Generator(device=DEV).manual_seed(seed); N = len(E); Es = E - E.min(); scale = Es.std().clamp(min=1e-6)
-    alpha = math.sqrt(NQ) / scale  # cost to mixer scale, as qest.qmcmc
-    s = torch.randint(0, N, (chains,), device=DEV, generator=g); out = torch.zeros(steps, chains, dtype=torch.long, device=DEV); acc_n = 0
+def _propose(s, Es, alpha, quantum, g):
+    """One proposal per chain. Es: (chains, N) energies shifted to min 0 (per chain). quantum: Trotterised evolution under
+    (1 - g) alpha E + g H_X from |s>, then measure; else a single-bit flip."""
+    chains, N = Es.shape
+    if not quantum:
+        return s ^ (1 << torch.randint(0, NQ, (chains,), device=DEV, generator=g))
+    gm = .25 + .35 * torch.rand(chains, 1, device=DEV, generator=g); t = 2 + 18 * torch.rand(chains, 1, device=DEV, generator=g)
+    psi = torch.zeros(chains, N, dtype=torch.complex64, device=DEV); psi[torch.arange(chains, device=DEV), s] = 1
+    dc = ((1 - gm) * alpha[:, None] * t / TROTTER).float(); dm = (gm * t / TROTTER)[:, 0].float()
+    c, sn = torch.cos(dm).to(torch.complex64)[:, None, None], (-1j * torch.sin(dm)).to(torch.complex64)[:, None, None]
+    for _ in range(TROTTER):
+        psi = psi * torch.exp(-1j * dc * Es.float())
+        for q in range(NQ):
+            v = psi.view(chains, N >> (q + 1), 2, 1 << q); a0, a1 = v[:, :, 0], v[:, :, 1]
+            psi = torch.stack([c * a0 + sn * a1, sn * a0 + c * a1], 2).reshape(chains, N)
+    pr = psi.abs() ** 2; return torch.multinomial(pr / pr.sum(1, keepdim=True), 1, generator=g)[:, 0]
+
+
+def mcmc(E, steps, quantum, chains=256, seed=0, T=1.0, temps=None, init=None):
+    """Metropolis at temperature T with a quantum or a single-flip proposal. E: (N,) one target for every chain, or
+    (chains, N) one target per chain (the day sampler: each chain conditions on its own previous state). temps: parallel
+    tempering (Marshall & Egger, arXiv:2602.06171): replicas at these temperatures (first = T), adjacent swaps after every
+    step; the T replica is returned. Returns (visited states (steps, chains), acceptance at T)."""
+    g = torch.Generator(device=DEV).manual_seed(seed)
+    E2 = E if E.dim() == 2 else E[None].expand(chains, -1); chains, N = E2.shape
+    Es = E2 - E2.min(1, keepdim=True).values; scale = Es.std(1).clamp(min=1e-6); alpha = math.sqrt(NQ) / scale  # cost to mixer scale, as qest.qmcmc
+    temps = [T] if temps is None else list(temps); R = len(temps); ar = torch.arange(chains, device=DEV)
+    s = torch.stack([torch.randint(0, N, (chains,), device=DEV, generator=g) for _ in range(R)]) if init is None else init.clone()
+    out = torch.zeros(steps, chains, dtype=torch.long, device=DEV); acc_n = 0
     for k in range(steps):
-        if quantum:
-            gm = .25 + .35 * torch.rand(chains, 1, device=DEV, generator=g); t = 2 + 18 * torch.rand(chains, 1, device=DEV, generator=g)
-            psi = torch.zeros(chains, N, dtype=torch.complex64, device=DEV); psi[torch.arange(chains), s] = 1
-            dc = ((1 - gm) * alpha * t / TROTTER).float(); dm = (gm * t / TROTTER)[:, 0].float()
-            c, sn = torch.cos(dm).to(torch.complex64)[:, None, None], (-1j * torch.sin(dm)).to(torch.complex64)[:, None, None]
-            for _ in range(TROTTER):
-                psi = psi * torch.exp(-1j * dc * Es.float())
-                for q in range(NQ):
-                    v = psi.view(chains, N >> (q + 1), 2, 1 << q); a0, a1 = v[:, :, 0], v[:, :, 1]
-                    psi = torch.stack([c * a0 + sn * a1, sn * a0 + c * a1], 2).reshape(chains, N)
-            pr = psi.abs() ** 2; sp = torch.multinomial(pr / pr.sum(1, keepdim=True), 1, generator=g)[:, 0]
-        else:
-            sp = s ^ (1 << torch.randint(0, NQ, (chains,), device=DEV, generator=g))
-        dE = (E[sp] - E[s]) / T; acc = torch.rand(chains, device=DEV, generator=g) < torch.exp(-dE.clamp(min=0))
-        s = torch.where(acc, sp, s); out[k] = s; acc_n += int(acc.sum())
+        for r in range(R):
+            sp = _propose(s[r], Es, alpha, quantum, g); dE = (E2[ar, sp] - E2[ar, s[r]]) / temps[r]
+            acc = torch.rand(chains, device=DEV, generator=g) < torch.exp(-dE.clamp(min=0)); s[r] = torch.where(acc, sp, s[r])
+            if r == 0:
+                acc_n += int(acc.sum())
+        for r in range(k % 2, R - 1, 2):  # replica swaps between neighbouring temperatures
+            d = (1 / temps[r] - 1 / temps[r + 1]) * (E2[ar, s[r]] - E2[ar, s[r + 1]])
+            sw = torch.rand(chains, device=DEV, generator=g) < torch.exp(d.clamp(max=0)); a, b = s[r].clone(), s[r + 1].clone()
+            s[r] = torch.where(sw, b, a); s[r + 1] = torch.where(sw, a, b)
+        out[k] = s[0]
     return out, acc_n / (steps * chains)
+
+
+TEMPS = (1.0, 1.6, 2.5, 4.0)
+
+
+def sample_day(P, X, n, seed=0, quantum=True, steps=300, temps=None):
+    """n joint activation patterns of the day from the quantum-enhanced (or local) chain, window by window: z_0 ~ pi0, then
+    for each block of W MTUs every chain samples z_{t0+1..t0+W} | z_{t0} from its own conditional target (one 16-qubit
+    window), the last window re-samples the tail. Returns (n, T, 2) ints as qest.qscen.sample does."""
+    T = len(X); rng = np.random.default_rng(seed); z = np.zeros((n, T), int); z[:, 0] = rng.choice(4, n, p=P['pi0'])
+    starts = list(range(0, T - 1 - W, W)); starts.append(T - 1 - W)
+    for i, t0 in enumerate(starts):
+        Eall = torch.stack([energies(P, X, t0, z0) for z0 in range(4)])  # (4, N)
+        E2 = Eall[torch.as_tensor(z[:, t0], device=DEV)]
+        S, _ = mcmc(E2, steps, quantum, chains=n, seed=seed * 1000 + i, temps=temps)
+        last = S[-1].cpu().numpy()
+        for k in range(W):
+            z[:, t0 + 1 + k] = (last >> (2 * k)) & 3
+    return qscen.STATES[z]
+
+
+def bench_day(days=6, n=64, steps=300, seed=0):
+    """Per-MTU marginals and run lengths of the day samplers against the exact forward sampler (2,000 draws), on held-out
+    Q3 days: TV per MTU, UP run length, seconds. -> results/qscen_q_day.csv"""
+    from qest.data import frame
+    from qest.evaluate import forecasts
+    P = qscen.params(); f = frame(); F = forecasts('val', 'chronos'); j = f.join(F, how='inner'); j = j[j.split == 'val']
+    X = qscen.features(j, j.index); dd = j.day.to_numpy(); rng = np.random.default_rng(seed); rows = []
+    for d in rng.choice(pd.unique(dd), days, replace=False):
+        Xd = X[dd == d]; ex = qscen.sample(P, Xd, 2000, seed=1); T = len(Xd)
+        code = lambda Y: Y[:, :, 0] + 2 * Y[:, :, 1]
+        mex = np.stack([np.bincount(code(ex)[:, t], minlength=4) / len(ex) for t in range(T)])
+        for name, q, tp in (('quantum', True, None), ('local', False, None), ('quantum+PT', True, TEMPS), ('local+PT', False, TEMPS), ('exact (n draws)', None, None)):
+            t = time.time()
+            Y = qscen.sample(P, Xd, n, seed=2) if q is None else sample_day(P, Xd, n, seed=seed, quantum=q, steps=steps, temps=tp)
+            dt = time.time() - t; m = np.stack([np.bincount(code(Y)[:, t_], minlength=4) / n for t_ in range(T)])
+            rows.append(dict(day=str(pd.Timestamp(d).date()), sampler=name, tv=float(np.abs(m - mex).sum(1).mean() / 2), up=float(Y[:, :, 0].mean()),
+                             up_exact=float(ex[:, :, 0].mean()), runlen=qscen._runlen(Y[:, :, 0].ravel()), runlen_exact=qscen._runlen(ex[:, :, 0].ravel()), s=dt))
+    R = pd.DataFrame(rows); R.to_csv(RESULTS / 'qscen_q_day.csv', index=False)
+    print(R.groupby('sampler')[['tv', 'up', 'up_exact', 'runlen', 'runlen_exact', 's']].mean().round(3).to_string()); return R
 
 
 def marginals(states, N=4 ** W):
@@ -93,7 +152,7 @@ def iact(x):
     return tau
 
 
-def run(windows=20, steps=400, burn=100, seed=0):
+def run(windows=20, steps=400, burn=100, seed=0, pt=False):
     from qest.data import frame
     from qest.evaluate import forecasts
     P = qscen.params(); f = frame(); F = forecasts('val', 'chronos'); j = f.join(F, how='inner'); j = j[j.split == 'val']
@@ -101,8 +160,8 @@ def run(windows=20, steps=400, burn=100, seed=0):
     for w in range(windows):
         d = rng.choice(pd.unique(days)); m = days == d; Xd = X[m]; t0 = int(rng.integers(0, 96 - W - 1)); z0 = int(rng.integers(0, 4))
         E = energies(P, Xd, t0, z0); ex = exact_marginals(E)
-        for name, q in (('quantum', True), ('local', False)):
-            t = time.time(); S, acc = mcmc(E, steps, q, seed=seed + w); dt = time.time() - t
+        for name, q, tp in (('quantum', True, None), ('local', False, None), *((('quantum+PT', True, TEMPS), ('local+PT', False, TEMPS)) if pt else ())):
+            t = time.time(); S, acc = mcmc(E, steps, q, seed=seed + w, temps=tp); dt = time.time() - t
             keep = S[burn:]; tv = float(np.abs(marginals(keep) - ex).sum(1).mean() / 2)
             ups = ((keep[:, :, None] >> (2 * torch.arange(W, device=DEV))) & 1).sum(2).float().cpu().numpy()  # UP count per step, chain
             tau = float(np.mean([iact(ups[:, c]) for c in range(0, ups.shape[1], 32)]))
@@ -133,5 +192,6 @@ if __name__ == '__main__':
     if '--check' in sys.argv:
         _check()
     else:
-        ap = argparse.ArgumentParser(); ap.add_argument('--windows', type=int, default=20); ap.add_argument('--steps', type=int, default=400); a = ap.parse_args()
-        run(a.windows, a.steps)
+        ap = argparse.ArgumentParser(); ap.add_argument('--windows', type=int, default=20); ap.add_argument('--steps', type=int, default=400)
+        ap.add_argument('--day', action='store_true', help='benchmark the day samplers (bench_day)'); ap.add_argument('--pt', action='store_true', help='window benchmark with parallel tempering too'); a = ap.parse_args()
+        bench_day(steps=a.steps) if a.day else run(a.windows, a.steps, pt=a.pt)

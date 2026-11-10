@@ -25,12 +25,20 @@ from qest.market import DT, PRODUCTS
 from qest.optimize import Z
 
 FIRST = ['c', 'd', 'pv', 'ru_a', 'ru_m', 'rd_a', 'rd_m', 'y', 'z_ua', 'z_um', 'z_da', 'z_dm']
-SECOND = ['nc', 'nd', 's', 'y2', 'imp', 'au', 'am', 'bda', 'bdm']  # au.. = activation MW actually delivered (recourse: price out what the SoC cannot back)
+SECOND = ['nc', 'nd', 's', 'y2', 'imp', 'au', 'am', 'bda', 'bdm', 'sh', 'lg', 'pu', 'pd']  # au.. = activation MW delivered; sh / lg = short / long deviation (MW); pu / pd = priced out (guard)
 
 
-def plan_storage_stoch(u, scen, w, pv=None, products=PRODUCTS, depth=None, lam=0.0, alpha=0.9, mip_gap=4e-3, time_limit=90):
-    """scen: list of px dicts (plan_storage layout); w: scenario weights. Returns the plan_storage dict (soc = expected)."""
-    S = len(scen); w = np.asarray(w, float) / np.sum(w); n = len(scen[0]['da'])
+def plan_storage_stoch(u, scen, w, pv=None, products=PRODUCTS, depth=None, lam=0.0, alpha=0.9, mip_gap=4e-3, time_limit=90, recourse='free', tol=.05, po=None, fixed=None):
+    """scen: list of px dicts (plan_storage layout); w: scenario weights. Returns the plan_storage dict (soc = expected).
+    recourse 'free': delivered activation <= what the scenario activates of the offer (the plan may price a direction out at
+    will: more permissive than settlement, where only the SoC guard does that). 'faithful': the whole activated MW is
+    delivered, as settlement does with an in-the-money bid; what the battery cannot back becomes a deviation settled at the
+    imbalance price (short pays max(imb, da) + 5, long earns min(imb, da) - 5: never an arbitrage, only a last resort).
+    'guard': faithful, plus the settlement's gate-C guard itself: a direction is priced out (nothing delivered, no deviation)
+    in a scenario exactly when that scenario's SoC has drifted from the expected SoC by more than tol x E the wrong way
+    (binaries pu / pd per MTU and scenario, big-M on the drift). po = (pu, pd) 0/1 arrays (n, S): the flags pinned (the
+    fixed-point route of plan_storage_guard, which is what the strategies use: the free binaries do not converge in minutes)."""
+    S = len(scen); w = np.asarray(w, float) / np.sum(w); n = len(scen[0]['da']); faithful = recourse in ('faithful', 'guard'); guard = recourse == 'guard'
     pv = np.zeros(n) if pv is None else np.minimum(np.asarray(pv, float), u.gen_mw)
     P, E, ec, ed, Dr = u.p_mw, u.e_mwh, u.eta_c, u.eta_d, u.reserve_s / 3600; on = {k: (k in products) for k in PRODUCTS}
     idx = {}; N = 0
@@ -50,10 +58,22 @@ def plan_storage_stoch(u, scen, w, pv=None, products=PRODUCTS, depth=None, lam=0
             ub[ix('nc', t, s_)] = ub[ix('nd', t, s_)] = 2 * P; ub[ix('s', t, s_)] = E; ub[ix('y2', t, s_)] = 1; integ[ix('y2', t, s_)] = 1; ub[ix('imp', t, s_)] = 2 * P
             for v in ('au', 'am', 'bda', 'bdm'):
                 ub[ix(v, t, s_)] = P
+            ub[ix('sh', t, s_)] = ub[ix('lg', t, s_)] = 2 * P if faithful else 0
+            ub[ix('pu', t, s_)] = ub[ix('pd', t, s_)] = 1 if (guard and t) else 0; integ[ix('pu', t, s_)] = integ[ix('pd', t, s_)] = 1
+            if po is not None and guard and t:
+                lb[ix('pu', t, s_)] = ub[ix('pu', t, s_)] = float(po[0][t, s_]); lb[ix('pd', t, s_)] = ub[ix('pd', t, s_)] = float(po[1][t, s_])
+    for v, val in (fixed or {}).items():  # first-stage variables pinned (the in-model value of a given plan)
+        lb[idx[v]:idx[v] + n] = ub[idx[v]:idx[v] + n] = np.asarray(val, float)
     # profit_s as a linear form over the variables (first stage + that scenario's second stage)
     prof = np.zeros((S, N)); e = {}
     for s_, px in enumerate(scen):
         da = np.asarray(px['da'], float); mda = float(np.nanmean(da)); tar = np.asarray(px.get('tariff', np.zeros(n)), float)
+        # a shortfall during an UP activation settles at (about) the activation price (single imbalance pricing): never cheaper than what was earned
+        imb = np.asarray(px.get('imb', da), float)
+        p_sh = np.maximum.reduce([imb, da, np.asarray(px['a_up_p'], float), np.asarray(px['m_up_p'], float)]) + 5
+        p_lg = np.minimum.reduce([imb, da, np.asarray(px['a_dn_p'], float), np.asarray(px['m_dn_p'], float)]) - 5
+        for t in range(n):
+            prof[s_, ix('sh', t, s_)] = -p_sh[t] * DT; prof[s_, ix('lg', t, s_)] = p_lg[t] * DT
         e[s_] = dict(ua=np.asarray(px['a_up_s']) * DT, um=np.asarray(px['m_up_q']) * DT, da=np.asarray(px['a_dn_s']) * DT, dm=np.asarray(px['m_dn_q']) * DT)
         for t in range(n):
             prof[s_, ix('d', t)] = da[t] * DT; prof[s_, ix('pv', t)] = da[t] * DT; prof[s_, ix('c', t)] = -da[t] * DT
@@ -67,7 +87,7 @@ def plan_storage_stoch(u, scen, w, pv=None, products=PRODUCTS, depth=None, lam=0
                     pc = px[f'cap_{k}'][t] * DT; prof[s_, ix(v, t)] -= .25 * pc; prof[s_, ix(z, t)] -= .5 * pc
         prof[s_, ix('s', n - 1, s_)] += mda
     cobj = (1 - lam) * (w @ prof); cobj[i_eta] += lam; cobj[i_zeta:i_zeta + S] -= lam * w / (1 - alpha)  # maximise
-    rows = 13 * n + 2 * n * S + 7 * n * S + 2 * n * S + 4 * n * S + S + 4 * n + 2 * n
+    rows = 13 * n + 2 * n * S + 7 * n * S + 2 * n * S + 4 * n * S + 2 * n * S + S + 4 * n + 2 * n + (14 * n * S if guard else 0)
     A = lil_matrix((rows, N)); lo, hi = np.full(rows, -np.inf), np.full(rows, np.inf); r = 0; s0 = u.soc0 * E
     for t in range(n):  # first-stage rows
         A[r, ix('d', t)] = 1; A[r, ix('c', t)] = -1; A[r, ix('ru_a', t)] = 1; A[r, ix('ru_m', t)] = 1; hi[r] = P; r += 1
@@ -80,7 +100,7 @@ def plan_storage_stoch(u, scen, w, pv=None, products=PRODUCTS, depth=None, lam=0
             for v, z, k in (('ru_a', 'z_ua', 'afrr_up'), ('ru_m', 'z_um', 'mfrr_up'), ('rd_a', 'z_da', 'afrr_down'), ('rd_m', 'z_dm', 'mfrr_down')):
                 A[r, ix(v, t)] = 1; A[r, ix(z, t)] = -1; hi[r] = depth[k] / 2; r += 1
         # backing of the offered reserves in the EXPECTED SoC (the deterministic planner's rule); the tails are handled by recourse
-        for sv in ('s', 'prev'):
+        for sv in (() if fixed else ('s', 'prev')):  # (a pinned plan is valued without the planning-side backing rule: settlement has the guard instead)
             if sv == 's' or t:
                 for s_ in range(S):
                     A[r, ix('s', t, s_) if sv == 's' else ix('s', t - 1, s_)] = w[s_]; A[r + 1, ix('s', t, s_) if sv == 's' else ix('s', t - 1, s_)] = w[s_]
@@ -92,10 +112,35 @@ def plan_storage_stoch(u, scen, w, pv=None, products=PRODUCTS, depth=None, lam=0
         for s_ in range(S):  # second-stage rows
             E_ = e[s_]
             A[r, ix('nd', t, s_)] = 1; A[r, ix('nc', t, s_)] = -1; A[r, ix('d', t)] = -1; A[r, ix('c', t)] = 1
-            A[r, ix('au', t, s_)] = -1; A[r, ix('am', t, s_)] = -1; A[r, ix('bda', t, s_)] = 1; A[r, ix('bdm', t, s_)] = 1; lo[r] = hi[r] = 0; r += 1
-            # delivered <= what this scenario activates of the offered MW (a_up_s share, m_up_q probability)
+            A[r, ix('au', t, s_)] = -1; A[r, ix('am', t, s_)] = -1; A[r, ix('bda', t, s_)] = 1; A[r, ix('bdm', t, s_)] = 1
+            A[r, ix('sh', t, s_)] = 1; A[r, ix('lg', t, s_)] = -1; lo[r] = hi[r] = 0; r += 1  # battery flow = target - short + long
+            if faithful and 'vol_up' in px:  # volume-capped settlement (qest.market.activated_volumes): offers beyond what the TSO activates deliver nothing,
+                # so the activated offer is held within the TSO's volume per direction (conservative: forgoes capacity pay on MW above the cap)
+                A[r, ix('ru_a', t)] = E_['ua'][t] / DT; A[r, ix('ru_m', t)] = E_['um'][t] / DT; hi[r] = float(px['vol_up'][t]); r += 1
+                A[r, ix('rd_a', t)] = E_['da'][t] / DT; A[r, ix('rd_m', t)] = E_['dm'][t] / DT; hi[r] = float(px['vol_dn'][t]); r += 1
+            if faithful:  # a deviation only arises from what the battery cannot back: short on UP / sales, long on DOWN / purchases
+                A[r, ix('sh', t, s_)] = 1; A[r, ix('au', t, s_)] = -1; A[r, ix('am', t, s_)] = -1; A[r, ix('d', t)] = -1; hi[r] = 0; r += 1
+                A[r, ix('lg', t, s_)] = 1; A[r, ix('bda', t, s_)] = -1; A[r, ix('bdm', t, s_)] = -1; A[r, ix('c', t)] = -1; hi[r] = 0; r += 1
+            # delivered <= what this scenario activates of the offered MW (a_up_s share, m_up_q probability); faithful: equal
             for v, cv, k in (('au', 'ru_a', 'ua'), ('am', 'ru_m', 'um'), ('bda', 'rd_a', 'da'), ('bdm', 'rd_m', 'dm')):
-                A[r, ix(v, t, s_)] = 1; A[r, ix(cv, t)] = -E_[k][t] / DT; hi[r] = 0; r += 1
+                if guard and t:  # delivered = activated unless priced out: au <= share ru, au <= P (1 - pu), au >= share ru - P pu
+                    po = 'pu' if v in ('au', 'am') else 'pd'
+                    A[r, ix(v, t, s_)] = 1; A[r, ix(cv, t)] = -E_[k][t] / DT; hi[r] = 0; r += 1
+                    A[r, ix(v, t, s_)] = 1; A[r, ix(po, t, s_)] = P; hi[r] = P; r += 1
+                    A[r, ix(v, t, s_)] = 1; A[r, ix(cv, t)] = -E_[k][t] / DT; A[r, ix(po, t, s_)] = P; lo[r] = 0; r += 1
+                else:
+                    A[r, ix(v, t, s_)] = 1; A[r, ix(cv, t)] = -E_[k][t] / DT; hi[r] = 0; lo[r] = 0 if faithful else -np.inf; r += 1
+            if guard and t and po is None:  # the guard: pu = 1 <=> drift <= -tol E, pd = 1 <=> drift >= tol E, drift = s_{t-1, s} - sum_s' w s_{t-1, s'}
+                TE, M = tol * E, 2 * E
+                for po, sign in (('pu', -1), ('pd', 1)):  # sign * drift >= TE  <=>  po = 1
+                    for k_ in (0, 1):
+                        for s2 in range(S):
+                            A[r, ix('s', t - 1, s2)] = sign * (-w[s2] + (1 if s2 == s_ else 0))
+                        if k_ == 0:  # po = 1  =>  sign drift >= TE :  sign drift - M po >= TE - M
+                            A[r, ix(po, t, s_)] = -M; lo[r] = TE - M
+                        else:        # po = 0  =>  sign drift <= TE :  sign drift - M po <= TE
+                            A[r, ix(po, t, s_)] = -M; hi[r] = TE
+                        r += 1
             A[r, ix('nc', t, s_)] = 1; A[r, ix('y2', t, s_)] = -2 * P; hi[r] = 0; r += 1
             A[r, ix('nd', t, s_)] = 1; A[r, ix('y2', t, s_)] = 2 * P; hi[r] = 2 * P; r += 1
             A[r, ix('s', t, s_)] = 1; A[r, ix('nc', t, s_)] = -ec * DT; A[r, ix('nd', t, s_)] = DT / ed
@@ -114,7 +159,26 @@ def plan_storage_stoch(u, scen, w, pv=None, products=PRODUCTS, depth=None, lam=0
         raise RuntimeError(f'stochastic MILP failed: {res.message}')
     x = res.x; g = lambda v: x[idx[v]:idx[v] + n]; soc = sum(w[s_] * x[idx[('s', s_)]:idx[('s', s_)] + n] for s_ in range(S))
     return dict(da=np.round(g('d') + g('pv') - g('c'), 1), cap=dict(afrr_up=np.round(g('ru_a')), mfrr_up=np.round(g('ru_m')), afrr_down=np.round(g('rd_a')), mfrr_down=np.round(g('rd_m'))),
-                soc=soc, objective=float(w @ (prof @ x)), cvar=float(x[i_eta] - w @ x[i_zeta:i_zeta + S] / (1 - alpha)), pv=g('pv'))
+                soc=soc, objective=float(w @ (prof @ x)), cvar=float(x[i_eta] - w @ x[i_zeta:i_zeta + S] / (1 - alpha)), pv=g('pv'),
+                soc_s=np.stack([x[idx[('s', s_)]:idx[('s', s_)] + n] for s_ in range(S)], 1))
+
+
+def plan_storage_guard(u, scen, w, iters=3, tol=.05, **kw):
+    """The 'guard' recourse by fixed point: solve the faithful plan, run settlement's gate-C guard on each scenario's SoC path
+    (priced out when the drift from the expected SoC exceeds tol x E the wrong way, or a full MTU's activation cannot be
+    backed), pin the flags, re-solve; stop when the flags no longer change. Each solve is the cheap faithful MILP."""
+    n, S = len(scen[0]['da']), len(scen); E, Dr = u.e_mwh, u.reserve_s / 3600; w_ = np.asarray(w, float) / np.sum(w)
+    po = (np.zeros((n, S)), np.zeros((n, S))); pl = None
+    for _ in range(iters):
+        pl = plan_storage_stoch(u, scen, w, recourse='guard', tol=tol, po=po, **kw)
+        ss = pl['soc_s']; ref = ss @ w_; ru = pl['cap']['afrr_up'] + pl['cap']['mfrr_up']; rd = pl['cap']['afrr_down'] + pl['cap']['mfrr_down']
+        prev = np.r_[np.full((1, S), u.soc0 * E), ss[:-1]]; drift = prev - np.r_[u.soc0 * E, ref[:-1]][:, None]
+        pu = ((drift < -tol * E) | (prev - ru[:, None] * Dr / u.eta_d < 0)).astype(float); pd = ((drift > tol * E) | (prev + rd[:, None] * Dr * u.eta_c > E)).astype(float)
+        pu[0] = pd[0] = 0
+        if np.array_equal(pu, po[0]) and np.array_equal(pd, po[1]):
+            break
+        po = (pu, pd)
+    pl['priced_out'] = float(po[0].mean() + po[1].mean()); return pl
 
 
 def scenarios(ctx, C, px50, qs=('q10', 'q50', 'q90'), act_scale=(.5, 1.5)):

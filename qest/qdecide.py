@@ -247,7 +247,12 @@ def solve(q, solver, seed=0):
 
 # ---------------------------------------------------------------- strategy
 def plan(solver, units, ctx, cfg, fc='chronos'):
-    out = _renewables(units, ctx, cfg, use_real=False); px = prices_for_milp(ctx)
+    out = _renewables(units, ctx, cfg, use_real=False)
+    if fc == 'actrank':  # the deciders on the best gate-A information: rank-gated driver-based activation marginals (qest.actfc)
+        from qest.strategies import actfc_gate, actfc_pred, actfc_px
+        actfc_pred(ctx.idx); um, ua = actfc_gate(ctx.idx, ctx.calib, metric='rank'); px = actfc_px(ctx, cfg, tuple(p for p, u in (('mfrr', um), ('afrr', ua)) if u))
+    else:
+        px = prices_for_milp(ctx)
     if cfg.official:
         from qest.market import grid_tariff
         px['tariff'] = grid_tariff(ctx.idx)
@@ -274,7 +279,7 @@ def register(fc, extra=()):
     from qest import strategies
     for s in (*SOLVERS, *extra):
         strategies.STRATEGIES[f'{s}@{fc}'] = (lambda s_: lambda units, ctx, cfg: plan(s_, units, ctx, cfg, fc))(s)
-    strategies.STRATEGIES[f'milp@{fc}'] = strategies.milp
+    strategies.STRATEGIES[f'milp@{fc}'] = strategies.milp if fc != 'actrank' else strategies.STRATEGIES['milp_act_rank']  # the free MILP on the same inputs
     return [f'milp@{fc}'] + [f'{s}@{fc}' for s in (*SOLVERS, *extra)]
 
 

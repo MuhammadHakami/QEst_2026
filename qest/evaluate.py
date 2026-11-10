@@ -71,8 +71,8 @@ def forecasts(split, kind='lgbm'):
 
 def fc_kind(name):
     """Which forecaster a strategy plans on, and whose Optuna knobs it falls back to."""
-    if '@' in name:  # '<decider>@<forecaster>' (qest.qdecide)
-        return name.split('@', 1)[1]
+    if '@' in name:  # '<decider>@<forecaster>' (qest.qdecide); 'actrank' = Chronos-2 prices + rank-gated activation marginals
+        k = name.split('@', 1)[1]; return 'chronos' if k == 'actrank' else k
     if name in ('milp_chronos_qrc', 'milp_chronos_rff', 'milp_tabpfn', 'milp_chronosx'):
         return name[5:]
     if name == 'milp_chronos' or name.startswith('qday_') or name.startswith('oracle') or name.startswith('milp_c') or name.startswith('milp_rp') or name.startswith('milp_stoch') or name.startswith('milp_scen') or name == 'milp_mk' or name.startswith('milp_act'):  # oracle reads no forecast: any cached split keeps its day loop
@@ -95,6 +95,8 @@ def unit_gen(g, units):
 def run(split, strategies, units, cfg, margins=None, params=None, traces=None):
     """traces: a dict to fill with each (strategy, day)'s storage trace per MTU (delivered MW, SoC MWh), for qest.twin."""
     f = frame(); g = generation(); D = days(f, split)
+    if os.environ.get('QEST_DAYS'):  # quick runs on a subset of delivery days (comma-separated dates)
+        keep = set(os.environ['QEST_DAYS'].split(',')); D = [d for d in D if str(pd.Timestamp(d).date()) in keep]
     fit = days(f, 'train') if split in ('train', 'val') else days(f, ('train', 'val'))
     def knobs(name):  # the knobs Optuna chose on Q3 for this strategy (qest.tune), else the LightGBM MILP's, else defaults
         if margins is not None or params is not None:

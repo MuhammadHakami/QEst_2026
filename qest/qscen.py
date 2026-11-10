@@ -127,18 +127,29 @@ def window_energy(P, X, t0, z0, w=8):
     return E, idx
 
 
-def scenario_px(P, px50, y):
-    """One scenario's px dict from the bits y (T, 2): mFRR probabilities become the bits, aFRR shares scale with them."""
+def scenario_px(P, px50, y, ratio=(1.0, 1.0)):
+    """One scenario's px dict from the bits y (T, 2): mFRR probabilities become the bits x ratio, aFRR shares scale with them.
+    ratio: the bits mark 'price crosses DA +- 5'; our bids sit at DA + margin, so the activation given a bit is the plan's
+    own probability at the margin divided by the chain's bit rate (day_scenarios): scenarios stay mean-consistent with
+    the deterministic inputs and the sub-margin uncertainty is integrated out."""
     p = dict(px50); u, d = y[:, 0].astype(float), y[:, 1].astype(float)
-    p['m_up_q'], p['m_dn_q'] = u, d
+    p['m_up_q'], p['m_dn_q'] = np.clip(u * ratio[0], 0, 1), np.clip(d * ratio[1], 0, 1)
     p['a_up_s'] = np.clip(np.asarray(px50['a_up_s']) * np.where(u > 0, P['aus_ratio'], 1.0), 0, 1)
     p['a_dn_s'] = np.clip(np.asarray(px50['a_dn_s']) * np.where(d > 0, P['ads_ratio'], 1.0), 0, 1)
     return p
 
 
-def day_scenarios(ctx, px50, n=8, seed=0):
-    P = params(ctx.idx[0].tz_convert('Europe/Tallinn').date()); Y = sample(P, features(ctx.fc, ctx.idx), n, seed)
-    return [scenario_px(P, px50, y) for y in Y], np.full(n, 1 / n)
+def day_scenarios(ctx, px50, n=8, seed=0, sampler='exact'):
+    """n equally weighted scenarios: 'exact' forward samples, or the quantum-enhanced ('qmcmc') / single-flip ('lmcmc') MCMC day
+    sampler of qest.qscen_q (same target, approximate sampler: the plan's euros measure the sampler)."""
+    P = params(ctx.idx[0].tz_convert('Europe/Tallinn').date()); X = features(ctx.fc, ctx.idx)
+    if sampler == 'exact':
+        Y = sample(P, X, n, seed)
+    else:
+        from qest.qscen_q import sample_day
+        Y = sample_day(P, X, n, seed, quantum=sampler == 'qmcmc')
+    ratio = (float(np.mean(px50['m_up_q']) / max(Y[:, :, 0].mean(), 1e-3)), float(np.mean(px50['m_dn_q']) / max(Y[:, :, 1].mean(), 1e-3)))
+    return [scenario_px(P, px50, y, ratio) for y in Y], np.full(n, 1 / n)
 
 
 def _runlen(y):

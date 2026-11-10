@@ -183,26 +183,39 @@ def _partial(*parts):  # perfect knowledge of these inputs only, Chronos-2 for t
     return lambda units, ctx, cfg: milp(units, ctx, cfg, parts=parts)
 
 
-def _stoch(lam, source='quantile', n=8):
+def _stoch(lam, source='quantile', n=8, recourse='free', base='clim', sampler='exact'):
     """Two-stage stochastic day plan (qest.stoch), Mean-CVaR with weight lam, over gate-A scenarios: 'quantile' (comonotonic
-    q10 / q50 / q90 + activation draws) or 'markov' (n exact joint activation patterns from qest.qscen)."""
+    q10 / q50 / q90 + activation draws) or 'markov' (n exact joint activation patterns from qest.qscen). recourse: see
+    qest.stoch. base 'act': the median scenario carries the rank-gated activation marginals (milp_act_rank's inputs)."""
     def fn(units, ctx, cfg):
         from qest.stoch import plan_storage_stoch, scenarios
-        plan = _renewables(units, ctx, cfg); px50 = prices_for_milp(ctx)
+        plan = _renewables(units, ctx, cfg)
+        if base == 'act':
+            actfc_pred(ctx.idx); um, ua = actfc_gate(ctx.idx, ctx.calib, metric='rank'); px50 = actfc_px(ctx, cfg, tuple(p for p, u in (('mfrr', um), ('afrr', ua)) if u))
+        else:
+            px50 = prices_for_milp(ctx)
         if cfg.official:
             from qest.market import grid_tariff
             px50['tariff'] = grid_tariff(ctx.idx)
+        if 'imb_q50' in ctx.fc:
+            px50['imb'] = ctx.fc['imb_q50'].fillna(px50['da'].mean()).to_numpy()
         if source == 'markov':
             from qest.qscen import day_scenarios
-            S, W = day_scenarios(ctx, px50, n)
+            S, W = day_scenarios(ctx, px50, n, sampler=sampler)
         else:
             S, W = scenarios(ctx, ctx.calib, px50)
         for p in S:
-            p.setdefault('tariff', px50.get('tariff'))
+            for k in ('tariff', 'imb'):
+                if k in px50:
+                    p.setdefault(k, px50[k])
         for u in units:
             if u.kind in ('battery', 'hybrid'):
                 pv = ctx.gen_fc.get(u.name) if u.kind == 'hybrid' else None
-                pl = plan_storage_stoch(u, S, W, pv, depth=cfg.cap_depth, lam=lam)
+                if recourse == 'guard':
+                    from qest.stoch import plan_storage_guard
+                    pl = plan_storage_guard(u, S, W, pv=pv, depth=cfg.cap_depth, lam=lam, tol=ctx.calib.get('tol', .05))
+                else:
+                    pl = plan_storage_stoch(u, S, W, pv, depth=cfg.cap_depth, lam=lam, recourse=recourse, tol=ctx.calib.get('tol', .05))
                 pl.update(margins=ctx.calib['margins'], soc_ref=pl['soc'], policy='soc_aware', tol=ctx.calib.get('tol', .05)); plan[u.name] = pl
         return plan
     return fn
@@ -242,10 +255,10 @@ def actfc_pred(idx):
     a = A.reindex(idx); return None if a.isna().all().all() else a
 
 
-def _actfc_marginals(units, ctx, cfg, parts=('mfrr', 'afrr')):
-    """The deterministic plan with the driver-based activation forecasts (qest.actfc) in place of the hour-of-day
-    climatology (mFRR UP / DOWN probability) and Chronos-2's zero-shot share (aFRR): same MILP, better marginals."""
-    A = actfc_pred(ctx.idx); plan = _renewables(units, ctx, cfg); px = prices_for_milp(ctx)
+def actfc_px(ctx, cfg, parts=('mfrr', 'afrr')):
+    """plan_storage inputs with the driver-based activation forecasts (qest.actfc) in place of the hour-of-day climatology
+    (mFRR UP / DOWN probability) and Chronos-2's zero-shot share (aFRR), for the products in `parts`."""
+    A = actfc_pred(ctx.idx); px = prices_for_milp(ctx)
     if A is not None:
         from qest.market import FAT
         C = ctx.calib; hr = ctx.idx.tz_convert('Europe/Tallinn').hour; g = lambda k: C[k].reindex(hr).fillna(0).to_numpy()
@@ -255,6 +268,12 @@ def _actfc_marginals(units, ctx, cfg, parts=('mfrr', 'afrr')):
         if 'afrr' in parts:
           px['a_up_s'] = np.clip(g('a_up_s') * fill('a_up_s', g('a_up_s0')) / np.maximum(g('a_up_s0'), 1e-3), 0, 1) * ku * FAT['afrr']
           px['a_dn_s'] = np.clip(g('a_dn_s') * fill('a_dn_s', g('a_dn_s0')) / np.maximum(g('a_dn_s0'), 1e-3), 0, 1) * kd * FAT['afrr']
+    return px
+
+
+def _actfc_marginals(units, ctx, cfg, parts=('mfrr', 'afrr')):
+    """The deterministic plan on actfc_px: same MILP, better marginals."""
+    plan = _renewables(units, ctx, cfg); px = actfc_px(ctx, cfg, parts)
     if cfg.official:
         from qest.market import grid_tariff
         px['tariff'] = grid_tariff(ctx.idx)
@@ -306,7 +325,18 @@ def _actfc_gated(units, ctx, cfg, metric='brier'):
     return _actfc_marginals(units, ctx, cfg, parts) if parts else _actfc_marginals(units, ctx, cfg, ())
 
 STOCH = dict(milp_act=_actfc_marginals, milp_act_gated=_actfc_gated, milp_act_rank=lambda u, c, g: _actfc_gated(u, c, g, 'rank'), milp_act_afrr=lambda u, c, g: _actfc_marginals(u, c, g, ('afrr',)), milp_act_mfrr=lambda u, c, g: _actfc_marginals(u, c, g, ('mfrr',)), milp_mk=_markov_marginals, milp_stoch=_stoch(0.0), milp_cvar=_stoch(0.3), milp_cvar6=_stoch(0.6), milp_scen=_stoch(0.0, 'markov'), milp_scen_cvar=_stoch(0.3, 'markov'),
-             milp_scen16=_stoch(0.0, 'markov', 16))
+             milp_scen16=_stoch(0.0, 'markov', 16),
+             # settlement-faithful recourse (qest.stoch), scenarios around the rank-gated marginals
+             milp_scenf=_stoch(0.0, 'markov', 8, 'faithful', 'act'), milp_scenf_cvar=_stoch(0.3, 'markov', 8, 'faithful', 'act'),
+             milp_scenf_q=_stoch(0.0, 'quantile', 8, 'faithful', 'act'),
+             milp_scenf_clim=_stoch(0.0, 'markov', 8, 'faithful', 'clim'),
+             # ... and with the settlement's SoC guard inside the recourse
+             milp_sceng=_stoch(0.0, 'markov', 8, 'guard', 'act'), milp_sceng_cvar=_stoch(0.3, 'markov', 8, 'guard', 'act'),
+             milp_sceng16=_stoch(0.0, 'markov', 16, 'guard', 'act'), milp_sceng4=_stoch(0.0, 'markov', 4, 'guard', 'act'),
+             # the same plan on scenarios from the approximate samplers (qest.qscen_q): quantum-enhanced and single-flip MCMC
+             milp_sceng_qs=_stoch(0.0, 'markov', 8, 'guard', 'act', 'qmcmc'), milp_sceng_ls=_stoch(0.0, 'markov', 8, 'guard', 'act', 'lmcmc'),
+             milp_scenf_qs=_stoch(0.0, 'markov', 8, 'faithful', 'act', 'qmcmc'), milp_scenf_ls=_stoch(0.0, 'markov', 8, 'faithful', 'act', 'lmcmc'),
+             milp_scenf16=_stoch(0.0, 'markov', 16, 'faithful', 'act'), milp_scenf4=_stoch(0.0, 'markov', 4, 'faithful', 'act'))
 
 
 def _replan_cb(u, pl, px, imb_fc, lag_act=3, lag_imb=4, allow_dev=False):
