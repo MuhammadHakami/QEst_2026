@@ -1,4 +1,16 @@
-# Where the qubits can still earn: the uncertainty line, measured (10 Nov 2026)
+# Where the qubits can still earn: the uncertainty line, measured (10-11 Nov 2026)
+
+**Verdict in four lines.** (1) The highest quantum gain measurable on the Estonia 2026 data is on the organisers' own
+quantum metric, the day QUBO: LR-QAOA on 24-25 qubits returns the optimum on 94-98 % of day-units, PCE on 4 qubits per
+12-bit window on 74 %, and a model distilled once from 1,891 QPU windows on 74-82 % with zero QPU calls afterwards
+(research/partitioned_quantum.md, research/distilled_quantum.md). (2) In euros, no qubit moved the result: every decider
+ties the MILP within +-0.7 % on every input set (section 3), and the quantum-enhanced sampler's per-step mixing edge does
+not reach the plan (sections 1-2). (3) The euros came from classical work on the uncertainty: a driver-based activation
+model (+3.2 % a year) and a two-stage plan with a settlement-faithful recourse (+5.4 % more under the realistic 25 MW cap,
++4 to +7 % under the organisers' rules, every month positive). (4) The commercially efficient quantum design that follows,
+and that runs end to end here, is: sample the QPU once, distil, decide classically for the season ($1.4-152k once across
+vendors against $4-472k a season live), and bring a QPU back as a scenario source only for a joint target that cannot be
+sampled exactly, benchmarked against tempering. This is stated as a measured negative on quantum euros, not dressed up.
 
 Goal set by the user: the highest quantum gain the Estonia 2026 data allows, a commercially efficient use of the qubits,
 grounded in the 2026 state of the art (research/README.md, "Added 10 Nov 2026"). This note records what was built and
