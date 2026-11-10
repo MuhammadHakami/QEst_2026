@@ -223,6 +223,37 @@ def classical(V, lin, quad, off, level, seed=0):
     return out
 
 
+def partitioned(Hm, Jm, off, blocks, solver, sweeps=3, seed=0, restarts=1, alt=None):
+    """Block descent with a quantum solver on each block (P3: the two hours, 15 qubits each, coupled by the SoC terms): the other
+    block's bits are pinned into the block's linear terms, the block's 2^15 energies are enumerated for the simulator, the
+    solver's best state replaces the block; swept until no block changes (max `sweeps`). Starts from the uniform-random one-hot
+    plan. Returns X (B, m) bits."""
+    import torch
+    from qest import qsota
+    B, m = Hm.shape; n_o = len(OPTS['P3']); Jsym = Jm + np.transpose(Jm, (0, 2, 1)); best = None
+    for r in range(restarts):  # restarts: independent random one-hot starts, the best energy per instance kept
+        rng = np.random.default_rng(seed + r); X = np.zeros((B, m))
+        for g in range(m // n_o):
+            X[np.arange(B), g * n_o + rng.integers(0, n_o, B)] = 1
+        for sw in range(sweeps):
+            changed = False
+            for b in (blocks if (alt is None or sw % 2 == 0) else alt):  # alt: a second partition, used on odd sweeps (the couplings cut by one lie inside the other)
+                o = [i for i in range(m) if i not in b]
+                h_b = Hm[:, b] + np.einsum('bij,bj->bi', Jsym[:, b][:, :, o], X[:, o])  # the pinned neighbours' field
+                E = dense(h_b, Jm[:, b][:, :, b], np.zeros(B))
+                z, _ = solver(E); zb = ((z.cpu().numpy()[:, None] >> np.arange(len(b))) & 1).astype(float)
+                if not np.array_equal(zb, X[:, b]):
+                    X[:, b] = zb; changed = True
+            if not changed and alt is None:
+                break
+        e = (X * Hm).sum(1) + np.einsum('bm,bmn,bn->b', X, Jm, X)
+        if best is None:
+            best, eb = X.copy(), e
+        else:
+            better = e < eb - 1e-9; best[better] = X[better]; eb = np.where(better, e, eb)
+    return best
+
+
 def random_shots(E, shots=4096, seed=0):
     """The like-for-like control: as many uniform random bitstrings as a quantum sampler's shots, best one, same polish."""
     import torch
@@ -304,8 +335,17 @@ def main():
             t = time.time(); z, st = QUANTUM[name](E); torch.cuda.synchronize() if torch.cuda.is_available() else None
             score(name, bits(z), time.time() - t, st)
         del E
-    else:  # P3: only PCE scales past the statevector (30 bits on 6 qubits)
+    else:  # P3: PCE scales past the statevector (30 bits on 6 qubits); the gate-model solvers run partitioned, one hour (15 qubits) at a time
         t = time.time(); X, st = qsota.pce(None, qubo=(Hm, Jm)); score('pce', X.cpu().numpy(), time.time() - t)
+        n_o = len(OPTS[a.level]); groups = [list(range(i, i + n_o)) for i in range(0, m, n_o)]
+        t = time.time(); X, st = qsota.pce(None, qubo=(Hm, Jm), groups=groups); score('pce_onehot', X.cpu().numpy(), time.time() - t)
+        t = time.time(); X, st = qsota.pce(None, qubo=(Hm, Jm), groups=groups, k=8, restarts=48); score('pce_k8', X.cpu().numpy(), time.time() - t)
+        blocks = [list(range(0, m // 2)), list(range(m // 2, m))]  # hour 0, hour 1 (15 qubits each)
+        n_s = m // 2 // n_o; by_site = [[h * (m // 2) + s_ * n_o + o for h in range(2) for o in range(n_o)] for s_ in range(n_s)]  # one site, both hours (10 qubits): the SoC link inside
+        for name in [q for q in a.quantum.split(',') if q in QUANTUM and q != 'pce']:
+            t = time.time(); X = partitioned(Hm, Jm, off, blocks, QUANTUM[name], seed=0); score(f'p_{name}', X, time.time() - t)
+            t = time.time(); X = partitioned(Hm, Jm, off, blocks, QUANTUM[name], seed=0, sweeps=4, alt=by_site); score(f'pa_{name}', X, time.time() - t)
+            t = time.time(); X = partitioned(Hm, Jm, off, blocks, QUANTUM[name], seed=0, sweeps=4, alt=by_site, restarts=4); score(f'pa4_{name}', X, time.time() - t)
         t = time.time(); g_ = torch.Generator(device=qsota.DEV).manual_seed(0)  # control: 4096 uniform bitstrings per instance
         h_, J_ = (torch.as_tensor(x, device=qsota.DEV, dtype=torch.float32) for x in (Hm, Jm)); best = []
         for i in range(len(Hm)):

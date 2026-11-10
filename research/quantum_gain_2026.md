@@ -234,3 +234,30 @@ against tempering, which is the cheaper classical upgrade this note found.
 
 Costs quoted at Nov 2026 list prices (Braket $0.30 a task + per shot: IonQ Forte $0.08, IQM Garnet $0.00145, Rigetti
 Cepheus $0.000425; IBM $96 a QPU-minute); the GPU statevector time for the sampler is on an H100-class card.
+
+## 5. The highest quantum gain on the organisers' own metric: the P3 puzzle solved at half the qubits (11 Nov)
+
+The quantum track (deck slide 9 / 11) scores the portfolio puzzle retrospectively on every Q4 hour: P1 (9 qubits), P2 (15)
+and P3 (30: two hours linked by the batteries' SoC). P1 and P2 were already solved by every quantum method; P3 was the
+weak point: PCE on 6 qubits reached 84.5 % of the exact optimum and returned it on 1.7 % of instances, and no statevector
+solver fits 30 qubits. Two 2026-style changes (`qest.qubo.partitioned`, `qest.qsota.pce(groups=)`):
+
+| P3, 300 instances | Qubits | % of optimum | Optimum hit |
+|---|---:|---:|---:|
+| PCE (before) | 6 | 84.5 | 0.017 |
+| PCE, problem-aware one-hot decoding (arXiv:2605.20163) | 6 | 84.5 | 0.017 |
+| PCE, 8 qubits, 48 restarts | 8 | 86.6 | 0.000 |
+| Partitioned by hour (LR-QAOA p=1, BF-DCQO, FALQON, SQA: identical) | 15 | 92.1 | 0.730 |
+| Alternating partitions: hours, then sites across both hours (SoC link inside) | 15 / 10 | 99.7 | 0.977 |
+| **Alternating partitions, 4 random restarts** | **15 / 10** | **99.92** | **0.993** |
+| Tabu search (classical reference, 30 bits) | - | 99.92 | 0.907 |
+| Random 4,096 shots + polish (control) | - | 30.8 | 0.010 |
+
+Reading: the gain is the decomposition, not the solver: every gate-model solver returns the same plans, because a 10-15
+qubit block with its neighbours pinned is solved to its optimum by all of them, and the alternating partition carries the
+SoC coupling that the hour partition cuts (the Daedalus recipe of research/partitioned_quantum.md, applied to the
+organisers' puzzle). PCE's problem-aware decoding changed nothing here: its plans were already valid; its limit at 6-8
+qubits is the optimisation, not the decode. On the competition's quantum metric this is the highest result the project has:
+the P3 optimum on 99.3 % of hours with a register a 2026 device has (15 qubits), equal in value to the best classical
+heuristic and above it on hit rate, with a random control at 31 %. It is a quantum-track result, not a euro result: the
+puzzle values prices that are known.

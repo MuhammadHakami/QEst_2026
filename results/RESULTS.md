@@ -138,6 +138,20 @@ Prices known (slide 9): each solver's plan as a share of the exact classical opt
 | P3      |       30 | 300 | random, 4096 shots  | 0.59 M |          30.79 |         0.01  |                       nan     |      8.9e-05 |
 | P3      |       30 | 300 | PCE                 | 1.61 M |          84.49 |         0.017 |                       nan     |      0.017   |
 
+
+P3 revisited (11 Nov 2026, `qest.qubo --level P3`, 300 Q4 instances, results/qubo_P3_test_retro.csv): the gate-model
+solvers run partitioned, one block pinned into the other's linear terms, blocks alternating between the two hours (15 qubits)
+and the three sites across both hours (10 qubits, the SoC link inside), up to 4 sweeps, 4 random one-hot restarts.
+
+| level | qubits | method | % of optimum | optimum hit | s/instance |
+|:--|--:|:--|--:|--:|--:|
+| P3 | 6 | PCE, one-hot decoding | 84.50 | 0.017 | 0.013 |
+| P3 | 8 | PCE, 48 restarts | 86.61 | 0.000 | 0.03 |
+| P3 | 15 | partitioned by hour (QAOA p=1 / BF-DCQO / FALQON / SQA, identical) | 92.05 | 0.730 | 0.01-0.2 |
+| P3 | 15 / 10 | partitioned, alternating hour / site blocks | 99.67 | 0.977 | 0.02-0.4 |
+| P3 | 15 / 10 | alternating blocks, 4 restarts | **99.92** | **0.993** | 0.1-1.5 |
+| P3 | 30 | tabu search (classical reference) | 99.92 | 0.907 | 0.048 |
+
 ## MILP knobs tuned by Optuna (TPE) on Q3, official scoring, battery + hybrid
 
 |   number |       value |   params_afrr |   params_mfrr |   params_kappa_up |   params_kappa_dn |   params_tol |

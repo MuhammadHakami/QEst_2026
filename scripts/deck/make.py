@@ -174,9 +174,9 @@ S['payback'] = sec('payback', h2(f'Expected 2026 revenue: €{BASE/1e6:.1f} M ba
 {rule('Under the Estonian cap (25 MW, Q4)', 'MILP €1,328,436 · distilled €1,315,734 (−0.96 %) · live QAOA €1,313,247 (−1.14 %): the ranking survives the faithful market.')}
 {rule('What pays: information and recourse, not the solver', 'The activation model with a ranking gate: +3.2 % over the year (±2.1 %), +0.3 % under the cap. Planning over its scenarios with a settlement-faithful recourse: a further +6.7 % (±2.3 %) uncapped and +5.4 % (±1.8 %) under the cap over the year. Every quantum decider on the same inputs: ±0.7 %, inside noise.')}
 </div>""", gap=22)
-S['verdict'] = sec('verdict', h2('Verdict: the euros came from modelling the TSO and the recourse; the qubits tie the MILP and sample no better than tempering') + f'''
+S['verdict'] = sec('verdict', h2('Verdict: the puzzle is solved at half the qubits; the euros came from modelling the TSO and the recourse; in euros the qubits tie') + f'''
 <div style="display:flex;gap:24px">
-{stat('−0.13 %', f'LR-QAOA (24 qubits, CUDA-Q) vs the MILP over the 2026 season: {M(QAOA)} vs {M(BASE)}, inside the ±€163k noise', ORANGE)}
+{stat('99.9 % · 15 qubits', 'organisers’ P3 puzzle (30 qubits, two hours linked by SoC), 300 Q4 hours: partitioned alternating hour / site blocks reach 99.92 % of the exact optimum and return it on 99.3 % of hours (PCE on 6 qubits: 84.5 %, 1.7 %; tabu search 99.92 %, 90.7 %). Every gate-model solver ties: the decomposition is the gain', AQUA)}
 {stat('0 QPU calls', f"distilled sampler: the live QPU's optimum-hit rate, {M(NQS)} (−0.51 %), 4× faster per decision, 300× fewer shots over a season", VIOLET)}
 {stat('89 %', f"of the deterministic reachable optimum captured by the scenario plan (€41.3 M of {M(REACH)}); hindsight's €{HIND/1e6:.0f} M is activation foresight", BLUE)}
 </div>

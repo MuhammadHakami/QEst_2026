@@ -157,11 +157,13 @@ def pce_layout(m, k=None):
     return k, slots[:m]
 
 
-def pce(E, layers=4, steps=300, restarts=24, lr=.05, seed=0, k=None, alpha=None, decode_shots=None, qubo=None):
+def pce(E, layers=4, steps=300, restarts=24, lr=.05, seed=0, k=None, alpha=None, decode_shots=None, qubo=None, groups=None):
     """Pauli correlation encoding on each instance (B, 2^m) -> best state per instance (after polish), stats. alpha: the
     loss sharpness (default 1.5 k); decode_shots: read each correlator's sign from that many simulated shots.
     qubo=(h (B, m), J (B, m, m) upper-triangular): the cost given by its QUBO coefficients instead of the 2^m table, so m
-    is not limited by memory (P3: 30 bits on 6 qubits); E is then ignored."""
+    is not limited by memory (P3: 30 bits on 6 qubits); E is then ignored. groups: one-hot groups of bit indices (problem-aware
+    decoding, after arXiv:2605.20163): in each group the bit with the most negative correlator is set, so every decoded plan is
+    valid and the penalty terms never bite; the sign decode is kept for the bits outside groups."""
     if qubo is not None:
         h, J = (torch.as_tensor(a, device=DEV, dtype=torch.float32) for a in qubo); B, m = h.shape
         sc = h.abs().amax(1, keepdim=True).clamp(min=1e-9); h, J = h / sc, J / sc[..., None]
@@ -208,7 +210,12 @@ def pce(E, layers=4, steps=300, restarts=24, lr=.05, seed=0, k=None, alpha=None,
         if decode_shots:  # each correlator is the mean of S +-1 outcomes with P(+1) = (1 + c) / 2
             s = 2 * torch.distributions.Binomial(decode_shots, ((1 + s.clamp(-1, 1)) / 2)).sample() / decode_shots - 1
         if qubo is not None:
-            X = (s < 0).float(); e = (X * h[:, None]).sum(-1) + torch.einsum('brm,bmn,brn->br', X, J, X)
+            X = (s < 0).float()
+            if groups:  # problem-aware decoding: exactly one bit per one-hot group, the one the state leans to most
+                X = torch.zeros_like(X)
+                for g_ in groups:
+                    gi = torch.as_tensor(g_, device=DEV); X[..., gi] = torch.nn.functional.one_hot(s[..., gi].argmin(-1), len(g_)).float()
+            e = (X * h[:, None]).sum(-1) + torch.einsum('brm,bmn,brn->br', X, J, X)
             return polish_qubo(h, J, X[torch.arange(B), e.argmin(1)]), dict(qubits=k, bits=m, restarts=R)
         z = ((s < 0).long() * (1 << torch.arange(m, device=DEV))).sum(-1)  # s = +1 <-> bit 0
         e = torch.gather(E, 1, z); best = z[torch.arange(B), e.argmin(1)]

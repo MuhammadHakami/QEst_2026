@@ -453,3 +453,9 @@ MCMC beats the quantum one; day-level sampler benchmark: quantum proposal equal 
 persistence, 80x the time; tempering helps both. Whole year under the 25 MW cap (11 Nov): `milp_scenf` +5.4 % (+1.65 M
 +- 0.53 M, 204 / 291 days, every month positive), `milp_scenf16` +5.1 %; MCMC-sampled plans under the cap +8.8-10.2 % on
 Q3 / Q4. Deck v14 (17 slides): new 'scenarios' slide, payback and verdict rewritten. Scripts copied into scripts/.
+
+11 Nov: the organisers' P3 puzzle (30 qubits, two hours linked by SoC) solved on the quantum track: `qubo.partitioned`
+(blocks pinned into each other's linear terms, alternating hour / site partitions, 4 restarts) takes every gate-model
+solver (QAOA, BF-DCQO, FALQON, SQA) from PCE's 84.5 % / 0.017 hit to 99.92 % of the optimum / 0.993 hit on 300 Q4
+instances with 15 and 10 qubits (tabu 99.92 % / 0.907). PCE one-hot decoding (`qsota.pce(groups=)`) changed nothing.
+research/quantum_gain_2026.md s5, results/RESULTS.md.
