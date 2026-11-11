@@ -106,7 +106,7 @@ def run(split, strategies, units, cfg, margins=None, params=None, traces=None):
     def knobs(name):  # the knobs Optuna chose on Q3 for this strategy (qest.tune), else the LightGBM MILP's, else defaults
         if margins is not None or params is not None:
             return margins, params
-        fam = 'milp_chronos' if fc_kind(name).startswith(('chronos', 'tabpfn', 'timestral')) or '@' in name else 'milp'  # '@': Chronos-2's knobs for every forecaster
+        fam = 'milp_chronos' if fc_kind(name).startswith(('chronos', 'tabpfn', 'timestral', 'tsens')) or '@' in name else 'milp'  # '@': Chronos-2's knobs for every forecaster
         for tb in (RESULTS / f'tune_best_{name}.json', RESULTS / f'tune_best_{fam}.json', RESULTS / 'tune_best.json'):
             if tb.exists():
                 import json

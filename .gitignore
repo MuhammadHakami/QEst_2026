@@ -14,3 +14,4 @@ results/*.pkl
 results/*.log
 results/qscen_params/
 data/
+proofs/.lake/

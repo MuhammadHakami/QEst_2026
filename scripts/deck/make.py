@@ -185,11 +185,109 @@ S['verdict'] = sec('verdict', h2('Verdict: the puzzle is solved at half the qubi
 {rule('Where the qubits were measured, honestly', 'Quantum-proposal MCMC on 16-qubit activation windows: fastest decorrelation per step (12–22 vs 15–35), but a classical tempering ladder does more for the marginals at a 200th of the time, and whole-day scenarios from either sampler earn the same in the plan. Deciders on the best inputs: ±0.7 %, the QUBO surrogate is the ceiling (QAOA hits its optimum on 94–98 % of days).')}
 {rule('Next', "Elering's activated volumes (CSV inbox ready) to make the cap the real series; a joint target beyond the chain (aFRR + borders + FI price) where the quantum sampler has a job; the distilled training set on IQM / IBM for about $3k.")}
 </div>''')
-order = ['cover', 'gates', 'sites', 'taxonomy', 'pipeline', 'forecast', 'day', 'bids', 'markets', 'matrix', 'gap', 'real', 'activations', 'scenarios', 'distill', 'payback', 'verdict']
+# ---------------------------------------------------------------- story rebuild (11 Nov): SOTA first, problem, baselines, quantum strategies, winner
+def hbar(rows, unit=' %', vmax=None, w=1680, lab=640, rh=58, zero=True):
+    """Inline SVG horizontal bars: rows = (label, value, colour, note). Negative values grow left of the axis."""
+    vmax = vmax or max(abs(v) for _, v, _, _ in rows); neg = any(v < 0 for _, v, _, _ in rows)
+    x0 = lab + (160 if neg else 0); span = w - x0 - 330; out = [f'<svg viewBox="0 0 {w} {rh * len(rows) + 10}" style="width:100%;display:block" xmlns="http://www.w3.org/2000/svg">']
+    for i, (t, v, c, note) in enumerate(rows):
+        y = i * rh + 8; L = abs(v) / vmax * span * (1 if v >= 0 else 160 / span * vmax / max(abs(min(r[1] for r in rows)), 1e-9))
+        x = x0 if v >= 0 else x0 - L
+        out.append(f'<text x="0" y="{y + 30}" font-size="27" font-weight="600" fill="{INK}" font-family="Inter, Arial">{t}</text>')
+        out.append(f'<rect x="{x:.0f}" y="{y}" width="{max(L, 3):.0f}" height="{rh - 20}" rx="5" fill="{c}"/>')
+        out.append(f'<text x="{(x0 + L + 14) if v >= 0 else (x0 + 14):.0f}" y="{y + 30}" font-size="27" font-weight="700" fill="{INK}" font-family="Inter, Arial">{v:+.1f}{unit}</text>')
+        out.append(f'<text x="{w}" y="{y + 30}" font-size="23" fill="{MUT}" text-anchor="end" font-family="Inter, Arial">{note}</text>')
+    out.append(f'<line x1="{x0}" y1="0" x2="{x0}" y2="{rh * len(rows)}" stroke="{INK}" stroke-width="2"/></svg>'); return ''.join(out)
+def vbars(vals, labels, col, h=300, w=1680, unit='%'):
+    n = len(vals); bw = w / n; vm = max(vals); out = [f'<svg viewBox="0 0 {w} {h + 60}" style="width:100%;display:block" xmlns="http://www.w3.org/2000/svg">']
+    for i, (v, l) in enumerate(zip(vals, labels)):
+        bh = v / vm * (h - 50); x = i * bw + bw * .18
+        out.append(f'<rect x="{x:.0f}" y="{h - bh:.0f}" width="{bw * .64:.0f}" height="{bh:.0f}" rx="5" fill="{col}"/><text x="{x + bw * .32:.0f}" y="{h - bh - 12:.0f}" font-size="26" font-weight="700" text-anchor="middle" fill="{INK}" font-family="Inter, Arial">+{v}{unit}</text><text x="{x + bw * .32:.0f}" y="{h + 38}" font-size="25" text-anchor="middle" fill="{MUT}" font-family="Inter, Arial">{l}</text>')
+    out.append(f'<line x1="0" y1="{h}" x2="{w}" y2="{h}" stroke="{INK}" stroke-width="2"/></svg>'); return ''.join(out)
+card = lambda t, how, ours, col: f'<div style="flex:1;padding:28px;border-radius:16px;background:#F1F3F6;border-top:8px solid {col}"><p style="{H};font-size:36px;font-weight:700">{t}</p><p style="font-size:24px;color:{MUT};line-height:1.35;margin-top:10px">{how}</p><p style="font-size:24px;line-height:1.35;margin-top:14px"><b>On our problem:</b> {ours}</p></div>'
+box = lambda t, sub, col: f'<div style="flex:1;padding:22px;border-radius:14px;background:{col};color:#fff"><p style="{H};font-size:30px;font-weight:700">{t}</p><p style="font-size:22px;line-height:1.3;margin-top:6px;opacity:.95">{sub}</p></div>'
+arrow = f'<p style="font-size:44px;color:{MUT};align-self:center">→</p>'
+
+S['sota'] = sec('sota', h2('Four families of 2026 state of the art, and the one job each can do on a battery that bids',
+  'Read from QCE26, NeurIPS 2026, IonQ / IBM / IQM papers and this year’s energy challenges; every one was built and scored here against a classical control.') + f"""
+<div style="display:flex;gap:20px">
+{card('Hybrid gate-model optimisation', 'QAOA / LR-QAOA, BF-DCQO, Pauli correlation encoding: a circuit samples bit strings, a classical loop keeps the best. 2026: partitioned registers (Daedalus), qubit-efficient encodings (PCE at 10k variables), Heron benchmark: deep QAOA is random-limited.', 'the day’s charge / discharge pattern and the organisers’ puzzle. 30-qubit puzzle solved on 15 qubits (99.9 %); in euros every decider ties the MILP.', BLUE)}
+{card('Annealing and quantum-enhanced sampling', 'Simulated / digitised quantum annealing, quantum-proposal MCMC (Layden; Marshall–Egger on Heron r3): the quantum step proposes far moves, Metropolis keeps the target exact.', 'sampling joint activation scenarios for the plan. Mixes 1.5–2× faster per step; classical tempering does more per second; same euros.', VIOLET)}
+</div>
+<div style="display:flex;gap:20px">
+{card('Quantum time series', 'Quantum reservoirs (4-qubit IQM Spark runs), quantum fine-tuning heads on foundation-model features (12 qubits beat a 3 M-parameter MLP), Born machines as generators.', 'activation forecasts and scenarios. Head beats the MLP control on every target, ties LightGBM on calibration; Born machine loses to the classical chain so far.', ORANGE)}
+{card('Classical SOTA it must beat', 'Foundation forecasters (Chronos-2, Mistral Timestral-209M, t0), gradient boosting on market drivers, two-stage stochastic MILP with decision-focused scenarios (NeurIPS / IECON 2026).', 'the baseline and the plan of record: +10 % over Chronos-2 + MILP in 2026 by modelling the TSO and the recourse.', AQUA)}
+</div>""", gap=22)
+
+S['env'] = sec('env', h2('The market as an environment: every strategy, classical or quantum, plays the same replay of Estonia 2026',
+  'qest.env / qest.gym_env (Gymnasium): one episode = one delivery day, 96 quarter-hours, the organisers’ settlement (deck v3, slides 10 + 12). 291 traded days, 8 Jan – 25 Oct 2026.') + f"""
+<div style="display:flex;gap:14px;align-items:stretch">
+{box('Observation, gate A', 'D-1 09:00: prices to D-1, balancing to D-2, D-1 weather, Elering flows, NTC, schedules', BLUE)}{arrow}
+{box('Action', 'day-ahead MW per quarter-hour, capacity offers in aFRR / mFRR up / down, energy-bid margins', VIOLET)}{arrow}
+{box('Market + plant', 'auctions clear, the TSO activates, battery SoC and PV follow physics, gate-C guard prices out what the SoC cannot back', ORANGE)}{arrow}
+{box('Reward', '€: capacity + day-ahead + activation energy + imbalance − tariff', AQUA)}
+</div>
+<div style="display:flex;gap:20px">
+{stat('100 MW / 200 MWh', 'stand-alone battery, plus a hybrid: 20 MW grid connection, PV and a battery behind it; solar and wind parks located in Land Board orthophotos and simulated with wakes', BLUE)}
+{stat('€37.5 M → €105 M', 'Chronos-2 + MILP against perfect hindsight over the season: the room any forecaster, sampler or QPU is competing for', ORANGE)}
+{stat('walk-forward', 'every month is planned with models fitted on earlier months only (balancing data to D-2): the number a trading desk would have earned', AQUA)}
+</div>
+{rule('Where quantum could add value', 'Three places in the loop: (1) the observation → forecast step (reservoirs, quantum heads), (2) the uncertainty between forecast and action (samplers, generative circuits), (3) the action itself (QAOA / annealing on the binaries). Each is measured in the next slides against its classical twin.')}""", gap=22)
+
+S['collapse'] = sec('collapse', h2('Why a better point forecast was never going to be enough: every classical median keeps under 60 % of the real spread',
+  'Std of the median forecast ÷ std of the outcome, Q3 + Q4, 24–48 h ahead. A conditional median shrinks toward the average when skill is low; a plan built on it under-sizes every activation trade. The fix is to plan on samples, not means.') +
+  hbar([('mFRR price · Chronos-2', 49, BLUE, 'within-day spread kept: 29–53 %'), ('mFRR price · Timestral-209M', 46, BLUE, '31–60 %'), ('mFRR price · LightGBM', 39, BLUE, '26–45 %'),
+        ('Imbalance price · Chronos-2', 44, ORANGE, '17–36 %'), ('Imbalance price · Timestral-209M', 40, ORANGE, '23–45 %'),
+        ('aFRR UP share · Chronos-2', 51, VIOLET, '10–31 %'), ('aFRR UP share · Timestral-209M', 45, VIOLET, '16–38 %'),
+        ('Day-ahead price · Chronos-2', 82, AQUA, '58–64 %')], vmax=100) + f"""
+<div style="display:flex;gap:20px">
+{rule('Not an autoregression artefact', 'Chronos-2 and Timestral forecast the whole horizon in one pass and still flatten. Published quantum reservoirs degrade with horizon too (arXiv:2509.12071, 2604.03469): no paper shows a quantum forecaster escaping this.')}
+{rule('What does escape it', 'A generative model that is sampled: scenarios keep the dispersion by construction. That is the object the plan pays for (+5 to +10 %), and the natural job for a circuit whose output is samples.')}
+</div>""", gap=22)
+
+S['ladder'] = sec('ladder', h2('2026 revenue of every strategy against the classical baseline: the hybrid scenario plan is the only quantum pipeline that pays',
+  'Whole season, walk-forward, battery + hybrid, organisers’ settlement, % over Chronos-2 + MILP (€37.48 M). Grey = classical twin of the bar above it. Perfect hindsight would be +181 %.') +
+  hbar([('Quantum reservoir forecaster, blended', -0.05, ORANGE, 'classical random-feature twin: same'), ('LR-QAOA decider, 24 qubits', -0.13, BLUE, '±0.4 %, inside noise'),
+        ('Distilled QPU decider (0 QPU calls)', -0.51, BLUE, 'QUBO optimum hit 63–82 %'), ('Activation model + ranking gate', 3.2, '#9AA3AF', 'classical: LightGBM on TSO drivers'),
+        ('Scenario plan · quantum-MCMC scenarios (16 qubits)', 7.3, VIOLET, '+€2.76 M · 194 of 291 days won'), ('Scenario plan · exact classical chain, 8', 7.4, '#9AA3AF', 'the sampler’s classical twin'),
+        ('Scenario plan · single-flip MCMC, 8', 8.2, '#9AA3AF', ''), ('Scenario plan · 4 exact scenarios', 10.1, AQUA, '€41.28 M: plan of record')], vmax=11) + f"""
+<div style="display:flex;gap:20px">
+{rule('Under the realistic 25 MW cap', 'Scenario plan +5.4 % over the year (+€1.65 M ± €0.53 M, every month positive). With quantum-MCMC scenarios: Q3 +8.8 %, Q4 +10.1 % over the deterministic plan; classical samplers +8.3 to +10.2 %.')}
+{rule('How to read it', 'A hybrid pipeline with a quantum sampler earns +7.3 % over the classical baseline in 2026. Its classical twin earns the same: the value is in planning on scenarios, and today the qubits are not what makes them better.')}
+</div>""", gap=22)
+
+S['winner'] = sec('winner', h2('The winning model, in detail: model the TSO, sample its day, plan against the samples with the market’s own settlement inside',
+  'Four stages, each validated on its own before it was allowed to move euros.') + f"""
+<div style="display:flex;gap:14px;align-items:stretch">
+{box('1 · Drivers', 'Elering open API: Estlink and Latvian flows, NTC, schedules; D-1 weather; D-2 balancing lags. Prices from Chronos-2 / Timestral.', BLUE)}{arrow}
+{box('2 · Activation model', 'LightGBM boosted from a recency-weighted climatology, monthly refits; used per product only when its trailing 30-day ranking skill beats the climatology.', ORANGE)}{arrow}
+{box('3 · Scenario sampler', 'Joint up / down activation path of the day, 4 states × 96 quarter-hours: exact chain, tempered MCMC, or quantum-proposal MCMC on 16-qubit windows.', VIOLET)}{arrow}
+{box('4 · Two-stage MILP', 'One DA position and one set of offers; per scenario the battery delivers what is activated, shortfalls settle at the activation price, the TSO volume cap is exact.', AQUA)}
+</div>
+<p style="font-size:26px;font-weight:600;margin-top:6px">Gain over the deterministic plan by month, 25 MW cap, walk-forward (8 scenarios)</p>
+{vbars([1.2, 2.7, 3.1, 7.6, 11.4, 5.0, 9.2, 6.3, 9.3, 8.1], ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'], AQUA, h=250)}
+<div style="display:flex;gap:20px">
+{rule('What made it work', 'Valuing the deterministic plan inside each recourse model exposed the wrong ones (the model said €26k, settlement paid €83k). Faithful delivery plus scenarios rescaled to the bid margin turned −31 % into +7 %.')}
+{rule('Where it gets its money', 'It buys more day-ahead energy (−€50.5 M vs −€44.7 M) and sells it into aFRR activations (€29.8 M vs €21.0 M) with unchanged imbalance volume: the aFRR leg sized by samples instead of a mean.')}
+</div>""", gap=18)
+
+S['bounds'] = sec('bounds', h2('What is provable about “maximum quantum revenue”: five theorems, machine-checked in Lean 4',
+  'proofs/Qproofs/Revenue.lean (Mathlib). Plans x are committed before the scenario s is known; f(x, s) is the settled revenue, |f| ≤ B; p is the true law of the day, q the law a sampler hands the planner.') + f"""
+<div style="display:flex;gap:20px">
+{rule('1 · Hindsight is an information bound', 'E<sub>p</sub> f(x, s) ≤ E<sub>p</sub> max<sub>x′</sub> f(x′, s) for every plan x. No solver, classical or quantum, closes the €64 M to hindsight: only information about s does. “Near-perfect hindsight” means near-perfect knowledge of the TSO’s day.')}
+{rule('2 · Planning on scenarios never loses to a point plan', 'The plan optimised over the scenario law is at least as good, in expectation, as any fixed plan: the value of the stochastic solution is ≥ 0. Measured here: +5 to +10 %.')}
+</div>
+<div style="display:flex;gap:20px">
+{rule('3–4 · A sampler’s error costs at most 2 B ‖p − q‖₁', 'Any plan’s expected revenue moves by at most B ‖p − q‖₁ when the sampler’s law replaces the truth; the plan optimised on q is within 2 B ‖p − q‖₁ of the best plan.')}
+{rule('5 · The ceiling on a quantum sampler’s extra revenue', 'E<sub>p</sub> f(x<sub>Q</sub>) − E<sub>p</sub> f(x<sub>C</sub>) ≤ 2 B ‖p − q<sub>C</sub>‖₁: a quantum sampler can add at most what the classical sampler’s error leaves. On a target the classical chain samples exactly, that is zero, which is what we measured.')}
+</div>
+{rule('What this tells us to build', 'The qubits pay only where q_C is far from p: a joint law too large to sample exactly (aFRR + both borders + Finnish price, 192+ bits a day). An IQP-type Born machine trained classically and sampled on the QPU (Bowles et al., “train on classical, deploy on quantum”) is the 2026 design for that, and the QPU experiment planned for the IQM / IBM keys.')}""", gap=20)
+
+order = ['cover', 'sota', 'gates', 'sites', 'env', 'pipeline', 'forecast', 'day', 'bids', 'markets', 'gap', 'collapse', 'real', 'activations', 'scenarios', 'winner', 'matrix', 'ladder', 'bounds', 'distill', 'payback', 'verdict']
 for k in order: (D / 'slides' / f'{k}.html').write_text(S[k])
 deck = {"v": 4, "createdOnFiles": {"v": 1, "at": "2026-11-07T15:30:00Z"}, "lists": "css", "title": "KratTrade · QEst 2026", "order": order,
-        "sections": {"s1": {"description": "The market and the real sites", "start": "cover"}, "s2": {"description": "Methods: taxonomy and pipeline", "start": "taxonomy"},
-                     "s3": {"description": "Results on Q4, 1-25 Oct 2026", "start": "forecast"}, "s4": {"description": "The gap, the Estonian market, the activation model, the scenario plan, the distilled QPU, the bill", "start": "gap"}},
+        "sections": {"s1": {"description": "State of the art and the problem", "start": "cover"}, "s2": {"description": "The environment and the pipeline", "start": "env"},
+                     "s3": {"description": "Baselines on real days", "start": "forecast"}, "s4": {"description": "The gap, the winning model, quantum strategies, proofs, the bill", "start": "gap"}},
         "faces": {"space-grotesk": {"family": "Space Grotesk", "href": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Inter:wght@400;600&display=swap"},
                   "inter": {"family": "Inter", "href": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Inter:wght@400;600&display=swap"}}, "designSystems": []}
 (D / 'deck.json').write_text(json.dumps(deck)); print('ok', len(order))

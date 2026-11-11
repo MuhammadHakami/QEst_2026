@@ -347,3 +347,44 @@ already does classically (split-conformal widening of the 10-90 % band). On the 
 reservoir literature says the opposite of the premise: closed-loop QRC forecasts degrade with horizon by error accumulation
 (chaotic maps, arXiv:2509.12071; memory saturating over a limited horizon, 2604.03469), and no paper found compares a quantum
 sampler against a classical one on mean reversion. So the claim is treated as ours to test (section 8), not as established.
+
+### 6c. Euros on Timestral (`QEST_FC=timestral`) and on the two-model average (`tsens`), walk-forward, organisers' rules
+
+| Plan | Q3 on Chronos-2 | on Timestral | on the average | Q4 on Chronos-2 | on Timestral | on the average |
+|---|---:|---:|---:|---:|---:|---:|
+| Baseline MILP | 8,112,684 | +6.0 % (+484k +- 292k) | +2.3 % (+189k +- 168k) | 1,821,939 | -6.2 % (-113k +- 184k) | -4.5 % (-82k +- 78k) |
+| + activation model, ranking gate | 8,943,649 | -0.3 % (+- 236k) | +0.1 % | 1,878,086 | **+3.8 % (+71k +- 62k)** | +3.5 % (+66k +- 58k) |
+| + scenario plan (8) | 9,219,319 | -0.7 % (+- 201k) | -0.4 % | 1,901,646 | +1.8 % (+34k +- 109k) | +0.8 % |
+
+Q4 at the 25 MW cap: activation plan +3.2 % (+43k +- 44k) on Timestral, scenario plan +1.3 % (+- 46k). Reading: swapping
+the price forecaster moves the *baseline* by +-6 % with opposite signs in the two quarters, and moves the plan of record
+by less than its interval. Once the TSO's activations are modelled and planned on scenarios, the price forecaster is no
+longer the lever (and the first `tsens` run, which silently fell back to the LightGBM knobs, lost EUR 0.5 M on Q4: the
+knobs matter more than the forecaster). Timestral stays as an alternative input; no claim is made for it.
+
+## 8. A quantum generative model for the scenarios (`qest.qgen`): measured, negative so far
+
+Conditional quantum circuit Born machine: 16 qubits = 8 MTUs x (up, down), 4 layers of RY(condition) RZ RY + CZ ring,
+conditioned on the previous state, the hour block and the driver summary, exact-likelihood training on the statevector,
+refitted before each month. Held-out windows, per MTU (results/qgen_bench_{val,test}.csv):
+
+| Month | Born machine log-lik | classical chain log-lik | UP rate data / Born / chain | UP run length data / Born / chain |
+|---|---:|---:|---|---|
+| Jul | -0.820 | -0.545 | 0.37 / 0.37 / 0.51 | 5.9 / 2.5 / 7.8 |
+| Aug | -0.802 | -0.524 | 0.42 / 0.39 / 0.34 | 6.8 / 2.9 / 5.0 |
+| Sep | -0.743 | -0.474 | 0.40 / 0.36 / 0.40 | 7.3 / 2.3 / 6.5 |
+| Oct | -0.689 | -0.469 | 0.43 / 0.41 / 0.46 | 7.9 / 2.7 / 7.5 |
+
+The circuit gets the activation *rate* right (better than the chain in July and August) and misses the *persistence*: runs
+of 2.5 quarter-hours against 7 in the data, 0.22-0.28 nats per MTU behind the chain. A shallow hardware-efficient ansatz
+on a ring does not express the 4-state Markov structure that a 16-parameter logistic transition captures. This is the
+result the Lean bound predicts in sign: with a classical sampler that is exact on its target, a quantum sampler has
+nothing to add (`quantum_gain_bound`), and a worse generative fit can only cost. Not carried into the plan. Next variant if
+pursued: an IQP / MPS-structured circuit with nearest-neighbour-in-time entanglers (research/plan_v2.md step 3).
+
+## 9. Lean 4 proofs (`proofs/Qproofs/Revenue.lean`, Mathlib, builds clean, axioms: propext, Classical.choice, Quot.sound)
+
+`ev_le_hindsight`, `scenario_ge_any`, `ev_diff_le`, `sampler_regret`, `quantum_gain_bound`: statements in
+research/plan_v2.md s1. `cd proofs && lake build`. The bounds are over the day's joint scenario law; in euros they are
+loose (B is a day's revenue scale, the joint L1 distance is not small), so they are used for direction, not magnitude: they
+say where a quantum sampler can and cannot earn.
