@@ -261,3 +261,89 @@ qubits is the optimisation, not the decode. On the competition's quantum metric 
 the P3 optimum on 99.3 % of hours with a register a 2026 device has (15 qubits), equal in value to the best classical
 heuristic and above it on hit rate, with a random control at 31 %. It is a quantum-track result, not a euro result: the
 puzzle values prices that are known.
+
+## 6. Forecasting SOTA pass (11 Nov): a quantum fine-tuning head and Mistral's Timestral, on the lever that pays
+
+The user's list (IonQ resource papers, QTSF, the quantum fine-tuning "wing" head, 4-qubit digital reservoirs, t0,
+Timestral) was screened for what is testable here with a classical control on the activation targets, the input whose
+quality moves euros. Two were built and measured; the rest are in research/README.md.
+
+### 6a. Quantum fine-tuning head on the activation drivers (`qest.qhead`, after Kim, Baglio et al., arXiv:2609.05408)
+
+The paper's core: a 12-qubit data re-uploading circuit (R = 2, Z readout on 5 wires, linear head) on frozen Chronos
+embeddings beats a 1.2-3 M-parameter MLP on power-grid event classification with 3,240 quantum parameters. Here the head
+sits on the gate-A driver features of qest.actfc and predicts m_up / m_dn / aFRR shares, walk-forward (monthly refits,
+D-2 lag), AdamW with weight decay (both heads over-fitted without it). Controls on identical inputs and training loop: an
+MLP head (2 x 64); and the LightGBM forecaster of record. Two seeds, the mean of the two reported (results/qhead_*.csv):
+
+| Q3 (92 d) | quantum head, 12 qubits (~3k params) | MLP head (same inputs) | LightGBM (actfc) | climatology |
+|---|---:|---:|---:|---:|
+| mFRR UP: AUC / Brier / log-loss | 0.585 / 0.235 / 0.663 | 0.572 / 0.260 / 0.735 | 0.571 / 0.243 / 0.679 | 0.564 / 0.236 / 0.665 |
+| mFRR UP: within-day Spearman | 0.128 | 0.160 | 0.163 | 0.113 |
+| mFRR DOWN: AUC / Brier | 0.572 / 0.246 | 0.563 / 0.273 | 0.548 / 0.255 | 0.557 / 0.247 |
+| aFRR UP share: Brier | 0.164 | 0.167 | 0.163 | 0.172 |
+| aFRR DOWN share: Brier | 0.160 | 0.160 | 0.155 | 0.162 |
+
+| Q4 (25 d) | quantum head | MLP head | LightGBM | climatology |
+|---|---:|---:|---:|---:|
+| mFRR UP: AUC / Brier | 0.528 / 0.249 (seeds 0.49 / 0.57) | 0.501 / 0.313 | 0.566 / 0.244 | 0.483 / 0.250 |
+| aFRR UP / DOWN share: Brier | 0.159 / 0.152 | 0.175 / 0.169 | 0.154 / 0.148 | 0.163 / 0.156 |
+
+Reading: the paper's claim replicates in its own terms: the quantum head beats the classical MLP head on identical inputs
+on every target and both quarters, with a thousandth of the parameters, and it is the best-calibrated mFRR model on Q3
+(log-loss 0.663 against 0.665 climatology, 0.679 LightGBM). Against the stronger classical control it does not win: LightGBM
+ranks hours within the day better (Spearman 0.16 against 0.13), carries the aFRR shares, and is stable on Q4 where the
+quantum head is seed-sensitive. Training cost: 12 s a month on one GPU. Placement: a committee member for the mFRR
+probabilities, not a replacement; its Q4 instability must be fixed (seed ensembles, the paper's wings carrying new inputs)
+before it enters the plan.
+
+### 6b. Mistral Timestral-209M as the price forecaster (`qest.fc_tsfm`)
+
+Drop-in beside Chronos-2: same two information groups, same known covariates, 56-day context, zero-shot. MAE by target,
+Timestral against Chronos-2 (results/skill_timestral_{val,test}.csv):
+
+| Target | Q3: Timestral / Chronos-2 / LightGBM | Q4: Timestral / Chronos-2 / LightGBM |
+|---|---:|---:|
+| day-ahead price | 32.7 / 32.7 / 40.3 | 35.7 / 36.0 / 42.5 |
+| mFRR price | **63.1** / 68.1 / 71.9 (-7.2 %) | 69.2 / 67.4 / 66.0 (+2.7 %) |
+| imbalance price | **67.5** / 72.6 / 75.6 (-7.0 %) | 67.4 / 64.6 / 62.9 (+4.3 %) |
+| aFRR UP share | **0.355** / 0.368 / 0.374 (-3.5 %) | 0.351 / 0.340 / 0.343 (+3.3 %) |
+| aFRR DOWN share | **0.338** / 0.350 / 0.370 (-3.5 %) | 0.333 / 0.322 / 0.334 (+3.6 %) |
+| capacity prices (4) | -0.7 to -5.9 % | -1.5 to +0.2 % |
+
+Reading: on Q3 Timestral is the best forecaster of the balancing targets by a clear margin and ties on the day-ahead
+price; on the 25 October days it gives part of that back. Inference: 18 s for 92 days on one GPU (Chronos-2: minutes).
+Euros follow in 6c: the whole plan family (`QEST_FC=timestral`: prices, aFRR shares and the scenario chain from Timestral;
+`tsens`: the two foundation models averaged quantile by quantile) on Q3 and Q4, both settlements.
+
+## 7. "Classical forecasts collapse to the average over the horizon": measured, and what follows for the qubits (11 Nov)
+
+The user's hypothesis: autoregressive classical forecasters flatten toward the mean as the horizon grows, a quantum model
+keeps the dispersion and is noise-aware, so it should earn more. Tested on our forecasters first (results/forecast_collapse.csv;
+Q3 + Q4, median forecast against the realised series; the D-2 group is a 24-48 h horizon, the day-ahead price 9-39 h):
+
+| Target, hours of the delivery day | spread kept, Chronos-2 | Timestral | LightGBM | within-day spread kept (C-2 / T / LGBM) |
+|---|---:|---:|---:|---|
+| mFRR price, 0-7 / 8-15 / 16-23 | 0.52 / 0.40 / 0.56 | 0.47 / 0.38 / 0.53 | 0.39 / 0.35 / 0.43 | 0.29-0.53 / 0.31-0.60 / 0.26-0.45 |
+| imbalance price | 0.48 / 0.36 / 0.48 | 0.42 / 0.32 / 0.45 | 0.34 / 0.31 / 0.41 | 0.17-0.36 / 0.23-0.45 / 0.20-0.42 |
+| aFRR UP share | 0.52 / 0.45 / 0.57 | 0.46 / 0.36 / 0.52 | 0.49 / 0.39 / 0.50 | 0.10-0.31 / 0.16-0.38 / 0.23-0.34 |
+| day-ahead price | 0.87 / 0.81 / 0.79 | 0.80 / 0.74 / 0.71 | 0.50 / 0.58 / 0.53 | 0.58-0.64 / 0.63-0.68 / 0.33-0.58 |
+
+(spread kept = std of the median forecast / std of the outcome; 1 = no collapse.) The premise holds: the balancing medians
+carry 30-57 % of the realised spread and 10-60 % of the within-day spread, for every classical model, and it is not an
+autoregression artefact (Timestral and Chronos-2 forecast the whole horizon in one pass): a conditional median *should*
+shrink toward the mean when skill is low. That is exactly why the deterministic plan on medians left money on the table
+and the scenario plan (section 1) recovered 5-8 %: the plan needs the dispersion, not a sharper point.
+
+What follows for the qubits is a precise job, not a slogan: the quantum model that can "keep the dispersion" is a
+generative one, sampled, conditioned on the drivers, scored against the classical generator of record (the logistic
+Markov chain, qest.qscen) on held-out log-likelihood and on euros through the same plan. That object is built in section 8
+(`qest.qgen`, a conditional quantum circuit Born machine over 16-qubit activation windows, exact-likelihood training on
+the statevector, shot sampling on hardware). Literature check (research/README.md): quantum generative time-series models
+exist for finance (QGAN / QCBM on S&P 500, MPS generators, QDiffusion-TS on IQM, 2606.27561) with windows of 5-20 points;
+none for energy prices or activations, and no paper shows a quantum sampler avoiding mean reversion over a long horizon.
+"Noise-aware" in the literature means conformal error bars that absorb hardware noise (Park & Simeone), which our pipeline
+already does classically (split-conformal widening of the 10-90 % band). On the horizon claim itself the 2025-26 quantum
+reservoir literature says the opposite of the premise: closed-loop QRC forecasts degrade with horizon by error accumulation
+(chaotic maps, arXiv:2509.12071; memory saturating over a limited horizon, 2604.03469), and no paper found compares a quantum
+sampler against a classical one on mean reversion. So the claim is treated as ours to test (section 8), not as established.

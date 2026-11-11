@@ -35,6 +35,11 @@ def forecasts(split, kind='lgbm'):
     elif kind in ('chronos', 'chronosx'):  # 'chronosx': with the neighbouring zones' prices as joint series
         from qest.chronos import predict
         out = predict(pred, neighbours=(kind == 'chronosx'))
+    elif kind == 'tsens':  # the two foundation models averaged, quantile by quantile (Chronos-2 + Timestral)
+        a, b = forecasts(split, 'chronos'), forecasts(split, 'timestral'); out = (a + b.reindex(a.index)[a.columns]) / 2
+    elif kind.startswith('timestral'):  # Mistral Timestral zero-shot (qest.fc_tsfm); 'timestral120' = 120-day context
+        from qest.fc_tsfm import predict as tpredict
+        out = tpredict(pred, context_days=int(kind[9:]) if kind[9:] else 56)
     elif kind == 'tabpfn':  # TabPFN stacked on Chronos-2 (qest.fc_tabpfn), conformal widening as the LightGBM path
         from qest.fc_tabpfn import predict
         cf = pd.concat([forecasts(s, 'chronos') for s in (('train',) if split in ('train', 'val') else ('train', 'val'))])
@@ -73,10 +78,10 @@ def fc_kind(name):
     """Which forecaster a strategy plans on, and whose Optuna knobs it falls back to."""
     if '@' in name:  # '<decider>@<forecaster>' (qest.qdecide); 'actrank' = Chronos-2 prices + rank-gated activation marginals
         k = name.split('@', 1)[1]; return 'chronos' if k == 'actrank' else k
-    if name in ('milp_chronos_qrc', 'milp_chronos_rff', 'milp_tabpfn', 'milp_chronosx'):
+    if name in ('milp_chronos_qrc', 'milp_chronos_rff', 'milp_tabpfn', 'milp_chronosx') or name.startswith('milp_timestral'):
         return name[5:]
     if name == 'milp_chronos' or name.startswith('qday_') or name.startswith('oracle') or name.startswith('milp_c') or name.startswith('milp_rp') or name.startswith('milp_stoch') or name.startswith('milp_scen') or name == 'milp_mk' or name.startswith('milp_act'):  # oracle reads no forecast: any cached split keeps its day loop
-        return 'chronos'
+        return os.environ.get('QEST_FC', 'chronos')  # QEST_FC=timestral: the whole Chronos-2 family of plans on another foundation model's prices
     return 'persist' if name == 'milp_persist' else 'lgbm'
 
 
@@ -101,7 +106,7 @@ def run(split, strategies, units, cfg, margins=None, params=None, traces=None):
     def knobs(name):  # the knobs Optuna chose on Q3 for this strategy (qest.tune), else the LightGBM MILP's, else defaults
         if margins is not None or params is not None:
             return margins, params
-        fam = 'milp_chronos' if fc_kind(name).startswith(('chronos', 'tabpfn')) or '@' in name else 'milp'  # '@': Chronos-2's knobs for every forecaster
+        fam = 'milp_chronos' if fc_kind(name).startswith(('chronos', 'tabpfn', 'timestral')) or '@' in name else 'milp'  # '@': Chronos-2's knobs for every forecaster
         for tb in (RESULTS / f'tune_best_{name}.json', RESULTS / f'tune_best_{fam}.json', RESULTS / 'tune_best.json'):
             if tb.exists():
                 import json

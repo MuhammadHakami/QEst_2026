@@ -77,7 +77,8 @@ def fit(before=None, splits=('train', 'val', 'test')):
     from sklearn.linear_model import LogisticRegression
     from qest.data import frame
     from qest.evaluate import forecasts
-    f = frame(); F = pd.concat([forecasts(s, 'chronos') for s in splits]); j = f.join(F, how='inner'); j = j[j.split.isin(splits)]
+    import os
+    f = frame(); F = pd.concat([forecasts(s, os.environ.get('QEST_FC', 'chronos')) for s in splits]); j = f.join(F, how='inner'); j = j[j.split.isin(splits)]
     if before is not None:
         j = j[j.day < pd.Timestamp(before) - pd.Timedelta(days=2)]
     z = _states(j); X = features(j, j.index); days = j.day.to_numpy(); first = np.r_[True, days[1:] != days[:-1]]
@@ -91,7 +92,8 @@ def fit(before=None, splits=('train', 'val', 'test')):
 
 def params(day=None):
     """The model for delivery day `day`, refitted once a month (cache in results/qscen_params/)."""
-    key = 'all' if day is None else pd.Timestamp(day).strftime('%Y-%m')
+    import os
+    key = ('all' if day is None else pd.Timestamp(day).strftime('%Y-%m')) + ('' if os.environ.get('QEST_FC', 'chronos') == 'chronos' else '_' + os.environ['QEST_FC'])
     if key not in _P:
         d = RESULTS / 'qscen_params'; d.mkdir(exist_ok=True); p = d / f'{key}.pkl'
         if p.exists():
@@ -158,6 +160,9 @@ def day_scenarios(ctx, px50, n=8, seed=0, sampler='exact'):
     P = params(ctx.idx[0].tz_convert('Europe/Tallinn').date()); X = features(ctx.fc, ctx.idx)
     if sampler == 'exact':
         Y = sample(P, X, n, seed)
+    elif sampler == 'qgen':  # the conditional quantum circuit Born machine (qest.qgen), a generative model of its own, not the chain
+        from qest import qgen
+        Y = qgen.sample_day(qgen.params(ctx.idx[0].tz_convert('Europe/Tallinn').date()), X, n, seed)
     else:
         from qest.qscen_q import sample_day
         Y = sample_day(P, X, n, seed, quantum=sampler == 'qmcmc')

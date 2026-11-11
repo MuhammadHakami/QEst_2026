@@ -336,7 +336,8 @@ STOCH = dict(milp_act=_actfc_marginals, milp_act_gated=_actfc_gated, milp_act_ra
              # the same plan on scenarios from the approximate samplers (qest.qscen_q): quantum-enhanced and single-flip MCMC
              milp_sceng_qs=_stoch(0.0, 'markov', 8, 'guard', 'act', 'qmcmc'), milp_sceng_ls=_stoch(0.0, 'markov', 8, 'guard', 'act', 'lmcmc'),
              milp_scenf_qs=_stoch(0.0, 'markov', 8, 'faithful', 'act', 'qmcmc'), milp_scenf_ls=_stoch(0.0, 'markov', 8, 'faithful', 'act', 'lmcmc'),
-             milp_scenf16=_stoch(0.0, 'markov', 16, 'faithful', 'act'), milp_scenf4=_stoch(0.0, 'markov', 4, 'faithful', 'act'))
+             milp_scenf16=_stoch(0.0, 'markov', 16, 'faithful', 'act'), milp_scenf4=_stoch(0.0, 'markov', 4, 'faithful', 'act'),
+             milp_scenf_qg=_stoch(0.0, 'markov', 8, 'faithful', 'act', 'qgen'), milp_scenf_qg16=_stoch(0.0, 'markov', 16, 'faithful', 'act', 'qgen'))
 
 
 def _replan_cb(u, pl, px, imb_fc, lag_act=3, lag_imb=4, allow_dev=False):
@@ -383,7 +384,7 @@ def _hybrid(mode):  # qest.qday: a quantum sampler picks the day's charge / disc
     return fn
 
 
-STRATEGIES = dict(idle=idle, naive_da=naive_da, rule=rule, reserve_rule=reserve_rule, milp_da=milp_da, milp=milp, milp_persist=milp,
+STRATEGIES = dict(idle=idle, naive_da=naive_da, rule=rule, reserve_rule=reserve_rule, milp_da=milp_da, milp=milp, milp_persist=milp, milp_timestral=milp, milp_timestral120=milp,
                   milp_chronos=milp, oracle=oracle, milp_chronos_qrc=milp, milp_chronos_rff=milp, milp_tabpfn=milp, milp_chronosx=milp,
                   qday_qaoa=_hybrid('qaoa'), qday_random=_hybrid('random'), qday_surrogate=_hybrid('surrogate'),
                   **{k: _partial(*v) for k, v in ORACLE_PARTS.items()}, **LAGGED, **REPLAN, **STOCH)

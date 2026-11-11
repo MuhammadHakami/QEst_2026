@@ -34,3 +34,5 @@ baltic-py==0.4.0
 tabpfn==2.0.9  # open-weights v2; gate-A quantile forecaster stacked on Chronos-2 (qest.fc_tabpfn)
 huggingface_hub==2.4.0  # tabpfn's resolver downgraded it once and broke chronos/transformers; keep pinned
 transformers==5.22.2
+tfc-t0==0.6.1
+timestral @ file:research/third_party/timestral  # Mistral Timestral inference (Apache 2.0), weights Modified MIT

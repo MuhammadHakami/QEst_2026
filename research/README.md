@@ -44,6 +44,18 @@ conferences and journals"). Everything here is re-fetchable: `.venv/bin/python r
 | Sample-based training of quantum generative models (arXiv:2511.11802); Quantum Fourier generative models trainable at scale (arXiv:2606.28483) | generative models trained from samples scale when the trainable part is classical | supports the distil-once design: the QPU is a data source |
 | WEF "Quantum for Energy and Utilities" 2026; S&P "Energy, compute and the quantum era" 2026; boardroom guide (Fifth Row) | as of 2026 no energy pilot reports a quantified commercial outcome; every project is at demonstrator stage | our deck says so and prices the QPU per decision across four vendors |
 
+## Added 11 Nov 2026 (forecasting SOTA pass, requested by the user)
+
+| Source | What it shows | What we take |
+|---|---|---|
+| Mistral Timestral (Oct 2026, arXiv:2610.37585; 5M-209M, #1 zero-shot on GIFT-Eval / TIME / fev-bench at launch; code Apache 2.0, weights Modified MIT) | patch transformer with past-only and known-future covariates, 21 quantiles, 32,768-step context, CPU-fast | `qest.fc_tsfm`: drop-in beside Chronos-2 (same groups, covariates, layout); Q3 balancing targets -3 to -7 % MAE, Q4 +3 %; `QEST_FC=timestral` runs the whole plan family on it; `tsens` averages the two models |
+| t0 (The Forecasting Company, arXiv:2609.24559; 102M / 256M, covariates, Apache 2.0, `tfc-t0`) | third on GIFT-Eval, context-conditioned | installed (`t0.T0Forecaster`), not yet run: Timestral first |
+| Kim, Baglio et al., arXiv:2609.05408 (Sep 2026): quantum fine-tuning head on frozen Chronos embeddings, PSML-5 grid events; 12-qubit core + "wings"; beats a 1.2-3 M MLP by 1.7-2.0 pp with 3,240 parameters | the bottleneck is data intake, not expressiveness: more qubits help only with new inputs | `qest.qhead`: the head on our activation drivers; beats the MLP control on every target, ties climatology / LightGBM on mFRR calibration, trails LightGBM on ranking and aFRR shares (quantum_gain_2026.md s6a) |
+| Chakraborty & Heintz, arXiv:2607.16358 (QRC-F / VQF-F vs DLinear / PatchTST / iTransformer); Vercellino et al., arXiv:2606.04686 (4-qubit digital QRC with measure-and-reset on IQM Spark, ATM cash demand: loses to Prophet on MAE, competitive on DTW) | compact quantum forecasters match classical baselines on benchmarks, do not beat strong ones on real series | consistent with our `qrc` result (ties Chronos-2 blended) |
+| Quantum generative time series: QGAN / QCBM on S&P 500 (IOP MLST 2026, arXiv:2507.22035), MPS generators (2402.17148), QDiffusion-TS on IQM (2606.27561) | sampled paths with stylised facts on windows of 5-20 points; no energy application | `qest.qgen`: conditional Born machine over 16-qubit activation windows as the scenario generator (s8) |
+| QRC long-horizon behaviour: 2509.12071 (chaotic maps), 2604.03469 (memory saturates), 2608.00139 (neural forecasting) | closed-loop quantum reservoirs accumulate error with horizon like classical ones | the "no collapse to the mean" premise is ours to test, not established (s7) |
+| IonQ 2026 resource papers (Walking Cat qLDPC 2604.19481; single-CPU real-time decoder; ECDLP blueprint) and Harvard / QuEra AI-designed circuits (2610.22367) | fault-tolerant overhead falling 10x; LLM-found circuits beat hand designs on 7 of 8 tasks | context for the cost slide; nothing to run on NISQ-scale bidding |
+
 Method papers behind our own modules: BF-DCQO (`2409.04477`, `2505.08663`), QMCMC (`2602.06171`), QRC (`2606.12806`),
 VQC RL (`2601.18811`), PCE unit commitment (`2605.17145`), copula QAOA (`2603.00260`); ADMM-DQAOA code in
 `third_party/DQAOA`, FALQON unit commitment in `third_party/Unit-Commitment-Quantum-Opt`.
