@@ -450,3 +450,27 @@ Reduction gives the highest totals so far in both settlements, but its gain over
 recorded as the best point estimate, not as an established improvement. The quantum-sampled reduced set is level with the
 classical one. Optuna on Q2 under the sim-to-real preset (`QEST_REAL=1`, 48 trials): EUR 5,555,382 against 5,536,640 with
 the inherited knobs (+0.3 %): nothing to gain, the official-rule knobs are kept for the preset.
+
+### 10d. Joint (mFRR, aFRR) scenarios (plan v2 step 2), out of sample
+
+A second chain for aFRR activity (the PICASSO share is bimodal: 4 states, up on / down on), conditioned on the features,
+its previous state and the MTU's sampled mFRR state (`qscen.sample_afrr`); scenarios carry the on / off aFRR share instead of
+the smooth mean, mean-consistent per MTU. Q2-tuned knobs, Q3 + Q4:
+
+| 117 days | Organisers' rules | vs baseline | 25 MW cap | vs baseline |
+|---|---:|---:|---:|---:|
+| tuned, 4 random mFRR draws | 11,640,522 | +17.2 % | 8,280,196 | +13.5 % |
+| tuned, 256 -> 8 reduced, mFRR only | 11,826,341 | +19.0 % | 8,295,612 | +13.8 % |
+| tuned, 8 random joint draws | 11,382,267 | +14.6 % | 8,266,006 | +13.4 % |
+| **tuned, 256 -> 8 reduced, joint** | **11,829,667** | **+19.1 %** | **8,350,172** | **+14.5 %** (+70k +- 78k over tuned-4, 66 / 117) |
+
+The reduced joint set is the best plan in both settlements (Q3: +20.9 % / +14.4 %), level with the mFRR-only reduced set
+under the organisers' rules and EUR 55k ahead under the cap, inside the interval. Random joint draws are worse than random
+mFRR draws: more dimensions need reduction, not more samples.
+
+On the quantum side this closes a question honestly. The joint law is still two chains, exactly samplable; so is every
+model this data can support (291 days cannot identify a law that is hard to sample). By `quantum_gain_bound` a quantum
+sampler then has no revenue to add, and all eight comparisons made (deciders, MCMC proposals default and NAS, reduced
+quantum sets, Born machine) agree: parity at best. The quantum contribution demonstrated here is parity at 10-16 qubits
+with a per-step mixing edge, the organisers' puzzle at half the qubits, and a QPU that can be distilled out of the loop;
+the revenue (+19 % out of sample, +6.9 % for the year under realistic rules) comes from the classical scenario plan.

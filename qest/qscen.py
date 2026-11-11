@@ -86,7 +86,15 @@ def fit(before=None, splits=('train', 'val', 'test')):
     age = (days.max() - days) / np.timedelta64(1, 'D'); w = 0.5 ** (age / HALF_LIFE)
     m = LogisticRegression(max_iter=2000, C=1.0).fit(_design(X, np.r_[0, z[:-1]])[~first & ok], z[~first & ok], sample_weight=w[~first & ok])
     pi0 = np.bincount(z[first & ok], weights=w[first & ok], minlength=4); pi0 = pi0 / pi0.sum()
-    return dict(model=m, pi0=pi0, n_days=int(first.sum()), fill=X[FEATS][ok].mean().to_dict(), aus_ratio=float(j.afrr4s_up_share[z % 2 == 1].mean() / max(j.afrr4s_up_share[z % 2 == 0].mean(), 1e-3)),
+    # second chain: aFRR activity (the PICASSO share is bimodal: an MTU is mostly on or mostly off), 4 states (up on, down on), conditioned on the
+    # same features, its own previous state and the MTU's mFRR state: with the mFRR chain this is the joint (mFRR, aFRR) scenario law
+    su, sd = j.afrr4s_up_share.fillna(0).to_numpy(), j.afrr4s_down_share.fillna(0).to_numpy(); za = (su > .5).astype(int) + 2 * (sd > .5).astype(int)
+    Da = np.c_[_design(X, np.r_[0, za[:-1]]), np.eye(4)[z][:, 1:]]
+    ma = LogisticRegression(max_iter=2000, C=1.0).fit(Da[~first & ok], za[~first & ok], sample_weight=w[~first & ok])
+    api0 = np.bincount(za[first & ok], weights=w[first & ok], minlength=4); api0 = api0 / api0.sum()
+    ar = dict(up_on=float(su[su > .5].mean() / max(su.mean(), 1e-3)), up_off=float(su[su <= .5].mean() / max(su.mean(), 1e-3)),
+              dn_on=float(sd[sd > .5].mean() / max(sd.mean(), 1e-3)), dn_off=float(sd[sd <= .5].mean() / max(sd.mean(), 1e-3)))
+    return dict(model=m, pi0=pi0, amodel=ma, api0=api0, aratio=ar, n_days=int(first.sum()), fill=X[FEATS][ok].mean().to_dict(), aus_ratio=float(j.afrr4s_up_share[z % 2 == 1].mean() / max(j.afrr4s_up_share[z % 2 == 0].mean(), 1e-3)),
                 ads_ratio=float(j.afrr4s_down_share[z >= 2].mean() / max(j.afrr4s_down_share[z < 2].mean(), 1e-3)))
 
 
@@ -96,7 +104,7 @@ def params(day=None):
     key = ('all' if day is None else pd.Timestamp(day).strftime('%Y-%m')) + ('' if os.environ.get('QEST_FC', 'chronos') == 'chronos' else '_' + os.environ['QEST_FC'])
     if key not in _P:
         d = RESULTS / 'qscen_params'; d.mkdir(exist_ok=True); p = d / f'{key}.pkl'
-        if p.exists():
+        if p.exists() and 'amodel' in pickle.loads(p.read_bytes()):
             _P[key] = pickle.loads(p.read_bytes())
         else:
             if day is None:
@@ -133,6 +141,16 @@ def sample(P, X, n, seed=0):
     return STATES[z]
 
 
+def sample_afrr(P, X, Y, seed=0):
+    """aFRR activity paths (n, T, 2) given the mFRR paths Y (n, T, 2), from the second chain."""
+    rng = np.random.default_rng(seed + 7); n, T = Y.shape[:2]; z = Y[:, :, 0] + 2 * Y[:, :, 1]; Xf = X.fillna(P.get('fill', 0.0))[FEATS].to_numpy()
+    za = np.zeros((n, T), int); za[:, 0] = rng.choice(4, n, p=P['api0']); cls = P['amodel'].classes_
+    for t in range(1, T):
+        D = np.c_[np.repeat(Xf[t][None], n, 0), np.eye(4)[za[:, t - 1]][:, 1:], np.eye(4)[z[:, t]][:, 1:]]
+        pr = P['amodel'].predict_proba(D); c = pr.cumsum(1); za[:, t] = cls[(rng.random(n)[:, None] > c).sum(1).clip(0, len(cls) - 1)]
+    return STATES[za]
+
+
 def window_energy(P, X, t0, z0, w=8):
     """E(z_{t0+1..t0+w}) = -log P(path | z_{t0} = z0) over all 4^w paths: the exact target for a sampler benchmark."""
     M = np.log(np.clip(transitions(P, X), 1e-12, 1)); idx = np.indices([4] * w).reshape(w, -1)  # (w, 4^w)
@@ -160,6 +178,21 @@ def day_scenarios(ctx, px50, n=8, seed=0, sampler='exact'):
     P = params(ctx.idx[0].tz_convert('Europe/Tallinn').date()); X = features(ctx.fc, ctx.idx)
     if sampler == 'exact':
         Y = sample(P, X, n, seed)
+    elif sampler in ('joint', 'jreduce'):  # joint (mFRR, aFRR) scenarios: the aFRR share of an MTU is its on / off level, not the smooth mean
+        m = 256 if sampler == 'jreduce' else n; Z = sample(P, X, m, seed); A = sample_afrr(P, X, Z, seed); w = np.full(m, 1 / m)
+        if sampler == 'jreduce':  # forward selection on the 4-bit paths
+            F = np.concatenate([Z, A], 2).reshape(m, -1); D = (F[:, None, :] != F[None, :, :]).sum(-1).astype(float); keep = []
+            for _ in range(n):
+                c = [np.inf if j_ in keep else D[:, keep + [j_]].min(1).sum() for j_ in range(m)]; keep.append(int(np.argmin(c)))
+            w = np.bincount(D[:, keep].argmin(1), minlength=n) / m; Z, A = Z[keep], A[keep]
+        R = P['aratio']; out = []
+        fu = np.where(A[:, :, 0] > 0, R['up_on'], R['up_off']); fd = np.where(A[:, :, 1] > 0, R['dn_on'], R['dn_off'])  # (k, T) share multipliers
+        fu = fu / np.maximum((w[:, None] * fu).sum(0), 1e-3); fd = fd / np.maximum((w[:, None] * fd).sum(0), 1e-3)  # mean-consistent per MTU with the plan's share
+        ratio = (float(np.mean(px50['m_up_q']) / max((w[:, None] * Z[:, :, 0]).sum(0).mean(), 1e-3)), float(np.mean(px50['m_dn_q']) / max((w[:, None] * Z[:, :, 1]).sum(0).mean(), 1e-3)))
+        for k in range(len(Z)):
+            p = dict(px50); p['m_up_q'] = np.clip(Z[k, :, 0] * ratio[0], 0, 1); p['m_dn_q'] = np.clip(Z[k, :, 1] * ratio[1], 0, 1)
+            p['a_up_s'] = np.clip(np.asarray(px50['a_up_s']) * fu[k], 0, 1); p['a_dn_s'] = np.clip(np.asarray(px50['a_dn_s']) * fd[k], 0, 1); out.append(p)
+        return out, w
     elif sampler.startswith('reduce'):  # scenario reduction (fast forward selection, Heitsch & Roemisch 2003): draw many exact (or quantum-MCMC,
         # 'reduceq') paths, keep the n whose weighted set is closest to the full set in Hamming distance; each kept path carries its cluster's mass
         if sampler == 'reduceq':
