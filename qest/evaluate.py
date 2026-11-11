@@ -133,7 +133,7 @@ def run(split, strategies, units, cfg, margins=None, params=None, traces=None):
     fcs = {k: forecasts(split, k) for k in {fc_kind(s) for s in strategies}}
     act, fc = unit_gen(g, units)
     u_kind = {u.name: u.kind for u in units}
-    rows = []
+    rows = []; REAL = bool(os.environ.get('QEST_REAL')); soc_state = {}
     for name in strategies:
         fn = STRATEGIES[name]; t0 = time.time()
         for d in D:
@@ -145,8 +145,20 @@ def run(split, strategies, units, cfg, margins=None, params=None, traces=None):
                              real=day if name.startswith('oracle') else None,
                              gen_real={k: v.reindex(idx).fillna(0).to_numpy() for k, v in act.items()} if name.startswith('oracle') else None,
                              afrr_tab=atab.loc[idx] if name.startswith('oracle') else None)
-            plan = fn(units, ctx, cfg)
-            res = market.settle_day(units, plan, day, {k: v.reindex(idx).fillna(0).to_numpy() for k, v in act.items()}, cfg, afrr_tab=atab.loc[idx])
+            up, us = units, units
+            if REAL:  # the battery's SoC carries over midnight (no daily reset to 50 %). At gate A (D-1 09:00) the planner knows the
+                # metered SoC at the end of D-2 and its own plan for D-1: start of D = end(D-2) + planned change over D-1; settlement starts from the truth
+                from dataclasses import replace
+                st = soc_state.setdefault(name, {})
+                up = [replace(u, soc0=float(np.clip(st[u.name]['end2'] + st[u.name]['dplan'], 0, 1))) if (u.e_mwh and u.name in st) else u for u in units]
+                us = [replace(u, soc0=st[u.name]['end1']) if (u.e_mwh and u.name in st) else u for u in units]
+            plan = fn(up, ctx, cfg)
+            res = market.settle_day(us, plan, day, {k: v.reindex(idx).fillna(0).to_numpy() for k, v in act.items()}, cfg, afrr_tab=atab.loc[idx])
+            if REAL:
+                for u, u_p, u_s in zip(units, up, us):
+                    if u.e_mwh and u.name in plan and 'soc' in plan[u.name]:
+                        prev = st.get(u.name, dict(end1=u.soc0)); st[u.name] = dict(end2=prev['end1'], end1=float(res[u.name]['soc_end'] / u.e_mwh),
+                                                                                     dplan=float(plan[u.name]['soc'][-1] / u.e_mwh - u_p.soc0))
             if traces is not None:
                 traces[(name, d)] = {un: dict(idx=idx, deliv=np.asarray(r['trace']['deliv'], float), soc=np.asarray(r['trace']['soc'], float))
                                      for un, r in res.items() if u_kind.get(un) in ('battery', 'hybrid')}

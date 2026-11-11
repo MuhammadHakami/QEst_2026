@@ -32,6 +32,13 @@ from qest.paths import RESULTS
 
 DEV = 'cuda' if torch.cuda.is_available() else 'cpu'
 W, NQ, TROTTER = 8, 16, 8  # window MTUs, qubits (2 per MTU), Trotter steps
+# the proposal circuit's architecture (searched by scripts/nas_sampler.py on Q2 windows; defaults = Layden et al.'s ranges)
+PROP = dict(g_lo=.25, g_hi=.60, t_lo=2.0, t_hi=20.0, trotter=8)
+try:
+    import json as _json
+    PROP.update(_json.loads((RESULTS / 'nas_sampler_best.json').read_text())['prop'])
+except Exception:
+    pass
 
 
 def energies(P, X, t0, z0):
@@ -46,7 +53,8 @@ def _propose(s, Es, alpha, quantum, g):
     chains, N = Es.shape
     if not quantum:
         return s ^ (1 << torch.randint(0, NQ, (chains,), device=DEV, generator=g))
-    gm = .25 + .35 * torch.rand(chains, 1, device=DEV, generator=g); t = 2 + 18 * torch.rand(chains, 1, device=DEV, generator=g)
+    gm = PROP['g_lo'] + (PROP['g_hi'] - PROP['g_lo']) * torch.rand(chains, 1, device=DEV, generator=g); t = PROP['t_lo'] + (PROP['t_hi'] - PROP['t_lo']) * torch.rand(chains, 1, device=DEV, generator=g)
+    TROTTER = PROP['trotter']
     psi = torch.zeros(chains, N, dtype=torch.complex64, device=DEV); psi[torch.arange(chains, device=DEV), s] = 1
     dc = ((1 - gm) * alpha[:, None] * t / TROTTER).float(); dm = (gm * t / TROTTER)[:, 0].float()
     c, sn = torch.cos(dm).to(torch.complex64)[:, None, None], (-1j * torch.sin(dm)).to(torch.complex64)[:, None, None]

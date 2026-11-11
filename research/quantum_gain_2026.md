@@ -388,3 +388,37 @@ pursued: an IQP / MPS-structured circuit with nearest-neighbour-in-time entangle
 research/plan_v2.md s1. `cd proofs && lake build`. The bounds are over the day's joint scenario law; in euros they are
 loose (B is a day's revenue scale, the joint L1 distance is not small), so they are used for direction, not magnitude: they
 say where a quantum sampler can and cannot earn.
+
+## 10. Optuna, NAS and PostNAS on the winning strategy, leakage-free (11 Nov)
+
+**Optuna on the plan** (`scripts/tune_scen.py`, TPE, 64 trials): knobs (scenario count, aFRR / mFRR bid margins, activation
+haircuts, gate-C drift tolerance) tuned on 46 Q2 days only (every 2nd day of Apr-Jun, walk-forward calibration); Q3 and Q4
+are never seen. Q2: EUR 8.04 M against 7.83 M with the inherited knobs (+2.7 %); the change that matters is the drift
+tolerance (0.016 -> 0.19 of the battery's energy: the guard prices out later). Applied unchanged, out of sample:
+
+| Q3 + Q4, 117 days | Organisers' rules | vs baseline | 25 MW cap | vs baseline |
+|---|---:|---:|---:|---:|
+| Chronos-2 + MILP | 9,934,623 | - | 7,292,317 | - |
+| activation plan (rank gate) | 10,821,735 | +8.9 % | 7,363,642 | +1.0 % |
+| scenario plan, 4 exact, inherited knobs | 11,273,170 | +13.5 % | 8,063,440 | +10.6 % |
+| **scenario plan, 4 exact, Q2-tuned** | **11,640,522** | **+17.2 %** (+367k +- 191k over untuned, 93 / 117) | **8,280,196** | **+13.5 %** (+217k +- 112k, 83 / 117) |
+| Q2-tuned, single-flip MCMC scenarios | 11,565,679 | +16.4 % | 8,244,529 | +13.1 % |
+| Q2-tuned, quantum-MCMC scenarios (default proposal) | 11,416,524 | +14.9 % | 8,203,925 | +12.5 % |
+
+By quarter the quantum-sampled plan is the best plan on Q4 in both settlements (2,082,236, +6.9 % over untuned, +- 112k;
+capped 1,531,286, +4.8 % +- 45k) and the weakest of the three on Q3 (9,334,288 against 9,603,878 exact); over the 117
+days the three scenario sources are inside each other's intervals, as before.
+
+**NAS + PostNAS on the sampler circuit** (`scripts/nas_sampler.py`): Optuna over the quantum proposal (mixer weight range,
+evolution-time range, Trotter depth), objective = autocorrelation x depth cost subject to TV, on June windows; scored on 16
+held-out Q3 windows (results/nas_sampler.csv):
+
+| Proposal | TV to exact | autocorrelation (steps) | acceptance | Trotter steps |
+|---|---:|---:|---:|---:|
+| default (Layden ranges: mixer 0.25-0.60, t 2-20) | 0.103 | 18.5 | 0.114 | 8 |
+| NAS (mixer 0.18-0.38, t 4.4-9.6) | **0.079** | **11.7** | 0.172 | 8 |
+| PostNAS (fewest Trotter steps within 10 %) | = NAS | = NAS | | 8 (7 already loses > 10 %) |
+| single-bit flips | 0.113 | 27.3 | 0.171 | - |
+
+The searched proposal mixes 1.6x faster than the published ranges and 2.3x faster than single flips per step, with the
+acceptance of the local chain. PostNAS found no depth to cut. Euros with it: section 10b (running).
