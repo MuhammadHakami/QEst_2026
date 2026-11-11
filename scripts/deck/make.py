@@ -253,7 +253,7 @@ S['ladder'] = sec('ladder', h2('Out of sample, Q3 + Q4 2026: every strategy agai
         ('Tuned scenario plan · exact chain scenarios', 17.2, AQUA, '€11.64 M: plan of record')], vmax=19) + f"""
 <div style="display:flex;gap:20px">
 {rule('25 MW activation cap, same 117 days', 'Baseline €7.29 M. Tuned scenario plan +13.5 % (exact), +12.8 % (quantum-MCMC, NAS), +13.1 % (single-flip). On Q4 alone the quantum-sampled plan is the best in both settlements: €2.11 M (+15.8 %) and €1.53 M (+15.0 %).')}
-{rule('As real as Estonia gets (sim-to-real preset, whole year)', '95 % efficiency each way, Elering tariff, capacity price impact, activation ramps, 25 MW volume cap, penalties, SoC carried over midnight: baseline €28.70 M, scenario plan €30.68 M (+6.9 % ± 1.9 %), every month positive, a third of the undelivered energy.')}
+{rule('Whole year 2026, best plan (joint mFRR + aFRR scenarios, reduced to 8)', 'Organisers’ rules €41.68 M vs €37.48 M (+11.2 % ± 3.5 %). 25 MW cap €33.10 M vs €30.28 M (+9.3 % ± 1.7 %). As real as Estonia gets (95 % efficiency, Elering tariff, price impact, ramps, cap, penalties, SoC carried over midnight): €31.55 M vs €28.70 M (+9.9 % ± 1.8 %), 234 of 291 days won. Every month positive in all three; knobs tuned on Q2, so Q2 is in-sample.')}
 {rule('How to read the quantum bars', 'The hybrid pipeline with a quantum sampler earns +16.6 % over the classical baseline. Its classical twins earn the same within the interval (±€0.3 M): the value is planning on scenarios; the sampler’s per-step speed (2.3× after NAS) does not yet show in euros.')}
 </div>""", gap=22)
 

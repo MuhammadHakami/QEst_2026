@@ -471,3 +471,7 @@ scenario plan is +17.2 % over baseline (+13.5 % capped); quantum-MCMC scenarios 
 (`QEST_REAL=1`, SoC carried over midnight, research/sim2real.md): year 28.70 M -> 30.68 M (+6.9 %, every month positive).
 Deck v15 (22 slides, story rebuilt, inline charts). Bug caught: `tsens` fell back to the LightGBM knobs. Plan:
 research/plan_v2.md. Runs are launched detached (scripts/run_*.sh) since a session restart killed two jobs.
+Later on 11 Nov: scenario reduction (`reduce`, `reduceq`) and joint mFRR + aFRR scenarios (`qscen.sample_afrr`, `joint` /
+`jreduce`): best plan `milp_scenf_jr8_t`, out of sample Q3 + Q4 +19.1 % (+14.5 % capped); whole year 41.68 M (+11.2 %),
+33.10 M capped (+9.3 %), 31.55 M under the sim-to-real preset (+9.9 %). Sim-to-real tune on Q2: +0.3 %, knobs kept.
+Quantum samplers stay at parity in every comparison; verdict in research/quantum_gain_2026.md s10d.

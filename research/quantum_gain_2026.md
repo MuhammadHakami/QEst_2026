@@ -474,3 +474,15 @@ sampler then has no revenue to add, and all eight comparisons made (deciders, MC
 quantum sets, Born machine) agree: parity at best. The quantum contribution demonstrated here is parity at 10-16 qubits
 with a per-step mixing edge, the organisers' puzzle at half the qubits, and a QPU that can be distilled out of the loop;
 the revenue (+19 % out of sample, +6.9 % for the year under realistic rules) comes from the classical scenario plan.
+
+### 10e. The whole year with the best plan (`milp_scenf_jr8_t`: joint scenarios reduced to 8, Q2-tuned knobs), walk-forward
+
+| 291 days | Chronos-2 + MILP | Best plan | Gain | Days won |
+|---|---:|---:|---:|---:|
+| Organisers' rules | 37,480,487 | **41,677,428** | +11.2 % (+4.20 M +- 1.31 M) | 209 / 291 |
+| 25 MW cap | 30,277,111 | **33,098,865** | +9.3 % (+2.82 M +- 0.51 M) | 232 / 291 |
+| Sim-to-real preset | 28,698,928 | **31,547,838** | +9.9 % (+2.85 M +- 0.52 M) | 234 / 291 |
+
+Positive in every month in all three (organisers: +2.7 to +27.2 %; cap: +4.3 to +16.0 %). Caveats: the knobs were tuned on
+Q2, so April-June are in-sample for five knobs; the chain for January-February is fitted to 1 March. The clean
+out-of-sample figure is Q3 + Q4 (section 10d): +19.1 % / +14.5 %.
