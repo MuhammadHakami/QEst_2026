@@ -36,3 +36,4 @@ huggingface_hub==2.4.0  # tabpfn's resolver downgraded it once and broke chronos
 transformers==5.22.2
 tfc-t0==0.6.1
 timestral @ file:research/third_party/timestral  # Mistral Timestral inference (Apache 2.0), weights Modified MIT
+qiskit-ibm-runtime==0.52.0
