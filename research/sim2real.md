@@ -40,3 +40,24 @@ not be downloaded from this network (404 / 403); items marked (unverified) rest 
 Section 4 is filled from results/days_*_actfc_real.parquet (scripts/run_real.sh): Chronos-2 + MILP, the activation plan
 and the scenario plans, whole year, walk-forward. Knobs are the ones tuned under the official rules (not re-tuned for the
 preset); SoC carry-over restarts at the split boundaries (1 Jul, 1 Oct).
+
+## 4. Whole year under the preset (291 days, walk-forward, battery + hybrid; `QEST_REAL=1 QEST_FAT=1 QEST_ACT_CAP=25`)
+
+| Plan | Revenue | vs Chronos-2 + MILP | Days won | Undelivered activation |
+|---|---:|---:|---:|---:|
+| Chronos-2 + MILP | 28,698,928 | - | - | 70 MWh |
+| + activation model, ranking gate | 28,756,393 | +0.2 % (+57k +- 131k) | 124 / 291 | 94 MWh |
+| + scenario plan, 4 exact scenarios | 30,595,125 | **+6.6 % (+1.90 M +- 0.53 M)** | 222 / 291 | 21 MWh |
+| + scenario plan, 8 exact scenarios | **30,680,744** | **+6.9 % (+1.98 M +- 0.54 M)** | 223 / 291 | 24 MWh |
+
+Monthly net-import tariff (Elering, on top): about -EUR 0.17 M for every plan. By month the 8-scenario plan gains +1.3,
++3.8, +6.1, +9.2, +11.2, +7.2, +11.2, +10.3, +7.8, +7.5 % (Jan-Oct): positive in every month.
+
+Reading: realism costs the baseline EUR 8.8 M against the organisers' score (37.48 -> 28.70 M: efficiency losses, capacity
+price impact, the volume cap, ramps), and it does not cost the scenario plan its edge: +6.9 % and significant, with a third
+of the undelivered activation energy of the deterministic plans (24 against 70-94 MWh), because the recourse model prices
+shortfalls. Composition: capacity payments are the same (16.7-16.9 M); the scenario plan buys 9.7 M of day-ahead energy
+against 3.7 M and earns 10.0 M in aFRR energy against 4.1 M and 2.4 M in imbalance against 1.4 M. The activation model
+alone is worth nothing here (+0.2 %): under real volumes only the scenario plan converts its information into euros.
+These are the numbers to quote for "what the assets would have earned in Estonia in 2026", with the three unverified
+rules of section 1 as the stated uncertainty.

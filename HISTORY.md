@@ -459,3 +459,15 @@ Q3 / Q4. Deck v14 (17 slides): new 'scenarios' slide, payback and verdict rewrit
 solver (QAOA, BF-DCQO, FALQON, SQA) from PCE's 84.5 % / 0.017 hit to 99.92 % of the optimum / 0.993 hit on 300 Q4
 instances with 15 and 10 qubits (tabu 99.92 % / 0.907). PCE one-hot decoding (`qsota.pce(groups=)`) changed nothing.
 research/quantum_gain_2026.md s5, results/RESULTS.md.
+
+## 4j. Forecasting SOTA, Lean, tuning, sim-to-real (11 Nov 2026)
+
+Timestral-209M (`qest.fc_tsfm`, `QEST_FC`): moves the baseline +-6 %, the plan of record by less than its interval. Quantum
+fine-tuning head (`qest.qhead`): beats its MLP control, not LightGBM. Conditional Born machine (`qest.qgen`): loses to the
+chain (-0.80 vs -0.52 log-lik per MTU). Forecast collapse measured (medians keep 30-57 % of the spread). Lean 4 proofs
+(`proofs/`, five theorems, clean build). Optuna on Q2 only (`scripts/tune_scen.py`): out of sample on Q3 + Q4 the tuned
+scenario plan is +17.2 % over baseline (+13.5 % capped); quantum-MCMC scenarios with the NAS proposal
+(`scripts/nas_sampler.py`, IACT 18.5 -> 11.7) +16.6 % / +12.8 %, tied with the exact chain. Sim-to-real preset
+(`QEST_REAL=1`, SoC carried over midnight, research/sim2real.md): year 28.70 M -> 30.68 M (+6.9 %, every month positive).
+Deck v15 (22 slides, story rebuilt, inline charts). Bug caught: `tsens` fell back to the LightGBM knobs. Plan:
+research/plan_v2.md. Runs are launched detached (scripts/run_*.sh) since a session restart killed two jobs.

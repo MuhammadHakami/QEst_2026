@@ -245,15 +245,16 @@ S['collapse'] = sec('collapse', h2('Why a better point forecast was never going 
 {rule('What does escape it', 'A generative model that is sampled: scenarios keep the dispersion by construction. That is the object the plan pays for (+5 to +10 %), and the natural job for a circuit whose output is samples.')}
 </div>""", gap=22)
 
-S['ladder'] = sec('ladder', h2('2026 revenue of every strategy against the classical baseline: the hybrid scenario plan is the only quantum pipeline that pays',
-  'Whole season, walk-forward, battery + hybrid, organisers’ settlement, % over Chronos-2 + MILP (€37.48 M). Grey = classical twin of the bar above it. Perfect hindsight would be +181 %.') +
-  hbar([('Quantum reservoir forecaster, blended', -0.05, ORANGE, 'classical random-feature twin: same'), ('LR-QAOA decider, 24 qubits', -0.13, BLUE, '±0.4 %, inside noise'),
-        ('Distilled QPU decider (0 QPU calls)', -0.51, BLUE, 'QUBO optimum hit 63–82 %'), ('Activation model + ranking gate', 3.2, '#9AA3AF', 'classical: LightGBM on TSO drivers'),
-        ('Scenario plan · quantum-MCMC scenarios (16 qubits)', 7.3, VIOLET, '+€2.76 M · 194 of 291 days won'), ('Scenario plan · exact classical chain, 8', 7.4, '#9AA3AF', 'the sampler’s classical twin'),
-        ('Scenario plan · single-flip MCMC, 8', 8.2, '#9AA3AF', ''), ('Scenario plan · 4 exact scenarios', 10.1, AQUA, '€41.28 M: plan of record')], vmax=11) + f"""
+S['ladder'] = sec('ladder', h2('Out of sample, Q3 + Q4 2026: every strategy against the classical baseline. The tuned hybrid scenario plan earns +17 %',
+  '117 delivery days the tuner never saw (knobs set by Optuna on Q2 only; every model fitted on earlier months). Battery + hybrid, organisers’ settlement, % over Chronos-2 + MILP (€9.93 M). Grey = the classical twin of the bar above it.') +
+  hbar([('LR-QAOA decider, 24 qubits, on the activation inputs', 8.3, BLUE, 'QUBO optimum hit 94–98 %'), ('MILP on the same inputs', 8.9, '#9AA3AF', 'activation model + ranking gate'),
+        ('Scenario plan, 4 scenarios, inherited knobs', 13.5, '#9AA3AF', '€11.27 M'),
+        ('Tuned scenario plan · quantum-MCMC scenarios, NAS proposal', 16.6, VIOLET, '€11.59 M · 16 qubits a window'), ('Tuned scenario plan · single-flip MCMC scenarios', 16.4, '#9AA3AF', '€11.57 M'),
+        ('Tuned scenario plan · exact chain scenarios', 17.2, AQUA, '€11.64 M: plan of record')], vmax=19) + f"""
 <div style="display:flex;gap:20px">
-{rule('Under the realistic 25 MW cap', 'Scenario plan +5.4 % over the year (+€1.65 M ± €0.53 M, every month positive). With quantum-MCMC scenarios: Q3 +8.8 %, Q4 +10.1 % over the deterministic plan; classical samplers +8.3 to +10.2 %.')}
-{rule('How to read it', 'A hybrid pipeline with a quantum sampler earns +7.3 % over the classical baseline in 2026. Its classical twin earns the same: the value is in planning on scenarios, and today the qubits are not what makes them better.')}
+{rule('25 MW activation cap, same 117 days', 'Baseline €7.29 M. Tuned scenario plan +13.5 % (exact), +12.8 % (quantum-MCMC, NAS), +13.1 % (single-flip). On Q4 alone the quantum-sampled plan is the best in both settlements: €2.11 M (+15.8 %) and €1.53 M (+15.0 %).')}
+{rule('As real as Estonia gets (sim-to-real preset, whole year)', '95 % efficiency each way, Elering tariff, capacity price impact, activation ramps, 25 MW volume cap, penalties, SoC carried over midnight: baseline €28.70 M, scenario plan €30.68 M (+6.9 % ± 1.9 %), every month positive, a third of the undelivered energy.')}
+{rule('How to read the quantum bars', 'The hybrid pipeline with a quantum sampler earns +16.6 % over the classical baseline. Its classical twins earn the same within the interval (±€0.3 M): the value is planning on scenarios; the sampler’s per-step speed (2.3× after NAS) does not yet show in euros.')}
 </div>""", gap=22)
 
 S['winner'] = sec('winner', h2('The winning model, in detail: model the TSO, sample its day, plan against the samples with the market’s own settlement inside',
@@ -267,7 +268,7 @@ S['winner'] = sec('winner', h2('The winning model, in detail: model the TSO, sam
 <p style="font-size:26px;font-weight:600;margin-top:6px">Gain over the deterministic plan by month, 25 MW cap, walk-forward (8 scenarios)</p>
 {vbars([1.2, 2.7, 3.1, 7.6, 11.4, 5.0, 9.2, 6.3, 9.3, 8.1], ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'], AQUA, h=250)}
 <div style="display:flex;gap:20px">
-{rule('What made it work', 'Valuing the deterministic plan inside each recourse model exposed the wrong ones (the model said €26k, settlement paid €83k). Faithful delivery plus scenarios rescaled to the bid margin turned −31 % into +7 %.')}
+{rule('What made it work', 'Valuing the deterministic plan inside each recourse model exposed the wrong ones (the model said €26k, settlement paid €83k). Faithful delivery plus scenarios rescaled to the bid margin turned −31 % into +7 %; Optuna on Q2 only (gate-C drift tolerance 1.6 % → 19 %) added +3.3 % out of sample.')}
 {rule('Where it gets its money', 'It buys more day-ahead energy (−€50.5 M vs −€44.7 M) and sells it into aFRR activations (€29.8 M vs €21.0 M) with unchanged imbalance volume: the aFRR leg sized by samples instead of a mean.')}
 </div>""", gap=18)
 

@@ -422,3 +422,14 @@ held-out Q3 windows (results/nas_sampler.csv):
 
 The searched proposal mixes 1.6x faster than the published ranges and 2.3x faster than single flips per step, with the
 acceptance of the local chain. PostNAS found no depth to cut. Euros with it: section 10b (running).
+
+### 10b. The quantum-sampled plan with the NAS proposal (Q2-tuned knobs, out of sample)
+
+| 117 days, Q3 + Q4 | exact chain | quantum MCMC, default proposal | quantum MCMC, NAS proposal | NAS - default | NAS - exact |
+|---|---:|---:|---:|---:|---:|
+| Organisers' rules | 11,640,522 | 11,416,524 | 11,586,530 (+16.6 % vs baseline) | +170k +- 450k | -54k +- 308k |
+| 25 MW cap | 8,280,196 | 8,203,925 | 8,223,139 (+12.8 %) | +19k +- 106k | -57k +- 80k |
+
+Q4 alone: NAS-quantum 2,110,259 (+15.8 % over baseline, +74k +- 93k over exact), capped 1,525,987 (+15.0 %). The NAS
+proposal moves the quantum-sampled plan from the weakest to level with the exact chain; no difference between scenario
+sources is significant. Whole year under the sim-to-real preset: research/sim2real.md s4 (28.70 M -> 30.68 M, +6.9 %).
