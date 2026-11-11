@@ -211,7 +211,7 @@ arrow = f'<p style="font-size:44px;color:{MUT};align-self:center">→</p>'
 S['sota'] = sec('sota', h2('Four families of 2026 state of the art, and the one job each can do on a battery that bids',
   'Read from QCE26, NeurIPS 2026, IonQ / IBM / IQM papers and this year’s energy challenges; every one was built and scored here against a classical control.') + f"""
 <div style="display:flex;gap:20px">
-{card('Hybrid gate-model optimisation', 'QAOA / LR-QAOA, BF-DCQO, Pauli correlation encoding: a circuit samples bit strings, a classical loop keeps the best. 2026: partitioned registers (Daedalus), qubit-efficient encodings (PCE at 10k variables), Heron benchmark: deep QAOA is random-limited.', 'the day’s charge / discharge pattern and the organisers’ puzzle. 30-qubit puzzle solved on 15 qubits (99.9 %); in euros every decider ties the MILP.', BLUE)}
+{card('Hybrid gate-model optimisation', 'QAOA / LR-QAOA, BF-DCQO, Pauli correlation encoding: a circuit samples bit strings, a classical loop keeps the best. 2026: partitioned registers (Daedalus), qubit-efficient encodings (PCE at 10k variables), Heron benchmark: deep QAOA is random-limited.', 'the day’s charge / discharge pattern and the organisers’ puzzle. On IBM Heron (ibm_fez), 120 hours: optimum returned in 85 % of hours vs 59 % for equal-shot random search (p &lt; 0.0001). 30-qubit puzzle solved on 15 qubits in simulation (99.9 %); in euros every decider ties the MILP.', BLUE)}
 {card('Annealing and quantum-enhanced sampling', 'Simulated / digitised quantum annealing, quantum-proposal MCMC (Layden; Marshall–Egger on Heron r3): the quantum step proposes far moves, Metropolis keeps the target exact.', 'sampling joint activation scenarios for the plan. Mixes 1.5–2× faster per step; classical tempering does more per second; same euros.', VIOLET)}
 </div>
 <div style="display:flex;gap:20px">
@@ -272,8 +272,8 @@ S['winner'] = sec('winner', h2('The winning model, in detail: model the TSO, sam
 {rule('Where it gets its money', 'It buys more day-ahead energy (−€50.5 M vs −€44.7 M) and sells it into aFRR activations (€29.8 M vs €21.0 M) with unchanged imbalance volume: the aFRR leg sized by samples instead of a mean.')}
 </div>""", gap=18)
 
-S['bounds'] = sec('bounds', h2('What is provable about “maximum quantum revenue”: five theorems, machine-checked in Lean 4',
-  'proofs/Qproofs/Revenue.lean (Mathlib). Plans x are committed before the scenario s is known; f(x, s) is the settled revenue, |f| ≤ B; p is the true law of the day, q the law a sampler hands the planner.') + f"""
+S['bounds'] = sec('bounds', h2('What is provable about “maximum quantum revenue”: thirteen theorems, machine-checked in Lean 4',
+  'proofs/Qproofs/Revenue.lean and Hybrid.lean (Mathlib). Hybrid.lean proves each strategy sound before it runs: the quantum-master / classical-LP split loses nothing, a Benders loop that closes its gap is optimal, a partitioned block update never lowers revenue, sample-then-verify with the classical plan in the pool is never worse than classical, and a QUBO penalty above the revenue range makes every optimum valid. Plans x are committed before the scenario s is known; f(x, s) is the settled revenue, |f| ≤ B; p is the true law of the day, q the law a sampler hands the planner.') + f"""
 <div style="display:flex;gap:20px">
 {rule('1 · Hindsight is an information bound', 'E<sub>p</sub> f(x, s) ≤ E<sub>p</sub> max<sub>x′</sub> f(x′, s) for every plan x. No solver, classical or quantum, closes the €64 M to hindsight: only information about s does. “Near-perfect hindsight” means near-perfect knowledge of the TSO’s day.')}
 {rule('2 · Planning on scenarios never loses to a point plan', 'The plan optimised over the scenario law is at least as good, in expectation, as any fixed plan: the value of the stochastic solution is ≥ 0. Measured here: +5 to +10 %.')}

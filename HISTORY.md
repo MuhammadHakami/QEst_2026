@@ -475,3 +475,8 @@ Later on 11 Nov: scenario reduction (`reduce`, `reduceq`) and joint mFRR + aFRR 
 `jreduce`): best plan `milp_scenf_jr8_t`, out of sample Q3 + Q4 +19.1 % (+14.5 % capped); whole year 41.68 M (+11.2 %),
 33.10 M capped (+9.3 %), 31.55 M under the sim-to-real preset (+9.9 %). Sim-to-real tune on Q2: +0.3 %, knobs kept.
 Quantum samplers stay at parity in every comparison; verdict in research/quantum_gain_2026.md s10d.
+Hardware, 11 Nov evening: IBM (`ibm_fez`, key IBM_API + CRN in .env) and IQM Garnet (IQM_MUHAMMAD_TOKEN, separate
+.venv-iqm because the IQM client pins qiskit 2.1). `scripts/ibm_run.py` (P2 puzzle, LR-QAOA, random control; `--export` /
+`--score` for other vendors; `--pack`), `scripts/iqm_run.py`. ibm_fez, 120 hours on 5 days, p = 2: optimum returned 85.0 %
+vs 59.2 % random (McNemar p < 0.0001). Garnet 71 % vs 62 % on one day. Packing 10 puzzles on 150 qubits drops to 58 %.
+Pasqal not run (password prompt). `proofs/Qproofs/Hybrid.lean`: 8 more theorems on the hybrid strategies.

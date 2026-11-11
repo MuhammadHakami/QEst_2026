@@ -1,6 +1,7 @@
-import Qproofs.Revenue
-#print axioms ev_le_hindsight
-#print axioms scenario_ge_any
-#print axioms ev_diff_le
-#print axioms sampler_regret
-#print axioms quantum_gain_bound
+import Qproofs
+#print axioms decomposition_exact
+#print axioms benders_stop
+#print axioms block_fixed_point
+#print axioms hybrid_ge_classical
+#print axioms penalty_feasible
+#print axioms penalty_optimal

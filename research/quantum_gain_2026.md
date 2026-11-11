@@ -486,3 +486,55 @@ the revenue (+19 % out of sample, +6.9 % for the year under realistic rules) com
 Positive in every month in all three (organisers: +2.7 to +27.2 %; cap: +4.3 to +16.0 %). Caveats: the knobs were tuned on
 Q2, so April-June are in-sample for five knobs; the chain for January-February is fitted to 1 March. The clean
 out-of-sample figure is Q3 + Q4 (section 10d): +19.1 % / +14.5 %.
+
+## 11. Real hardware (11 Nov): the organisers' puzzle on IBM Heron and IQM Garnet
+
+`scripts/ibm_run.py` (+ `scripts/iqm_run.py` in .venv-iqm): the 15-qubit P2 puzzle of each hour, one LR-QAOA circuit, fixed
+linear-ramp schedule (no training on the device), 1,024 shots, best feasible sample; control = 1,024 random bit strings
+(one-hot rate 0.2) through the same selection; reference = exact enumeration.
+
+| Device | Hours | p | 2-qubit gates after routing | Optimum returned: QPU | random control | EUR % of exact: QPU / random |
+|---|---:|---:|---:|---:|---:|---|
+| ideal statevector, 14 Oct | 24 | 1 / 2 / 3 | 33 / 65 / 98 | 0.92 / 0.79 / 1.00 | 0.62 | 100 / 98.5 / 100 vs 95.8 |
+| ibm_fez (Heron, 156 q), 14 Oct | 24 | 1 / 2 / 3 | 103 / 240 / 365 | 0.79 / 0.88 / 0.79 | 0.62 | 98.3 / 96.4 / 97.7 vs 95.8 |
+| **ibm_fez, 5 days (3, 8, 14, 19, 23 Oct)** | **120** | 2 | 239 | **0.850 (102 / 120)** | **0.592 (71 / 120)** | **98.1 vs 95.5** |
+| IQM Garnet (19 q), 14 Oct | 24 | 2 | 201 | 0.71 | 0.62 | 95.2 vs 95.8 |
+
+Paired over the 120 IBM hours: the QPU alone finds the optimum in 39 hours, the control alone in 8 (McNemar exact
+p < 0.0001); probability of the optimum per shot 0.0010 = 34x uniform. This is the first statistically significant
+quantum-over-control result of the project on real hardware: a noisy 15-qubit circuit with ~240 two-qubit gates beats
+equal-shot random search on the organisers' own metric. It is a quantum-track result (prices known); the classical
+enumeration is exact and instant at this size, so it is evidence that the device computes, not a commercial advantage.
+IQM Garnet at the same depth is at the control's level on one day (24 hours: not conclusive).
+
+Register packing on ibm_fez (14 Oct, p = 2; `--pack k` puts k independent 15-qubit puzzles side by side in one circuit):
+
+| Puzzles per circuit | Qubits | Circuits for 24 hours | Optimum returned | Valid share of shots |
+|---|---:|---:|---:|---:|
+| 1 | 15 | 24 | 0.88 | 0.098 |
+| 3 | 45 | 8 | 0.75 | 0.085 |
+| 5 | 75 | 5 | 0.75 | 0.067 |
+| 10 | 150 | 3 | 0.58 (control 0.62) | 0.058 |
+
+Using the whole 156-qubit register cuts circuits eightfold and costs the result: the transpiler is forced onto the
+device's weaker qubits and couplers. At 3-5 puzzles per circuit the QPU still beats the control (0.75 against 0.62) with
+3-5x fewer circuits; at 10 it does not. The efficient operating point on this device today is a few best-qubit patches,
+not the full register (single day, 24 hours per row: indicative).
+
+IQM Garnet and Pasqal: Garnet ran the same 24 circuits (table above). Pasqal's connection needs an interactive password
+(only project id and e-mail are in .env), so no Pasqal job was submitted; Fresnel is an analog neutral-atom device and
+would need the puzzle recast as a Rydberg-blockade (MIS-type) Hamiltonian, not a gate circuit.
+
+## 12. Lean 4: each hybrid strategy proven sound (`proofs/Qproofs/Hybrid.lean`, builds clean, standard axioms only)
+
+| Theorem | Statement | Used by |
+|---|---|---|
+| `decomposition_exact` | if the classical LP best-responds to every discrete choice and the quantum solver maximises the value function, the pair is a global optimum of the joint problem | qday, qdecide (QUBO on the charge / discharge pattern + LP), the Benders split |
+| `benders_stop`, `benders_gap` | a master built from valid cuts whose maximiser closes the gap is optimal; before that the master bounds the gap | qbenders |
+| `block_step`, `block_fixed_point` | a block re-solved with the rest pinned never lowers the objective; a point no block improves is optimal over all block neighbourhoods | qpart, qubo.partitioned |
+| `hybrid_ge_classical` | best-of-samples with the classical plan in the pool is at least as good as classical, whatever the device returns | the sample-then-verify selection |
+| `penalty_feasible`, `penalty_optimal` | with violations >= 1 and a penalty above the revenue range, every maximiser of the penalised objective is valid and optimal among valid plans | qubo.build (lambda = 1 + sum of values) |
+
+With Revenue.lean (information bound, value of the stochastic solution, sampler regret, quantum-gain ceiling): 13 theorems.
+What the proofs do not give: a rate. They certify that each hybrid loop is correct and cannot do worse than its classical
+part in the model; whether the quantum part does better is empirical, and sections 3, 10 and 11 are that evidence.

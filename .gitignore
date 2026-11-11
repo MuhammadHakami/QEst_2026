@@ -15,3 +15,4 @@ results/*.log
 results/qscen_params/
 data/
 proofs/.lake/
+.venv-iqm/
