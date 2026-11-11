@@ -1,0 +1,6 @@
+day,device,atoms,runs,mis,best_valid,found_opt,p_opt,valid_share,random_best,random_opt
+2026-10-03,qutip,10,200,6,6,True,0.815,1.0,5,False
+2026-10-07,qutip,10,200,6,6,True,0.5,1.0,5,False
+2026-10-11,qutip,10,200,7,7,True,0.605,1.0,6,False
+2026-10-15,qutip,10,200,6,6,True,0.74,1.0,5,False
+2026-10-19,qutip,10,200,6,6,True,0.81,1.0,5,False

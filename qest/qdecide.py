@@ -40,7 +40,7 @@ PCE_Q, PCE_L, PCE_RESTARTS = 5, 4, 4
 OJ_SCALE = 100.0  # Q3 day 11: SQA found the QUBO minimum in 0 / 5 seeds at x1-10, 2 / 5 at x30, 5 / 5 at x100-1000 (SA: 5 / 5 at all)
 PART_B = 12
 SOLVERS = ('qaoa', 'wsqaoa', 'pce', 'sqa', 'sa', 'exact', 'samples')
-_CACHE, LOG = {}, []
+_CACHE, LOG, HW_EXPORT = {}, [], {}
 
 
 def hours(n):
@@ -240,6 +240,17 @@ def solve(q, solver, seed=0):
         from qest import qpart
         meth, _, mode = solver[2:].partition('_'); y, _ = qpart.solve(q, PART_B, max(2, PART_B // 4), qpart.schedule(PART_B), meth, mode or 'mult', device=24, seed=seed)
         return y[None], None
+    if solver == 'hwexport':  # collect the Ising problems for a hardware run (scripts/hw_decide.py); plan on the classical samples meanwhile
+        h, J = ising(q); HW_EXPORT[q['key']] = dict(h=h.tolist(), J=J.tolist()); return q['Y'][np.argsort(-q['V'])[:K]], None
+    if solver in ('hw', 'hw+'):  # bit strings measured on a QPU (QEST_HW_SAMPLES = JSON {key: [[bits]]}); 'hw+': with the classical samples in the
+        # pool, so the selected plan is never worse than the classical control in the model (proofs/Qproofs/Hybrid.lean, hybrid_ge_classical)
+        import json, os
+        if 'hw' not in _CACHE:
+            _CACHE['hw'] = json.load(open(os.environ['QEST_HW_SAMPLES']))
+        Y = np.array(_CACHE['hw'].get(q['key'], []), int); cls = q['Y'][np.argsort(-q['V'])[:K]]
+        if len(Y) == 0:
+            return cls, None
+        return (np.unique(np.r_[top_k(q, Y), cls], axis=0) if solver == 'hw+' else top_k(q, Y)), None
     if solver == 'samples':
         return q['Y'][np.argsort(-q['V'])[:K]], None
     raise ValueError(solver)
@@ -264,7 +275,7 @@ def plan(solver, units, ctx, cfg, fc='chronos'):
         key = (fc, day, u.name)
         if key not in _CACHE:
             t = time.time(); _CACHE[key] = build(u, px, pv, cfg); _CACHE[key]['t_build'] = time.time() - t
-        q = _CACHE[key]; t = time.time(); C, _ = solve(q, solver); ts = time.time() - t
+        q = _CACHE[key]; q['key'] = f'{day}|{u.name}'; t = time.time(); C, _ = solve(q, solver); ts = time.time() - t
         V = np.array([lp_value(u, px, pv, cfg, y) for y in C]); y = C[V.argmax()]
         pl = plan_storage(u, px, pv, depth=cfg.cap_depth, fixed={'y2': np.repeat(y, 4)[:n]})
         pl.update(margins=ctx.calib['margins'], soc_ref=pl['soc'], policy='soc_aware', tol=ctx.calib.get('tol', .05)); out[u.name] = pl
@@ -296,6 +307,9 @@ def main():
     cfg = market.Config(); units = market.portfolio(['battery', 'hybrid'], official=cfg.official)
     R, tar = run(a.split, names, units, cfg); R.to_parquet(RESULTS / f'days_{a.split}_qdecide_{tag}.parquet')
     G = pd.DataFrame(LOG); G.to_csv(RESULTS / f'qdecide_{a.split}_{tag}.csv', index=False)
+    if HW_EXPORT:
+        import json
+        json.dump(HW_EXPORT, open(RESULTS / f'hw_problems_{a.split}_{a.fc}.json', 'w')); print('exported', len(HW_EXPORT), 'Ising problems')
     t = table(R, tar); pd.set_option('display.width', 250); print(t[['total', 'cap', 'da', 'mfrr', 'afrr', 'imbalance']].round(0).to_string())
     print(G.groupby('solver')[['r2', 'lp_best', 'milp_fixed', 'hit', 's_solve']].mean().round(3).to_string())
 

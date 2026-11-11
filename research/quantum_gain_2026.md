@@ -538,3 +538,30 @@ would need the puzzle recast as a Rydberg-blockade (MIS-type) Hamiltonian, not a
 With Revenue.lean (information bound, value of the stochastic solution, sampler regret, quantum-gain ceiling): 13 theorems.
 What the proofs do not give: a rate. They certify that each hybrid loop is correct and cannot do worse than its classical
 part in the model; whether the quantum part does better is empirical, and sections 3, 10 and 11 are that evidence.
+
+## 13. Each QPU on its strength, and the QPU inside the revenue loop (11-12 Nov)
+
+| Device | Strength used | Job | Result |
+|---|---|---|---|
+| IBM Heron `ibm_fez` (156 q, fast, deep circuits) | gate-model QAOA at 15-24 qubits | puzzle, 120 hours (s11); day decider, 50 circuits of 24 qubits, p = 1, 946 two-qubit gates after routing | puzzle 85 % vs 59 % control (p < 0.0001); decider below |
+| IQM Garnet (19 q) / Emerald (54 q) | square lattice, high-fidelity CZ | puzzle, 24 hours on Garnet; Emerald decider refused | 71 % vs 62 % (one day); **account out of pay-as-you-go credits** after three Garnet jobs |
+| Pasqal Fresnel SA1 (analog, 200 atoms, global Rydberg drive) | independent sets by blockade, natively | `scripts/pasqal_run.py`: max number of premium discharge hours the battery can recover between = MIS of an interval graph, atoms on a line (6 um per hour, blockade radius 9 um), adiabatic sweep | emulation (QutipEmulator, 5 days, 200 runs): every shot valid, optimum in 50-82 % of shots, found on 5 / 5 days; random control 0 / 5. **Real device refused: the project may not create batches on FRESNEL_SA1** (cloud emulator EMU_FREE accepted) |
+
+Day decider with IBM samples in the plan (Q4, 25 days, battery + hybrid, rank-gated inputs, walk-forward; `qdecide` solvers
+`hw` = top-8 hardware samples by QUBO energy, `hw+` = hardware samples with the classical samples in the pool):
+
+| Decider | Q4 EUR | vs MILP | Planned objective (mean LP value) |
+|---|---:|---:|---:|
+| MILP | 1,878,086 | - | - |
+| LR-QAOA, ideal simulator | 1,882,673 | +0.24 % (+- 19k) | 105,797 |
+| classical samples (control) | 1,877,109 | -0.05 % (+- 26k) | 105,752 |
+| **IBM samples + classical pool (`hw+`)** | 1,875,024 | -0.16 % (-3k +- 25k) | **105,768** |
+| IBM samples only (`hw`) | 1,862,049 | -0.85 % (-16k +- 27k) | 105,673 |
+
+A real QPU has now sat inside the bidding loop for 25 days. Alone, at 946 two-qubit gates, its samples cost 0.85 % (inside
+the interval; the QUBO optimum is never hit). With the classical samples in the pool the planned objective is higher than
+the classical control's (105,768 against 105,752), exactly as `hybrid_ge_classical` guarantees, and the realised revenue
+is level with the MILP. So the safe way to carry a noisy QPU in production is proven and measured: verify, keep the
+incumbent, never lose in the model. It does not yet earn.
+
+Blocked, needing the account owner: IQM credits; Fresnel access for the Pasqal project; both scripts are ready.

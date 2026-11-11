@@ -480,3 +480,7 @@ Hardware, 11 Nov evening: IBM (`ibm_fez`, key IBM_API + CRN in .env) and IQM Gar
 `--score` for other vendors; `--pack`), `scripts/iqm_run.py`. ibm_fez, 120 hours on 5 days, p = 2: optimum returned 85.0 %
 vs 59.2 % random (McNemar p < 0.0001). Garnet 71 % vs 62 % on one day. Packing 10 puzzles on 150 qubits drops to 58 %.
 Pasqal not run (password prompt). `proofs/Qproofs/Hybrid.lean`: 8 more theorems on the hybrid strategies.
+12 Nov (night): QPU in the revenue loop (`qdecide` solvers hwexport / hw / hw+, `scripts/hw_decide.py`): 50 Q4 day QUBOs on
+ibm_fez (24 q, 946 2q gates): hw -0.85 %, hw+ -0.16 % vs MILP, planned objective of hw+ above the classical control.
+Pasqal (`scripts/pasqal_run.py`, PASQAL_PASS): native MIS scheduling instance, emulated 5 / 5 optimal; FRESNEL_SA1 refused
+for this project (CB1107), EMU_FREE accepted. IQM: out of PAYG credits after three Garnet jobs.
