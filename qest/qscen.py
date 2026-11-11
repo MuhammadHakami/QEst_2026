@@ -160,6 +160,24 @@ def day_scenarios(ctx, px50, n=8, seed=0, sampler='exact'):
     P = params(ctx.idx[0].tz_convert('Europe/Tallinn').date()); X = features(ctx.fc, ctx.idx)
     if sampler == 'exact':
         Y = sample(P, X, n, seed)
+    elif sampler.startswith('reduce'):  # scenario reduction (fast forward selection, Heitsch & Roemisch 2003): draw many exact (or quantum-MCMC,
+        # 'reduceq') paths, keep the n whose weighted set is closest to the full set in Hamming distance; each kept path carries its cluster's mass
+        if sampler == 'reduceq':
+            from qest.qscen_q import sample_day
+            Z = sample_day(P, X, 64, seed, quantum=True)
+        else:
+            Z = sample(P, X, 256, seed)
+        F = Z.reshape(len(Z), -1).astype(np.float32); D = (F[:, None, :] != F[None, :, :]).sum(-1).astype(float); keep = []
+        for _ in range(n):
+            best, bj = None, None
+            for j in range(len(Z)):
+                if j in keep: continue
+                c = D[:, keep + [j]].min(1).sum()
+                if best is None or c < best: best, bj = c, j
+            keep.append(bj)
+        w = np.bincount(D[:, keep].argmin(1), minlength=n) / len(Z); Y = Z[keep]
+        ratio = (float(np.mean(px50['m_up_q']) / max((w[:, None] * Y[:, :, 0]).sum(0).mean(), 1e-3)), float(np.mean(px50['m_dn_q']) / max((w[:, None] * Y[:, :, 1]).sum(0).mean(), 1e-3)))
+        return [scenario_px(P, px50, y, ratio) for y in Y], w
     elif sampler == 'qgen':  # the conditional quantum circuit Born machine (qest.qgen), a generative model of its own, not the chain
         from qest import qgen
         Y = qgen.sample_day(qgen.params(ctx.idx[0].tz_convert('Europe/Tallinn').date()), X, n, seed)

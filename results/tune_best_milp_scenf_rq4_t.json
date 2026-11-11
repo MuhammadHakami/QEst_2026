@@ -1,0 +1,14 @@
+{
+ "margins": {
+  "afrr_up": 10,
+  "afrr_down": 10,
+  "mfrr_up": 6.7820028075127485,
+  "mfrr_down": 6.7820028075127485
+ },
+ "params": {
+  "kappa_up": 0.950972048333426,
+  "kappa_dn": 0.0034893314132729107,
+  "tol": 0.1882923388076582
+ },
+ "note": "tuned on Q2 (46 days) only, scripts/tune_scen.py"
+}

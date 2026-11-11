@@ -339,6 +339,9 @@ STOCH = dict(milp_act=_actfc_marginals, milp_act_gated=_actfc_gated, milp_act_ra
              milp_scenf16=_stoch(0.0, 'markov', 16, 'faithful', 'act'), milp_scenf4=_stoch(0.0, 'markov', 4, 'faithful', 'act'),
              # Q2-tuned knobs (scripts/tune_scen.py; results/tune_best_<name>.json), 4 scenarios: exact chain, quantum-proposal MCMC, single-flip MCMC
              milp_scenf4_t=_stoch(0.0, 'markov', 4, 'faithful', 'act'), milp_scenf_qs4_t=_stoch(0.0, 'markov', 4, 'faithful', 'act', 'qmcmc'), milp_scenf_ls4_t=_stoch(0.0, 'markov', 4, 'faithful', 'act', 'lmcmc'),
+             # scenario reduction: 256 exact (or 64 quantum-MCMC) draws reduced to 4 / 8 weighted representatives; Q2-tuned knobs
+             milp_scenf_r4_t=_stoch(0.0, 'markov', 4, 'faithful', 'act', 'reduce'), milp_scenf_r8_t=_stoch(0.0, 'markov', 8, 'faithful', 'act', 'reduce'),
+             milp_scenf_rq4_t=_stoch(0.0, 'markov', 4, 'faithful', 'act', 'reduceq'),
              milp_scenf_qg=_stoch(0.0, 'markov', 8, 'faithful', 'act', 'qgen'), milp_scenf_qg16=_stoch(0.0, 'markov', 16, 'faithful', 'act', 'qgen'))
 
 

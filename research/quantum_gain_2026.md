@@ -433,3 +433,20 @@ acceptance of the local chain. PostNAS found no depth to cut. Euros with it: sec
 Q4 alone: NAS-quantum 2,110,259 (+15.8 % over baseline, +74k +- 93k over exact), capped 1,525,987 (+15.0 %). The NAS
 proposal moves the quantum-sampled plan from the weakest to level with the exact chain; no difference between scenario
 sources is significant. Whole year under the sim-to-real preset: research/sim2real.md s4 (28.70 M -> 30.68 M, +6.9 %).
+
+### 10c. Scenario reduction and the sim-to-real tune (11 Nov)
+
+Reduction (`qscen.day_scenarios(sampler='reduce')`: 256 exact draws, or 64 quantum-MCMC draws for `reduceq`, reduced to 4 / 8
+weighted representatives by fast forward selection on Hamming distance), Q2-tuned knobs, out of sample on Q3 + Q4:
+
+| 117 days | Organisers' rules | vs baseline | vs 4 random draws | 25 MW cap | vs baseline |
+|---|---:|---:|---:|---:|---:|
+| tuned, 4 random exact draws | 11,640,522 | +17.2 % | - | 8,280,196 | +13.5 % |
+| tuned, 256 -> 4 reduced | 11,783,155 | +18.6 % | +143k +- 363k | 8,280,184 | +13.5 % |
+| **tuned, 256 -> 8 reduced** | **11,826,341** | **+19.0 %** | +186k +- 363k (62 / 117) | **8,295,612** | **+13.8 %** |
+| tuned, 64 quantum-MCMC -> 4 reduced | 11,685,287 | +17.6 % | +45k +- 378k | 8,276,356 | +13.5 % |
+
+Reduction gives the highest totals so far in both settlements, but its gain over four random draws is inside the interval:
+recorded as the best point estimate, not as an established improvement. The quantum-sampled reduced set is level with the
+classical one. Optuna on Q2 under the sim-to-real preset (`QEST_REAL=1`, 48 trials): EUR 5,555,382 against 5,536,640 with
+the inherited knobs (+0.3 %): nothing to gain, the official-rule knobs are kept for the preset.
